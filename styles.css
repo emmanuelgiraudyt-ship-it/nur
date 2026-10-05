@@ -1,0 +1,142 @@
+@font-face {
+  font-family: "KFGQPC Warsh";
+  src: url("fonts/KFGQPC-Warsh-Uthmanic.ttf") format("truetype");
+  font-display: swap;
+}
+:root {
+  --bg: #F5F0E1; --panel: #FFFFFF; --ink: #12302A; --muted: #55655D; --line: #D9D0B6;
+  --accent: #0F4C3A; --gold: #8A6A12; --onaccent: #F5F0E1; --soft: #EDE6CE; --danger: #9B2C2C;
+  --fs: 1;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --bg: #0B241D; --panel: #12372C; --ink: #F3EBD3; --muted: #A9B8AE; --line: #2B5A4A;
+    --accent: #C9A24B; --gold: #C9A24B; --onaccent: #0B241D; --soft: #18443A; --danger: #F0A0A0;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B241D; --panel: #12372C; --ink: #F3EBD3; --muted: #A9B8AE; --line: #2B5A4A;
+  --accent: #C9A24B; --gold: #C9A24B; --onaccent: #0B241D; --soft: #18443A; --danger: #F0A0A0;
+}
+:root[data-theme="contrast"] {
+  --bg: #000; --panel: #000; --ink: #FFF; --muted: #E6E6E6; --line: #FFF;
+  --accent: #FFD700; --gold: #FFD700; --onaccent: #000; --soft: #1A1A1A; --danger: #FF9090;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 64px); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: calc(17px * var(--fs)); line-height: 1.6;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+}
+.skip { position: absolute; left: -999px; top: 0; background: var(--accent); color: var(--onaccent); padding: .6rem 1rem; z-index: 100; }
+.skip:focus { left: 0; }
+.top {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; align-items: center; gap: .5rem;
+  padding: calc(env(safe-area-inset-top, 0px) + .4rem) 1rem .4rem;
+  background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.top h1 { font-size: 1.15rem; margin: 0; flex: 1; font-weight: 600; letter-spacing: .02em; }
+.top .ar, .ar { font-family: "KFGQPC Warsh", "Amiri", "Traditional Arabic", serif; }
+.net { font-size: .75rem; color: var(--muted); }
+.iconbtn { font: inherit; background: none; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; min-width: 44px; min-height: 44px; cursor: pointer; font-size: 1.1rem; }
+#main { max-width: 760px; margin: 0 auto; padding: 1rem 1rem 2rem; outline: none; }
+.tabs {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; display: flex;
+  background: var(--panel); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tabs a {
+  flex: 1; text-align: center; text-decoration: none; color: var(--muted);
+  padding: .55rem .2rem; font-size: .78rem; min-height: 56px; border-top: 3px solid transparent;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem;
+}
+.tabs a .g { font-size: 1.25rem; line-height: 1; font-family: sans-serif; }
+.tabs a[aria-current="page"] { color: var(--ink); font-weight: 700; border-top-color: var(--gold); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--gold); outline-offset: 2px;
+}
+h2 { font-size: 1.5rem; margin: .2rem 0 .8rem; font-weight: 600; }
+h3 { font-size: 1.15rem; margin: 1.4rem 0 .5rem; }
+p { margin: .4rem 0 .8rem; }
+.muted { color: var(--muted); font-size: .9rem; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; margin: 0 0 .9rem; }
+.card h3:first-child { margin-top: 0; }
+.callout { border-left: 4px solid var(--gold); background: var(--soft); padding: .7rem 1rem; border-radius: 0 8px 8px 0; margin: .9rem 0; font-size: .95rem; }
+.callout.warn { border-left-color: var(--danger); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+@media (max-width: 420px) { .grid.keep { grid-template-columns: 1fr 1fr; } }
+.tile { display: block; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; min-height: 96px; }
+.tile strong { display: block; font-size: 1.15rem; margin-bottom: .2rem; }
+.tile span { color: var(--muted); font-size: .88rem; }
+.btn { font: inherit; background: var(--accent); color: var(--onaccent); border: 0; border-radius: 10px; padding: .65rem 1.1rem; min-height: 44px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }
+.btn.alt { background: none; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+.btn.danger { background: none; color: var(--danger); border: 1px solid var(--danger); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.row { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+.row.between { justify-content: space-between; }
+label.f { display: block; font-size: .9rem; color: var(--muted); margin: .9rem 0 .25rem; }
+input[type=text], input[type=number], input[type=search], input[type=password], select, textarea {
+  width: 100%; font: inherit; background: var(--bg); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 8px; padding: .6rem .7rem; min-height: 44px;
+}
+input[type=range] { width: 100%; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li a, .list li button.item {
+  display: flex; align-items: center; gap: .8rem; width: 100%; text-align: left; font: inherit; color: inherit;
+  text-decoration: none; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: .6rem .9rem; margin-bottom: .45rem; min-height: 52px; cursor: pointer;
+}
+.badge { display: inline-flex; align-items: center; justify-content: center; min-width: 2.1rem; height: 2.1rem; border: 1px solid var(--gold); color: var(--gold); border-radius: 999px; font-size: .85rem; flex: none; }
+.list .nm { flex: 1; }
+.list .nm small { display: block; color: var(--muted); font-size: .8rem; }
+.list .ar { font-size: 1.35rem; }
+.bar { height: 8px; background: var(--soft); border-radius: 4px; overflow: hidden; margin-top: .4rem; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.pill { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: .15rem .7rem; font-size: .8rem; color: var(--muted); }
+
+/* Lecture du Coran */
+.mushaf { font-family: "KFGQPC Warsh", "Amiri", serif; direction: rtl; text-align: justify; text-align-last: center; line-height: 2.5; font-size: calc(26px * var(--fs)); padding: 1rem .8rem; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.mushaf .v { cursor: pointer; border-radius: 6px; padding: 0 .1em; }
+.mushaf .v:hover { background: var(--soft); }
+.mushaf .v.sel { background: var(--soft); outline: 1px solid var(--gold); }
+.mushaf .v.mem { color: var(--gold); }
+.mushaf .v.bm::after { content: " \25C6"; font-size: .6em; color: var(--gold); }
+.mushaf .hide { color: transparent; text-shadow: 0 0 10px var(--muted); user-select: none; }
+.mushaf .first { color: var(--ink); text-shadow: none; }
+.suraHead { text-align: center; font-family: "KFGQPC Warsh", "Amiri", serif; font-size: calc(30px * var(--fs)); border: 1px solid var(--gold); border-radius: 10px; padding: .5rem; margin: 0 0 .8rem; color: var(--gold); }
+.basmala { text-align: center; direction: rtl; font-family: "KFGQPC Warsh", "Amiri", serif; font-size: calc(28px * var(--fs)); margin: .2rem 0 .6rem; }
+.pageTag { direction: ltr; text-align: center; display: block; font-family: "Source Serif 4", serif; font-size: .75rem; color: var(--muted); margin: .6rem 0; }
+.sheet { position: sticky; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); background: var(--panel); border: 1px solid var(--gold); border-radius: 12px; padding: .7rem; margin-top: .8rem; display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+
+/* Prières */
+.prayers { display: grid; gap: .5rem; }
+.prayer { display: flex; justify-content: space-between; align-items: center; padding: .65rem .9rem; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.prayer.next { border-color: var(--gold); background: var(--soft); font-weight: 700; }
+.prayer .t { font-variant-numeric: tabular-nums; font-size: 1.2rem; }
+.big { font-size: 2.2rem; font-variant-numeric: tabular-nums; font-weight: 600; line-height: 1.1; }
+.compass { width: 220px; height: 220px; margin: .5rem auto; position: relative; border: 2px solid var(--gold); border-radius: 50%; }
+.compass .needle { position: absolute; left: 50%; top: 8%; width: 4px; height: 42%; background: var(--gold); transform-origin: 50% 100%; margin-left: -2px; border-radius: 2px; }
+.compass .dot { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px; background: var(--gold); border-radius: 50%; }
+.compass .n { position: absolute; left: 50%; top: 2px; transform: translateX(-50%); font-size: .8rem; color: var(--muted); }
+table.month { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
+table.month th, table.month td { padding: .35rem .3rem; border-bottom: 1px solid var(--line); text-align: center; }
+table.month tr.today { background: var(--soft); font-weight: 700; }
+.scroll { overflow-x: auto; }
+
+/* Compteurs / enfant */
+.counter { text-align: center; }
+.counter .num { font-size: 3.4rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+.tap { width: 100%; min-height: 130px; font-size: 1.3rem; border-radius: 16px; border: 2px solid var(--gold); background: var(--soft); color: var(--ink); cursor: pointer; font: inherit; font-weight: 700; touch-action: manipulation; }
+.tap:active { transform: scale(.985); }
+.stars { font-size: 2rem; color: var(--gold); text-align: center; min-height: 2.4rem; letter-spacing: .2em; }
+.kid .mushaf { font-size: calc(36px * var(--fs)); }
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); background: var(--ink); color: var(--bg); padding: .6rem 1rem; border-radius: 10px; z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: 90vw; text-align: center; }
+#toast.show { opacity: 1; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+@media print { .tabs, .top { display: none; } body { padding: 0; } }
