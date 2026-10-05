@@ -33,7 +33,7 @@
   var Q = null;
   function loadQ() {
     if (Q) return Promise.resolve(Q);
-    return fetch("data/quran.json").then(function (r) { if (!r.ok) throw new Error("data"); return r.json(); }).then(function (j) {
+    return fetch("quran.json").then(function (r) { if (!r.ok) throw new Error("data"); return r.json(); }).then(function (j) {
       j.byN = {}; j.suras.forEach(function (s) { j.byN[s.n] = s; }); Q = j; return Q;
     });
   }
@@ -478,7 +478,7 @@
   route(/^\/apropos$/, function () {
     var html = '<h2>À propos</h2><p>NÛR (نور) est une application islamique francophone, sans publicité, sans représentation d\'être vivant, conçue pour les croyants de tous niveaux, avec une attention particulière à la diaspora africaine de rite malikite.</p>' +
       '<div class="card"><h3>Riwaya</h3><p>Le texte est celui de la riwaya de Warsh ʿan Nâfiʿ, selon les données et la police du Complexe du Roi Fahd d\'impression du Noble Coran (KFGQPC), version 0.10 (5 août 2021).</p></div>' +
-      '<div class="card"><h3>Sources et licences</h3><ul><li>Données du texte : KFGQPC, relayées par le dépôt public « thetruetruth/quran-data-kfgqpc » (github.com/thetruetruth/quran-data-kfgqpc).</li><li>Police « KFGQPC Warsh Uthmanic Script » : © KFGQPC. Usage, copie et distribution gratuits ; vente, modification et ingénierie inverse interdites. Licence complète : <a href="fonts/LICENCE-KFGQPC.txt">fonts/LICENCE-KFGQPC.txt</a>.</li><li>Calcul des prières : algorithme astronomique de position solaire, validé à moins d\'une minute contre une bibliothèque indépendante.</li></ul></div>' +
+      '<div class="card"><h3>Sources et licences</h3><ul><li>Données du texte : KFGQPC, relayées par le dépôt public « thetruetruth/quran-data-kfgqpc » (github.com/thetruetruth/quran-data-kfgqpc).</li><li>Police « KFGQPC Warsh Uthmanic Script » : © KFGQPC. Usage, copie et distribution gratuits ; vente, modification et ingénierie inverse interdites. Licence complète : <a href="LICENCE-KFGQPC.txt">LICENCE-KFGQPC.txt</a>.</li><li>Calcul des prières : algorithme astronomique de position solaire, validé à moins d\'une minute contre une bibliothèque indépendante.</li></ul></div>' +
       '<div class="card"><h3>Points en attente</h3><ul><li>Validation par l\'imam garant de la présente version (texte Warsh, leçons de tajwid, formulations).</li><li>Traduction française et translittération : à intégrer à partir d\'une source dont les droits sont établis.</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Abonnements et paiements : non inclus dans cette version, gratuite.</li><li>Notifications d\'adhan en arrière-plan : nécessitent une application native.</li></ul></div>' +
       '<p class="muted">Version ' + VERSION + '. Aucune donnée personnelle n\'est collectée ni transmise.</p>';
     return { title: "À propos", html: html, back: "#/plus" };
@@ -533,7 +533,7 @@
       ORDER.forEach(function (p) {
         var d = T[p[0]] - now;
         if (d > 0 && d < 36 * 3600e3) notifTimers.push(setTimeout(function () {
-          try { new Notification("NÛR — " + p[1], { body: "C'est l'heure de la prière.", icon: "icons/icon-192.png" }); } catch (e) {}
+          try { new Notification("NÛR — " + p[1], { body: "C'est l'heure de la prière.", icon: "icon-192.png" }); } catch (e) {}
         }, d));
       });
     });

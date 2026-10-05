@@ -1,6 +1,6 @@
 @font-face {
   font-family: "KFGQPC Warsh";
-  src: url("fonts/KFGQPC-Warsh-Uthmanic.ttf") format("truetype");
+  src: url("KFGQPC-Warsh-Uthmanic.ttf") format("truetype");
   font-display: swap;
 }
 :root {
