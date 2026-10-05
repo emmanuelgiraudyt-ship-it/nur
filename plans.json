@@ -1,0 +1,60 @@
+{
+ "devise": "EUR",
+ "statut": "Tarifs à renseigner par le commanditaire. Aucun montant n'est affiché tant que ce fichier contient null.",
+ "individuel": [
+  {
+   "id": "initie",
+   "nom": "Initié (débutant)",
+   "gratuit": true,
+   "prix_mensuel": null,
+   "prix_annuel": null
+  },
+  {
+   "id": "intermediaire",
+   "nom": "Intermédiaire",
+   "gratuit": false,
+   "prix_mensuel": null,
+   "prix_annuel": null
+  },
+  {
+   "id": "disciple",
+   "nom": "Disciple",
+   "gratuit": false,
+   "prix_mensuel": null,
+   "prix_annuel": null
+  },
+  {
+   "id": "cheikh",
+   "nom": "Cheikh Premium",
+   "gratuit": false,
+   "prix_mensuel": null,
+   "prix_annuel": null
+  }
+ ],
+ "famille": {
+  "nom": "Famille (1 parent et jusqu'à 4 enfants)",
+  "prix_mensuel": null,
+  "prix_annuel": null
+ },
+ "mosquee": [
+  {
+   "id": "S",
+   "nom": "Mosquée S",
+   "fideles": 50,
+   "prix_annuel": null
+  },
+  {
+   "id": "M",
+   "nom": "Mosquée M",
+   "fideles": 200,
+   "prix_annuel": null
+  },
+  {
+   "id": "L",
+   "nom": "Mosquée L",
+   "fideles": null,
+   "illimite": true,
+   "prix_annuel": null
+  }
+ ]
+}

@@ -140,3 +140,20 @@ table.month tr.today { background: var(--soft); font-weight: 700; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 @media print { .tabs, .top { display: none; } body { padding: 0; } }
+
+/* v1.1 : lecture débutant, alphabet, niveaux */
+.vcard { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .9rem 1rem; margin: 0 0 .8rem; }
+.vcard.done { border-color: var(--gold); }
+.ar-line { font-size: calc(30px * var(--fs)); line-height: 2.4; text-align: right; padding: .2rem 0; border: 0; background: none; }
+.ph { font-size: calc(1.05rem * var(--fs)); color: var(--gold); font-style: italic; margin: .2rem 0; word-spacing: .15em; }
+.trfr { margin: .3rem 0 .6rem; }
+.chk-flag { font-style: normal; font-size: .72rem; border: 1px solid var(--danger); color: var(--danger); border-radius: 999px; padding: 0 .5rem; margin-left: .4rem; }
+label.chk { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; font-size: .95rem; }
+.lgrid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+@media (max-width: 520px) { .lgrid { grid-template-columns: 1fr; } }
+.lcard { display: flex; gap: .8rem; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .6rem .8rem; }
+.lcard .lg { font-size: 2.4rem; line-height: 1; min-width: 2.4rem; text-align: center; color: var(--gold); }
+ul.plain { list-style: none; padding: 0; margin: 0; }
+ul.plain li { padding: .35rem 0; border-bottom: 1px solid var(--line); }
+ul.plain li:last-child { border-bottom: 0; }
+.big2 { font-size: 1.8rem; margin-right: .5rem; display: inline-block; min-width: 3rem; }

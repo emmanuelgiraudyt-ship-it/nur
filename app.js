@@ -6,13 +6,13 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var KEY = "nur:v1";
 
   /* ------------------------------------------------------------ état persistant */
   function DEF() {
     return {
-      settings: { method: "MWL", theme: "auto", fs: 1, hijriOffset: 0, loc: null, offsets: {}, dhuhrMin: 0, customFajr: 18, customIsha: 17, pin: null, notif: false },
+      settings: { method: "MWL", theme: "auto", fs: 1, hijriOffset: 0, loc: null, offsets: {}, dhuhrMin: 0, customFajr: 18, customIsha: 17, pin: null, notif: false, layers: { phon: true, fr: true }, speed: 1 },
       last: null, bookmarks: [], hifz: {}, journal: [], gratitudes: [], intentions: [], stars: 0,
       tidj: { items: [], log: {} }
     };
@@ -30,7 +30,14 @@
   function toast(msg) { var t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove("show"); }, 2600); }
 
   /* ------------------------------------------------------------ données du Coran */
-  var Q = null;
+  var Q = null, OPT = null;
+  function loadOpt() {
+    if (OPT) return Promise.resolve(OPT);
+    function get(f) { return fetch(f).then(function (r) { return r && r.ok ? r.json() : null; }).catch(function () { return null; }); }
+    return Promise.all([get("phonetique.json"), get("traduction-fr.json"), get("audio.json"), get("plans.json")]).then(function (a) {
+      OPT = { phon: a[0], fr: a[1], audio: a[2], plans: a[3] }; return OPT;
+    });
+  }
   function loadQ() {
     if (Q) return Promise.resolve(Q);
     return fetch("quran.json").then(function (r) { if (!r.ok) throw new Error("data"); return r.json(); }).then(function (j) {
@@ -132,6 +139,9 @@
   route(/^\/plus$/, function () {
     var html = '<ul class="list">' +
       '<li><a href="#/prieres"><span class="nm">Heures de prière et qibla</span></a></li>' +
+      '<li><a href="#/alphabet"><span class="nm">Alphabet et lecture<small>Pour débuter</small></span></a></li>' +
+      '<li><a href="#/niveaux"><span class="nm">Mes niveaux</span></a></li>' +
+      '<li><a href="#/offres"><span class="nm">Accès et offres</span></a></li>' +
       '<li><a href="#/tidjaniya"><span class="nm">Tidjaniya — compteurs de dhikr<small>Contenus à fournir par votre mouqaddam</small></span></a></li>' +
       '<li><a href="#/enfant"><span class="nm">Espace enfant<small>Sourates courtes, étoiles</small></span></a></li>' +
       '<li><a href="#/reglages"><span class="nm">Réglages</span></a></li>' +
@@ -161,7 +171,7 @@
   });
 
   // Lecteur (Réciter / Apprendre)
-  var readMode = "lecture";
+  var readMode = null;
   function readerHTML(s, q, mode) {
     var mem = S.hifz[s.n] || [], bms = S.bookmarks;
     var out = '<div class="suraHead">' + esc(s.ar) + '</div>';
@@ -180,26 +190,86 @@
     });
     return out + '</div>';
   }
+
+  function layersHTML(opt) {
+    var L = S.settings.layers || {};
+    return '<div class="row" style="margin:.2rem 0 .6rem"><label class="chk"><input type="checkbox" id="lp"' + (L.phon ? " checked" : "") + '> Phonétique</label><label class="chk"><input type="checkbox" id="lt"' + (L.fr ? " checked" : "") + '> Traduction française</label>' +
+      (opt.audio ? '<label class="f" for="spd" style="margin:0">Vitesse</label><select id="spd" style="max-width:110px">' + [0.75, 1, 1.25].map(function (x) { return '<option value="' + x + '"' + ((S.settings.speed || 1) === x ? " selected" : "") + '>' + x + '×</option>'; }).join("") + '</select>' : "") + '</div>';
+  }
+  function audioUrl(opt, kind, sn, a) {
+    var t = opt.audio && opt.audio[kind]; if (!t) return null;
+    var p3 = function (n) { return String(n).padStart(3, "0"); };
+    return t.replace("{n3}", p3(sn)).replace("{n}", sn).replace("{a3}", p3(a || 0)).replace("{a}", a || 0);
+  }
+  function versesHTML(s, q, opt) {
+    var ph = opt.phon && opt.phon.suras && opt.phon.suras[s.n], fr = opt.fr && opt.fr.suras && opt.fr.suras[s.n], L = S.settings.layers || {};
+    var mem = S.hifz[s.n] || [], out = '';
+    if (s.n !== 1 && s.n !== 9) out += '<div class="basmala">' + esc(q.basmala) + '</div>';
+    if (L.phon && !ph) out += '<div class="callout">Phonétique : disponible pour la Fâtiha et les sourates 99 à 114 (brouillon en cours de validation). Elle sera étendue après validation par l\'imam garant.</div>';
+    if (L.fr && !fr) out += '<div class="callout">Traduction française : en cours d\'intégration (source et droits à confirmer).</div>';
+    if (!opt.audio) out += '<div class="callout">Audio : à intégrer après accord des ayants droit sur les récitations de Warsh.</div>';
+    else if (audioUrl(opt, "sura", s.n)) out += '<p><button class="btn" id="playS">Écouter la sourate</button> <button class="btn alt" id="stopA">Arrêter</button></p>';
+    s.v.forEach(function (v, i) {
+      var isMem = mem.indexOf(v[0]) >= 0, isBm = S.bookmarks.indexOf(s.n + ":" + v[0]) >= 0;
+      out += '<article class="vcard' + (isMem ? " done" : "") + '" data-a="' + v[0] + '"><div class="row between"><span class="badge">' + v[0] + '</span><span class="muted">Page ' + v[2] + '</span></div>' +
+        '<div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v[1]) + '</div>';
+      if (L.phon && ph && ph[i]) out += '<div class="ph">' + esc(ph[i][0]) + (ph[i][1] ? ' <span class="chk-flag" title="Particularité de Warsh à vérifier avec l\'imam garant">à vérifier</span>' : '') + '</div>';
+      if (L.fr && fr && fr[i]) out += '<div class="trfr">' + esc(fr[i]) + '</div>';
+      out += '<div class="row">' + (opt.audio && audioUrl(opt, "verse", s.n, v[0]) ? '<button class="btn alt" data-play="' + v[0] + '">Écouter</button>' : '') +
+        '<button class="btn alt" data-rep="' + v[0] + '">Répéter <span class="rc">0</span>/3</button>' +
+        '<button class="btn alt" data-mem="' + v[0] + '" aria-pressed="' + isMem + '">' + (isMem ? "Mémorisé" : "Marquer mémorisé") + '</button>' +
+        '<button class="btn alt" data-bm="' + v[0] + '" aria-pressed="' + isBm + '">' + (isBm ? "Signet posé" : "Signet") + '</button></div></article>';
+    });
+    return out;
+  }
+  var curAudio = null;
+  function bindVerses(r, s, opt) {
+    var lp = $("#lp", r), lt = $("#lt", r), spd = $("#spd", r);
+    if (lp) lp.onchange = function () { S.settings.layers.phon = lp.checked; save(); render(); };
+    if (lt) lt.onchange = function () { S.settings.layers.fr = lt.checked; save(); render(); };
+    if (spd) spd.onchange = function () { S.settings.speed = +spd.value; save(); if (curAudio) curAudio.playbackRate = S.settings.speed; };
+    function play(url) {
+      if (curAudio) { curAudio.pause(); }
+      curAudio = new Audio(url); curAudio.playbackRate = S.settings.speed || 1;
+      curAudio.play().catch(function () { toast("Lecture audio impossible (connexion ou fichier indisponible)."); });
+    }
+    onLeave(function () { if (curAudio) { curAudio.pause(); curAudio = null; } });
+    var ps = $("#playS", r); if (ps) ps.onclick = function () { play(audioUrl(opt, "sura", s.n)); };
+    var sa = $("#stopA", r); if (sa) sa.onclick = function () { if (curAudio) curAudio.pause(); };
+    $$("[data-play]", r).forEach(function (b) { b.onclick = function () { play(audioUrl(opt, "verse", s.n, +b.dataset.play)); }; });
+    $$("[data-rep]", r).forEach(function (b) { b.onclick = function () {
+      var rc = $(".rc", b), n = (+rc.textContent + 1); rc.textContent = n > 3 ? 1 : n; if (n === 3) toast("Bien : verset répété trois fois."); S.last = { s: s.n, a: +b.dataset.rep }; save();
+    }; });
+    $$("[data-mem]", r).forEach(function (b) { b.onclick = function () {
+      var a = +b.dataset.mem, m = S.hifz[s.n] || [], i = m.indexOf(a); if (i >= 0) m.splice(i, 1); else m.push(a); S.hifz[s.n] = m; save(); render();
+    }; });
+    $$("[data-bm]", r).forEach(function (b) { b.onclick = function () {
+      var k = s.n + ":" + b.dataset.bm, i = S.bookmarks.indexOf(k); if (i >= 0) S.bookmarks.splice(i, 1); else S.bookmarks.push(k); save(); render();
+    }; });
+  }
   function readerView(sn, params, kid) {
-    return loadQ().then(function (q) {
+    return Promise.all([loadQ(), loadOpt()]).then(function (res) {
+      var q = res[0], opt = res[1];
       var s = q.byN[sn]; if (!s) return { title: "Introuvable", html: '<p>Sourate introuvable.</p>', back: "#/reciter" };
-      var mode = kid ? "lecture" : readMode;
+      var mode = kid ? "lecture" : (readMode || (s.v.length <= 30 ? "verset" : "lecture"));
       var mem = (S.hifz[sn] || []).length;
       var html = '<div class="row between"><h2 style="margin:0">' + esc(surahLabel(s)) + '</h2><span class="pill">' + s.v.length + ' versets</span></div>';
       if (!kid) {
         html += '<div class="row" style="margin:.7rem 0"><label class="f" for="mode" style="margin:0">Mode</label><select id="mode" style="max-width:260px">' +
-          '<option value="lecture"' + (mode === "lecture" ? " selected" : "") + '>Lecture</option>' +
+          '<option value="verset"' + (mode === "verset" ? " selected" : "") + '>Verset par verset (débutant)</option>' +
+          '<option value="lecture"' + (mode === "lecture" ? " selected" : "") + '>Lecture continue</option>' +
           '<option value="premier"' + (mode === "premier" ? " selected" : "") + '>Récitation : premier mot visible</option>' +
           '<option value="masque"' + (mode === "masque" ? " selected" : "") + '>Récitation : texte masqué</option></select>' +
           '<button class="btn alt" id="fm" aria-label="Réduire la taille du texte">A−</button><button class="btn alt" id="fp" aria-label="Augmenter la taille du texte">A+</button></div>' +
+          (mode === "verset" ? layersHTML(opt) : "") +
           '<div class="muted">Mémorisés : ' + mem + ' / ' + s.v.length + '</div><div class="bar"><i style="width:' + Math.round(100 * mem / s.v.length) + '%"></i></div>' +
           '<p class="muted">Touchez un verset pour le marquer, le garder en signet ou le méditer. En mode récitation, touchez pour révéler.</p>';
       } else html += '<p class="muted">Touchez un verset après l\'avoir répété pour gagner une étoile.</p>';
-      html += readerHTML(s, q, mode) + '<div id="sheetBox"></div>';
+      html += (mode === "verset" && !kid ? versesHTML(s, q, opt) : readerHTML(s, q, mode)) + '<div id="sheetBox"></div>';
       if (!kid) {
         html += '<div class="row between" style="margin-top:1rem">' + (sn > 1 ? '<a class="btn alt" href="#/reciter/' + (sn - 1) + '">Sourate précédente</a>' : '<span></span>') +
           (sn < 114 ? '<a class="btn alt" href="#/reciter/' + (sn + 1) + '">Sourate suivante</a>' : '<span></span>') + '</div>';
-        html += '<p class="muted">Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. Traduction française et translittération : non incluses dans cette version.</p>';
+        html += '<p class="muted">Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ.' + (opt.phon && opt.phon.suras && opt.phon.suras[sn] ? ' Phonétique : brouillon en cours de validation par l\'imam garant.' : '') + '</p>';
       }
       return { title: s.en, html: html, back: kid ? "#/enfant" : "#/reciter", tab: kid ? null : "#/reciter", kid: kid, bind: function (r) {
         var sel = null;
@@ -209,6 +279,7 @@
           $("#fp", r).onclick = function () { S.settings.fs = Math.min(1.8, +(S.settings.fs + .1).toFixed(1)); save(); applyTheme(); };
         }
         if (kid) { document.body.classList.add("kid"); onLeave(function () { document.body.classList.remove("kid"); }); }
+        if (mode === "verset" && !kid) bindVerses(r, s, opt);
         var startA = params && +params.a;
         function pick(el) {
           var a = +el.dataset.a;
@@ -238,7 +309,7 @@
           el.addEventListener("click", function () { pick(el); });
           el.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(el); } });
         });
-        if (startA) { var t = $('.v[data-a="' + startA + '"]', r); if (t) { if (t.scrollIntoView) t.scrollIntoView({ block: "center" }); t.classList.add("sel"); } }
+        if (startA) { var t = $('.v[data-a="' + startA + '"], .vcard[data-a="' + startA + '"]', r); if (t) { if (t.scrollIntoView) t.scrollIntoView({ block: "center" }); t.classList.add("sel"); } }
       } };
     });
   }
@@ -256,7 +327,7 @@
   route(/^\/apprendre$/, function () {
     return loadQ().then(function (q) {
       var started = q.suras.filter(function (s) { return (S.hifz[s.n] || []).length; });
-      var html = '<h2>Apprendre</h2><div class="card"><h3>Parcours de mémorisation</h3><p>Commencez par les dernières sourates, courtes et fréquemment récitées, puis remontez progressivement. Ouvrez une sourate, choisissez le mode « premier mot visible » ou « texte masqué », puis marquez chaque verset mémorisé.</p>' +
+      var html = '<h2>Apprendre</h2><div class="grid keep" style="margin-bottom:1rem"><a class="tile" href="#/alphabet"><strong>Alphabet et lecture</strong><span>Lettres, voyelles, signes</span></a><a class="tile" href="#/niveaux"><strong>Mes niveaux</strong><span>Du débutant au cheikh</span></a></div><div class="card"><h3>Parcours de mémorisation</h3><p>Commencez par les dernières sourates, courtes et fréquemment récitées, puis remontez progressivement. Ouvrez une sourate, choisissez le mode « premier mot visible » ou « texte masqué », puis marquez chaque verset mémorisé.</p>' +
         '<ul class="list">' + [114, 113, 112, 111, 110, 109, 108, 107, 106, 105].map(function (n) {
           var s = q.byN[n], m = (S.hifz[n] || []).length;
           return '<li><a href="#/reciter/' + n + '"><span class="badge">' + n + '</span><span class="nm">' + esc(s.en) + '<small>' + m + ' / ' + s.v.length + ' mémorisés</small></span><span class="ar">' + esc(s.ar) + '</span></a></li>';
@@ -479,9 +550,121 @@
     var html = '<h2>À propos</h2><p>NÛR (نور) est une application islamique francophone, sans publicité, sans représentation d\'être vivant, conçue pour les croyants de tous niveaux, avec une attention particulière à la diaspora africaine de rite malikite.</p>' +
       '<div class="card"><h3>Riwaya</h3><p>Le texte est celui de la riwaya de Warsh ʿan Nâfiʿ, selon les données et la police du Complexe du Roi Fahd d\'impression du Noble Coran (KFGQPC), version 0.10 (5 août 2021).</p></div>' +
       '<div class="card"><h3>Sources et licences</h3><ul><li>Données du texte : KFGQPC, relayées par le dépôt public « thetruetruth/quran-data-kfgqpc » (github.com/thetruetruth/quran-data-kfgqpc).</li><li>Police « KFGQPC Warsh Uthmanic Script » : © KFGQPC. Usage, copie et distribution gratuits ; vente, modification et ingénierie inverse interdites. Licence complète : <a href="LICENCE-KFGQPC.txt">LICENCE-KFGQPC.txt</a>.</li><li>Calcul des prières : algorithme astronomique de position solaire, validé à moins d\'une minute contre une bibliothèque indépendante.</li></ul></div>' +
-      '<div class="card"><h3>Points en attente</h3><ul><li>Validation par l\'imam garant de la présente version (texte Warsh, leçons de tajwid, formulations).</li><li>Traduction française et translittération : à intégrer à partir d\'une source dont les droits sont établis.</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Abonnements et paiements : non inclus dans cette version, gratuite.</li><li>Notifications d\'adhan en arrière-plan : nécessitent une application native.</li></ul></div>' +
-      '<p class="muted">Version ' + VERSION + '. Aucune donnée personnelle n\'est collectée ni transmise.</p>';
-    return { title: "À propos", html: html, back: "#/plus" };
+      '<div class="card"><h3>Points en attente</h3><ul><li>Validation par l\'imam garant de la présente version (texte Warsh, leçons de tajwid, formulations).</li><li>Phonétique : brouillon pour la Fâtiha et les sourates 99 à 114, à valider par l\'imam garant (fiche d\'export ci-dessous).</li><li>Traduction française : à intégrer à partir d\'une source dont les droits sont établis (fichier traduction-fr.json).</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Abonnements et paiements : non inclus dans cette version, gratuite.</li><li>Notifications d\'adhan en arrière-plan : nécessitent une application native.</li></ul></div>' +
+      '<p><button class="btn alt" id="expPh">Exporter la fiche de validation (phonétique)</button></p><p class="muted">Version ' + VERSION + '. Aucune donnée personnelle n\'est collectée ni transmise.</p>';
+    return { title: "À propos", html: html, back: "#/plus", bind: function (r) {
+      $("#expPh", r).onclick = function () {
+        Promise.all([loadQ(), loadOpt()]).then(function (res) {
+          var q = res[0], o = res[1]; if (!o.phon) return toast("Aucune phonétique à exporter.");
+          var rows = ["Sourate;Verset;Texte Warsh;Phonétique proposée;À vérifier;Décision de l'imam;Correction"];
+          Object.keys(o.phon.suras).forEach(function (n) { q.byN[n].v.forEach(function (v, i) {
+            var p = o.phon.suras[n][i]; rows.push([n, v[0], '"' + v[1].replace(/\u00a0/g, " ").replace(/"/g, '""') + '"', '"' + p[0] + '"', p[1] ? "oui" : "", "", ""].join(";"));
+          }); });
+          download("fiche-validation-phonetique.csv", "\ufeff" + rows.join("\n"), "text/csv;charset=utf-8");
+        });
+      };
+    } };
+  });
+
+  /* ------------------------------------------------------------ alphabet, niveaux, offres */
+  var LETTERS = [
+    ["ا", "Alif", "â", "Support de la voyelle longue « â » ; porte aussi la hamza (ء)."],
+    ["ب", "Bâʾ", "b", "Comme le « b » de « bateau »."],
+    ["ت", "Tâʾ", "t", "Comme le « t » de « table »."],
+    ["ث", "Thâʾ", "th", "Comme le « th » de l'anglais « think » (langue entre les dents)."],
+    ["ج", "Jîm", "dj", "Comme « dj » dans « djembé »."],
+    ["ح", "Ḥâʾ", "ḥ", "« h » soufflé, du fond de la gorge, sans équivalent en français."],
+    ["خ", "Khâʾ", "kh", "Comme la « jota » espagnole ou le « ch » allemand de « Bach »."],
+    ["د", "Dâl", "d", "Comme le « d » de « dent »."],
+    ["ذ", "Dhâl", "dh", "Comme le « th » de l'anglais « this »."],
+    ["ر", "Râʾ", "r", "« r » roulé du bout de la langue."],
+    ["ز", "Zây", "z", "Comme le « z » de « zèbre »."],
+    ["س", "Sîn", "s", "Comme le « s » de « soleil »."],
+    ["ش", "Chîn", "ch", "Comme le « ch » de « chat »."],
+    ["ص", "Ṣâd", "ṣ", "« s » emphatique : prononcé lourd, la langue plaquée au palais."],
+    ["ض", "Ḍâd", "ḍ", "« d » emphatique : prononcé lourd."],
+    ["ط", "Ṭâʾ", "ṭ", "« t » emphatique : prononcé lourd."],
+    ["ظ", "Ẓâʾ", "ẓ", "« dh » emphatique : « dh » prononcé lourd."],
+    ["ع", "ʿAyn", "ʿ", "Son guttural de la gorge, sans équivalent en français."],
+    ["غ", "Ghayn", "gh", "« r » grasseyé, proche du « r » parisien."],
+    ["ف", "Fâʾ", "f", "Comme le « f » de « feu »."],
+    ["ق", "Qâf", "q", "« k » prononcé tout au fond de la gorge."],
+    ["ك", "Kâf", "k", "Comme le « k » de « kilo »."],
+    ["ل", "Lâm", "l", "Comme le « l » de « lune »."],
+    ["م", "Mîm", "m", "Comme le « m » de « main »."],
+    ["ن", "Noûn", "n", "Comme le « n » de « nuit »."],
+    ["ه", "Hâʾ", "h", "« h » expiré, comme dans l'anglais « hat »."],
+    ["و", "Wâw", "w / oû", "Consonne « w » (« oui ») ou voyelle longue « oû »."],
+    ["ي", "Yâʾ", "y / î", "Consonne « y » (« yeux ») ou voyelle longue « î »."]
+  ];
+  var SHAMSI = "ت ث د ذ ر ز س ش ص ض ط ظ ل ن", QAMARI = "ا ب ج ح خ ع غ ف ق ك م ه و ي";
+  route(/^\/alphabet$/, function () {
+    var html = '<h2>Alphabet et lecture</h2>' + NOTE_VALIDATION +
+      '<p>L\'arabe s\'écrit de droite à gauche. Il compte 28 lettres, toutes des consonnes ; les voyelles brèves s\'écrivent par de petits signes placés au-dessus ou au-dessous des lettres. Les approximations ci-dessous aident à démarrer, mais <strong>seule l\'écoute d\'un enseignant</strong> permet de bien prononcer.</p>' +
+      '<h3>Les 28 lettres</h3><div class="lgrid">' + LETTERS.map(function (l) {
+        return '<div class="lcard"><div class="lg ar" lang="ar">' + l[0] + '</div><div><strong>' + esc(l[1]) + '</strong> <span class="pill">' + esc(l[2]) + '</span><div class="muted">' + esc(l[3]) + '</div></div></div>';
+      }).join("") + '</div>' +
+      '<h3>Les voyelles brèves</h3><div class="card"><ul class="plain"><li><span class="ar big2">بَ</span> fatha : « a » (ba)</li><li><span class="ar big2">بُ</span> damma : « ou » (bou)</li><li><span class="ar big2">بِ</span> kasra : « i » (bi)</li></ul></div>' +
+      '<h3>Les voyelles longues</h3><div class="card"><ul class="plain"><li><span class="ar big2">بَا</span> fatha + alif : « â » (bâ)</li><li><span class="ar big2">بُو</span> damma + wâw : « oû » (boû)</li><li><span class="ar big2">بِي</span> kasra + yâʾ : « î » (bî)</li><li><span class="ar big2">بَٰ</span> petit alif suscrit (alif-poignard) : « â », très fréquent en Warsh.</li></ul><p class="muted">Une voyelle longue dure environ deux fois plus longtemps qu\'une brève.</p></div>' +
+      '<h3>Les autres signes</h3><div class="card"><ul class="plain"><li><span class="ar big2">بْ</span> soukoun : pas de voyelle ; la consonne est prononcée seule.</li><li><span class="ar big2">بَّ</span> chadda : la consonne est doublée (bba).</li><li><span class="ar big2">ءَ</span> hamza : coup de glotte, noté « \' » dans la phonétique.</li><li><span class="ar big2">بٗ ـ بٞ ـ بٖ</span> tanwîn : « an », « oun », « in » à la fin d\'un mot. Dans les mushafs maghrébins, comme celui de Warsh, ces trois signes s\'écrivent ainsi (et non ً ٌ ٍ).</li></ul></div>' +
+      '<h3>Le « l » de l\'article (al-)</h3><div class="card"><p>Devant les <strong>lettres lunaires</strong>, le « l » se prononce : <em>al-qamar</em>. Devant les <strong>lettres solaires</strong>, il s\'assimile et la lettre est doublée : <em>ach-chams</em>, <em>ar-raḥmân</em>.</p><p class="ar" style="font-size:1.4rem;direction:rtl;text-align:right" lang="ar">' + SHAMSI + '</p><p class="muted">Lettres solaires (ci-dessus) et lunaires :</p><p class="ar" style="font-size:1.4rem;direction:rtl;text-align:right" lang="ar">' + QAMARI + '</p></div>' +
+      '<h3>Comment lire la phonétique de l\'application</h3><div class="card"><p>La phonétique est écrite pour un lecteur francophone : <strong>ou</strong> se lit comme dans « loup », <strong>â, î, oû</strong> sont des voyelles longues, <strong>dj, ch, kh, dh, th, gh</strong> sont des sons simples, <strong>ḥ, ṣ, ḍ, ṭ, ẓ, ʿ</strong> sont des sons propres à l\'arabe, et <strong>\'</strong> marque un coup de glotte. Un trait d\'union relie l\'article à son mot (« al-ḥamdou », « ar-raḥmâni »).</p><p class="muted">La phonétique ne note pas les règles de tajwid (idghâm, ikhfâʾ, prolongations). Elle ne remplace pas l\'écoute de la récitation.</p></div>' +
+      '<p><a class="btn" href="#/reciter/1">Lire la Fâtiha</a></p>';
+    return { title: "Alphabet", html: html, back: "#/apprendre", tab: "#/apprendre" };
+  });
+
+  var LEVELS = [
+    { id: "initie", nom: "Initié (débutant)", but: "Découvrir : alphabet, voyelles, lecture guidée verset par verset avec phonétique, traduction et audio.", cible: [1, 112, 113, 114], detail: "Mémoriser la Fâtiha (sourate 1) et les trois dernières sourates (112, 113, 114)." },
+    { id: "intermediaire", nom: "Intermédiaire", but: "Lire avec aisance, mémoriser les sourates courtes et acquérir les bases du tajwid.", cible: [99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111], detail: "Mémoriser les sourates 99 à 111." },
+    { id: "disciple", nom: "Disciple", but: "Mémoriser par parties, réviser régulièrement, étudier les règles propres à la riwaya de Warsh avec l'imam garant.", cible: null, detail: "Parcours à définir avec l'imam garant (partie du Coran, révision espacée)." },
+    { id: "cheikh", nom: "Cheikh Premium", but: "Outils de transmission : suivi d'élèves, annotations validées, accompagnement.", cible: null, detail: "Fonctions de transmission et de validation à définir avec l'imam garant." }
+  ];
+  function levelProgress(l, q) {
+    if (!l.cible) return null;
+    var tot = 0, mem = 0;
+    l.cible.forEach(function (n) { var s = q.byN[n]; tot += s.v.length; mem += (S.hifz[n] || []).length; });
+    return { mem: mem, tot: tot, pct: Math.round(100 * mem / tot) };
+  }
+  route(/^\/niveaux$/, function () {
+    return loadQ().then(function (q) {
+      var html = '<h2>Mes niveaux</h2><div class="callout">Contenu des niveaux : <strong>proposition à valider</strong> avec l\'imam garant. Vos progrès se calculent à partir des versets que vous marquez comme mémorisés.</div>';
+      var current = null;
+      LEVELS.forEach(function (l) { var p = levelProgress(l, q); if (!current && (!p || p.pct < 100)) current = l.id; });
+      html += LEVELS.map(function (l, i) {
+        var p = levelProgress(l, q);
+        return '<div class="card"><div class="row between"><h3 style="margin:0">' + (i + 1) + '. ' + esc(l.nom) + '</h3>' + (l.id === current ? '<span class="pill" style="border-color:var(--gold);color:var(--gold)">Niveau actuel</span>' : (p && p.pct === 100 ? '<span class="pill">Acquis</span>' : '')) + '</div>' +
+          '<p>' + esc(l.but) + '</p><p class="muted">' + esc(l.detail) + '</p>' +
+          (p ? '<div class="muted">' + p.mem + ' / ' + p.tot + ' versets mémorisés (' + p.pct + ' %)</div><div class="bar"><i style="width:' + p.pct + '%"></i></div>' : '') + '</div>';
+      }).join("") + '<p class="row"><a class="btn" href="#/alphabet">Alphabet et lecture</a><a class="btn alt" href="#/offres">Accès et offres</a></p>';
+      return { title: "Niveaux", html: html, back: "#/apprendre", tab: "#/apprendre" };
+    });
+  });
+
+  var MATRIX = [
+    ["Lecture du Coran en Warsh, hors ligne", [1, 1, 1, 1]],
+    ["Heures de prière, qibla, calendrier hégirien", [1, 1, 1, 1]],
+    ["Alphabet, lecture guidée, phonétique", [1, 1, 1, 1]],
+    ["Mémorisation, signets, journal", [1, 1, 1, 1]],
+    ["Parcours Intermédiaire et tajwid", [0, 1, 1, 1]],
+    ["Parcours Disciple (révision, règles de Warsh)", [0, 0, 1, 1]],
+    ["Outils de transmission (suivi d'élèves)", [0, 0, 0, 1]]
+  ];
+  function priceTxt(v, unit) { return v == null ? "À fixer" : new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(v) + (unit || ""); }
+  route(/^\/offres$/, function () {
+    return loadOpt().then(function (opt) {
+      var P0 = (opt.plans && opt.plans.individuel) || [];
+      var html = '<h2>Accès et offres</h2><div class="callout">Répartition des fonctions par niveau : <strong>proposition</strong>. Les tarifs ne sont pas encore fixés et le paiement n\'est pas encore actif : toutes les fonctions sont ouvertes dans cette version.</div>' +
+        '<div class="scroll"><table class="month"><thead><tr><th style="text-align:left">Fonction</th>' + LEVELS.map(function (l) { return '<th>' + esc(l.nom.split(" ")[0]) + '</th>'; }).join("") + '</tr></thead><tbody>' +
+        MATRIX.map(function (r) { return '<tr><td style="text-align:left">' + esc(r[0]) + '</td>' + r[1].map(function (x) { return '<td>' + (x ? "oui" : "—") + '</td>'; }).join("") + '</tr>'; }).join("") +
+        '<tr><td style="text-align:left"><strong>Tarif mensuel</strong></td>' + LEVELS.map(function (l, i) { var p = P0[i]; return '<td>' + (p && p.gratuit ? "Gratuit" : priceTxt(p && p.prix_mensuel, " /mois")) + '</td>'; }).join("") + '</tr>' +
+        '<tr><td style="text-align:left"><strong>Tarif annuel</strong></td>' + LEVELS.map(function (l, i) { var p = P0[i]; return '<td>' + (p && p.gratuit ? "Gratuit" : priceTxt(p && p.prix_annuel, " /an")) + '</td>'; }).join("") + '</tr></tbody></table></div>';
+      var f = opt.plans && opt.plans.famille;
+      html += '<div class="card" style="margin-top:1rem"><h3>Famille</h3><p>1 parent et jusqu\'à 4 enfants, avec interface enfant dédiée.</p><p><strong>' + priceTxt(f && f.prix_annuel, " /an") + '</strong> · ' + priceTxt(f && f.prix_mensuel, " /mois") + '</p></div>';
+      html += '<div class="card"><h3>Mosquées (forfait annuel)</h3><ul class="plain">' + ((opt.plans && opt.plans.mosquee) || [{ nom: "Mosquée S", fideles: 50 }, { nom: "Mosquée M", fideles: 200 }, { nom: "Mosquée L", illimite: true }]).map(function (m) {
+        return '<li><strong>' + esc(m.nom) + '</strong> — ' + (m.illimite ? "fidèles illimités" : m.fideles + " fidèles") + ' : ' + priceTxt(m.prix_annuel, " /an") + '</li>'; }).join("") + '</ul></div>';
+      html += '<p class="muted">Principes : zéro publicité, zéro représentation d\'être vivant, imam garant.</p>';
+      return { title: "Offres", html: html, back: "#/plus", tab: null };
+    });
   });
 
   /* ------------------------------------------------------------ routeur */
