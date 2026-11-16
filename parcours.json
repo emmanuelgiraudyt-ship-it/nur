@@ -2,284 +2,1490 @@
  "statut": "brouillon",
  "date": "2026-11-16",
  "note": "Leçons et quiz rédigés pour NÛR dans un langage simple. Ils ne sont PAS encore validés par l'imam garant. Rien n'est repris d'une autre application.",
- "bareme": { "lecon": 10, "quiz": 30, "quiz_seuil": 80, "pratique_jour": 15, "priere": 2, "prieres_jour": 10 },
+ "bareme": {
+  "lecon": 10,
+  "quiz": 30,
+  "quiz_seuil": 80,
+  "pratique_jour": 15,
+  "priere": 2,
+  "prieres_jour": 10
+ },
  "paliers": [
   {
-   "id": "initie", "nom": "Initié", "seuil": 800,
+   "id": "initie",
+   "nom": "Étincelle",
+   "repere": "Initié",
+   "seuil": 800,
    "but": "Découvrir la foi, le Prophète, le Coran, l'alphabet arabe, la prière et Al-Fâtiha, pas à pas.",
    "etapes": [
     {
-     "n": 1, "titre": "Dieu et le message de l'islam", "resume": "Un seul Dieu, le sens du mot « islam ».",
+     "n": 1,
+     "titre": "Dieu et le message de l'islam",
+     "resume": "Un seul Dieu, le sens du mot « islam ».",
      "lecons": [
-      { "titre": "Un seul Dieu",
-        "texte": ["Les musulmans croient en un seul Dieu. En arabe, Dieu se dit Allâh.", "Dieu a créé le ciel, la terre et tout ce qui vit. Il n'a ni père, ni mère, ni enfant. Rien ne Lui ressemble.", "Une courte sourate du Coran le dit en quelques mots : c'est la sourate 112, Al-Ikhlâs."],
-        "mots": [{ "ar": "الله", "tr": "Allāh", "ph": "Allâh", "fr": "Dieu" }, { "ar": "واحد", "tr": "wāḥid", "ph": "wâhid", "fr": "un, unique" }],
-        "retenir": "Dieu est unique." },
-      { "titre": "Le mot « islam »",
-        "texte": ["Le mot « islam » veut dire : se remettre à Dieu avec confiance.", "Il est de la même famille qu'un autre mot arabe, salâm, qui veut dire « paix ».", "Celui qui suit l'islam s'appelle un musulman. Celle qui suit l'islam s'appelle une musulmane."],
-        "mots": [{ "ar": "إسلام", "tr": "islām", "ph": "islâm", "fr": "se remettre à Dieu" }, { "ar": "سلام", "tr": "salām", "ph": "salâm", "fr": "paix" }, { "ar": "مسلم", "tr": "muslim", "ph": "mouslim", "fr": "musulman" }],
-        "retenir": "Islam et paix sont deux mots de la même famille." },
-      { "titre": "L'attestation de foi",
-        "texte": ["On entre dans l'islam en disant, avec le cœur, une phrase très courte.", "Elle veut dire : « Il n'y a de dieu que Dieu, et Muhammad est le messager de Dieu. »", "Cette phrase s'appelle la chahâda, c'est-à-dire l'attestation."],
-        "mots": [{ "ar": "شهادة", "tr": "shahāda", "ph": "chahâda", "fr": "attestation" }, { "ar": "لا إله إلا الله", "tr": "lā ilāha illā llāh", "ph": "lâ ilâha illallâh", "fr": "il n'y a de dieu que Dieu" }, { "ar": "محمد رسول الله", "tr": "Muḥammadun rasūlu llāh", "ph": "Mouhammadoun rasoûloullâh", "fr": "Muhammad est le messager de Dieu" }],
-        "retenir": "La chahâda est la porte d'entrée de l'islam." },
-      { "titre": "Un message pour tous",
-        "texte": ["Dieu a envoyé des messagers à tous les peuples. Parmi eux : Adam, Noé, Abraham, Moïse, Jésus. Le dernier est Muhammad.", "Tous ont dit la même chose : adorer un seul Dieu et faire le bien.", "L'islam s'adresse à tout le monde, quel que soit le pays ou la langue."],
-        "mots": [{ "ar": "رسول", "tr": "rasūl", "ph": "rasoûl", "fr": "messager" }, { "ar": "نبي", "tr": "nabiyy", "ph": "nabî", "fr": "prophète" }],
-        "retenir": "Tous les messagers ont appelé à adorer un seul Dieu." }
+      {
+       "titre": "Un seul Dieu",
+       "texte": [
+        "Les musulmans croient en un seul Dieu. En arabe, Dieu se dit Allâh.",
+        "Dieu a créé le ciel, la terre et tout ce qui vit. Il n'a ni père, ni mère, ni enfant. Rien ne Lui ressemble.",
+        "Une courte sourate du Coran le dit en quelques mots : c'est la sourate 112, Al-Ikhlâs."
+       ],
+       "mots": [
+        {
+         "ar": "الله",
+         "tr": "Allāh",
+         "ph": "Allâh",
+         "fr": "Dieu"
+        },
+        {
+         "ar": "واحد",
+         "tr": "wāḥid",
+         "ph": "wâhid",
+         "fr": "un, unique"
+        }
+       ],
+       "retenir": "Dieu est unique."
+      },
+      {
+       "titre": "Le mot « islam »",
+       "texte": [
+        "Le mot « islam » veut dire : se remettre à Dieu avec confiance.",
+        "Il est de la même famille qu'un autre mot arabe, salâm, qui veut dire « paix ».",
+        "Celui qui suit l'islam s'appelle un musulman. Celle qui suit l'islam s'appelle une musulmane."
+       ],
+       "mots": [
+        {
+         "ar": "إسلام",
+         "tr": "islām",
+         "ph": "islâm",
+         "fr": "se remettre à Dieu"
+        },
+        {
+         "ar": "سلام",
+         "tr": "salām",
+         "ph": "salâm",
+         "fr": "paix"
+        },
+        {
+         "ar": "مسلم",
+         "tr": "muslim",
+         "ph": "mouslim",
+         "fr": "musulman"
+        }
+       ],
+       "retenir": "Islam et paix sont deux mots de la même famille."
+      },
+      {
+       "titre": "L'attestation de foi",
+       "texte": [
+        "On entre dans l'islam en disant, avec le cœur, une phrase très courte.",
+        "Elle veut dire : « Il n'y a de dieu que Dieu, et Muhammad est le messager de Dieu. »",
+        "Cette phrase s'appelle la chahâda, c'est-à-dire l'attestation."
+       ],
+       "mots": [
+        {
+         "ar": "شهادة",
+         "tr": "shahāda",
+         "ph": "chahâda",
+         "fr": "attestation"
+        },
+        {
+         "ar": "لا إله إلا الله",
+         "tr": "lā ilāha illā llāh",
+         "ph": "lâ ilâha illallâh",
+         "fr": "il n'y a de dieu que Dieu"
+        },
+        {
+         "ar": "محمد رسول الله",
+         "tr": "Muḥammadun rasūlu llāh",
+         "ph": "Mouhammadoun rasoûloullâh",
+         "fr": "Muhammad est le messager de Dieu"
+        }
+       ],
+       "retenir": "La chahâda est la porte d'entrée de l'islam."
+      },
+      {
+       "titre": "Un message pour tous",
+       "texte": [
+        "Dieu a envoyé des messagers à tous les peuples. Parmi eux : Adam, Noé, Abraham, Moïse, Jésus. Le dernier est Muhammad.",
+        "Tous ont dit la même chose : adorer un seul Dieu et faire le bien.",
+        "L'islam s'adresse à tout le monde, quel que soit le pays ou la langue."
+       ],
+       "mots": [
+        {
+         "ar": "رسول",
+         "tr": "rasūl",
+         "ph": "rasoûl",
+         "fr": "messager"
+        },
+        {
+         "ar": "نبي",
+         "tr": "nabiyy",
+         "ph": "nabî",
+         "fr": "prophète"
+        }
+       ],
+       "retenir": "Tous les messagers ont appelé à adorer un seul Dieu."
+      }
      ],
      "quiz": [
-      { "q": "En combien de dieux les musulmans croient-ils ?", "c": ["Un seul", "Trois", "Beaucoup"], "r": 0 },
-      { "q": "Comment dit-on « Dieu » en arabe ?", "c": ["Salâm", "Allâh", "Rasoûl"], "r": 1 },
-      { "q": "Que veut dire le mot « salâm » ?", "c": ["Livre", "Voyage", "Paix"], "r": 2 },
-      { "q": "Comment s'appelle l'attestation de foi ?", "c": ["La chahâda", "La zakât", "La hidjra"], "r": 0 },
-      { "q": "Qui est le dernier messager ?", "c": ["Moïse", "Muhammad", "Noé"], "r": 1 }
+      {
+       "q": "En combien de dieux les musulmans croient-ils ?",
+       "c": [
+        "Un seul",
+        "Trois",
+        "Beaucoup"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Comment dit-on « Dieu » en arabe ?",
+       "c": [
+        "Salâm",
+        "Allâh",
+        "Rasoûl"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Que veut dire le mot « salâm » ?",
+       "c": [
+        "Livre",
+        "Voyage",
+        "Paix"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Comment s'appelle l'attestation de foi ?",
+       "c": [
+        "La chahâda",
+        "La zakât",
+        "La hidjra"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Qui est le dernier messager ?",
+       "c": [
+        "Moïse",
+        "Muhammad",
+        "Noé"
+       ],
+       "r": 1
+      }
      ]
     },
     {
-     "n": 2, "titre": "Le Prophète Muhammad", "resume": "Sa naissance, la révélation, l'hégire, son exemple.",
+     "n": 2,
+     "titre": "Le Prophète Muhammad",
+     "resume": "Sa naissance, la révélation, l'hégire, son exemple.",
      "lecons": [
-      { "titre": "Sa naissance",
-        "texte": ["Muhammad est né à La Mecque, en Arabie, vers l'an 570.", "Son père est mort avant sa naissance. Sa mère est morte quand il était encore petit. Son grand-père, puis son oncle, ont pris soin de lui.", "Il était si honnête que les gens de La Mecque l'appelaient al-Amîn : « celui en qui on peut avoir confiance »."],
-        "mots": [{ "ar": "مكة", "tr": "Makka", "ph": "Makka", "fr": "La Mecque" }, { "ar": "الأمين", "tr": "al-Amīn", "ph": "al-Amîn", "fr": "le digne de confiance" }],
-        "retenir": "Avant même d'être prophète, Muhammad était connu pour son honnêteté." },
-      { "titre": "La révélation",
-        "texte": ["À quarante ans, Muhammad aimait se retirer dans une grotte près de La Mecque, la grotte de Hirâ'.", "Une nuit, l'ange Gabriel lui apporta les premiers mots du Coran. Le tout premier mot fut : « Lis ! »", "Ce jour-là, Muhammad est devenu le messager de Dieu."],
-        "mots": [{ "ar": "جبريل", "tr": "Jibrīl", "ph": "Djibrîl", "fr": "l'ange Gabriel" }, { "ar": "اقرأ", "tr": "iqraʾ", "ph": "iqra'", "fr": "lis" }, { "ar": "وحي", "tr": "waḥy", "ph": "wahy", "fr": "révélation" }],
-        "retenir": "Le premier mot révélé du Coran est « Lis ! »." },
-      { "titre": "L'hégire",
-        "texte": ["À La Mecque, beaucoup de gens ont refusé son message. Les premiers musulmans ont souffert.", "En l'an 622, le Prophète a quitté La Mecque pour une autre ville : Médine. Ce voyage s'appelle l'hégire.", "Le calendrier des musulmans commence cette année-là. C'est l'an 1 de l'hégire."],
-        "mots": [{ "ar": "هجرة", "tr": "hijra", "ph": "hidjra", "fr": "hégire, départ" }, { "ar": "المدينة", "tr": "al-Madīna", "ph": "al-Madîna", "fr": "Médine, « la ville »" }],
-        "retenir": "Le calendrier hégirien commence avec le départ vers Médine." },
-      { "titre": "Son exemple",
-        "texte": ["Le Prophète est mort à Médine en l'an 632.", "Il était doux, patient, généreux. Les musulmans l'aiment et essaient de suivre son exemple. Cet exemple s'appelle la sunna.", "Quand on dit son nom, on ajoute une courte prière pour lui, que l'on résume en français par : « paix et salut sur lui »."],
-        "mots": [{ "ar": "سنة", "tr": "sunna", "ph": "sounna", "fr": "l'exemple du Prophète" }, { "ar": "صلى الله عليه وسلم", "tr": "ṣallā llāhu ʿalayhi wa sallam", "ph": "sallallâhou ʿalayhi wa sallam", "fr": "que Dieu le bénisse et lui accorde la paix" }],
-        "retenir": "Suivre l'exemple du Prophète, c'est suivre la sunna." }
+      {
+       "titre": "Sa naissance",
+       "texte": [
+        "Muhammad est né à La Mecque, en Arabie, vers l'an 570.",
+        "Son père est mort avant sa naissance. Sa mère est morte quand il était encore petit. Son grand-père, puis son oncle, ont pris soin de lui.",
+        "Il était si honnête que les gens de La Mecque l'appelaient al-Amîn : « celui en qui on peut avoir confiance »."
+       ],
+       "mots": [
+        {
+         "ar": "مكة",
+         "tr": "Makka",
+         "ph": "Makka",
+         "fr": "La Mecque"
+        },
+        {
+         "ar": "الأمين",
+         "tr": "al-Amīn",
+         "ph": "al-Amîn",
+         "fr": "le digne de confiance"
+        }
+       ],
+       "retenir": "Avant même d'être prophète, Muhammad était connu pour son honnêteté."
+      },
+      {
+       "titre": "La révélation",
+       "texte": [
+        "À quarante ans, Muhammad aimait se retirer dans une grotte près de La Mecque, la grotte de Hirâ'.",
+        "Une nuit, l'ange Gabriel lui apporta les premiers mots du Coran. Le tout premier mot fut : « Lis ! »",
+        "Ce jour-là, Muhammad est devenu le messager de Dieu."
+       ],
+       "mots": [
+        {
+         "ar": "جبريل",
+         "tr": "Jibrīl",
+         "ph": "Djibrîl",
+         "fr": "l'ange Gabriel"
+        },
+        {
+         "ar": "اقرأ",
+         "tr": "iqraʾ",
+         "ph": "iqra'",
+         "fr": "lis"
+        },
+        {
+         "ar": "وحي",
+         "tr": "waḥy",
+         "ph": "wahy",
+         "fr": "révélation"
+        }
+       ],
+       "retenir": "Le premier mot révélé du Coran est « Lis ! »."
+      },
+      {
+       "titre": "L'hégire",
+       "texte": [
+        "À La Mecque, beaucoup de gens ont refusé son message. Les premiers musulmans ont souffert.",
+        "En l'an 622, le Prophète a quitté La Mecque pour une autre ville : Médine. Ce voyage s'appelle l'hégire.",
+        "Le calendrier des musulmans commence cette année-là. C'est l'an 1 de l'hégire."
+       ],
+       "mots": [
+        {
+         "ar": "هجرة",
+         "tr": "hijra",
+         "ph": "hidjra",
+         "fr": "hégire, départ"
+        },
+        {
+         "ar": "المدينة",
+         "tr": "al-Madīna",
+         "ph": "al-Madîna",
+         "fr": "Médine, « la ville »"
+        }
+       ],
+       "retenir": "Le calendrier hégirien commence avec le départ vers Médine."
+      },
+      {
+       "titre": "Son exemple",
+       "texte": [
+        "Le Prophète est mort à Médine en l'an 632.",
+        "Il était doux, patient, généreux. Les musulmans l'aiment et essaient de suivre son exemple. Cet exemple s'appelle la sunna.",
+        "Quand on dit son nom, on ajoute une courte prière pour lui, que l'on résume en français par : « paix et salut sur lui »."
+       ],
+       "mots": [
+        {
+         "ar": "سنة",
+         "tr": "sunna",
+         "ph": "sounna",
+         "fr": "l'exemple du Prophète"
+        },
+        {
+         "ar": "صلى الله عليه وسلم",
+         "tr": "ṣallā llāhu ʿalayhi wa sallam",
+         "ph": "sallallâhou ʿalayhi wa sallam",
+         "fr": "que Dieu le bénisse et lui accorde la paix"
+        }
+       ],
+       "retenir": "Suivre l'exemple du Prophète, c'est suivre la sunna."
+      }
      ],
      "quiz": [
-      { "q": "Dans quelle ville le Prophète est-il né ?", "c": ["Médine", "La Mecque", "Le Caire"], "r": 1 },
-      { "q": "Que veut dire « al-Amîn » ?", "c": ["Le digne de confiance", "Le voyageur", "Le savant"], "r": 0 },
-      { "q": "Quel ange a apporté la révélation ?", "c": ["Gabriel", "Adam", "Noé"], "r": 0 },
-      { "q": "Qu'est-ce que l'hégire ?", "c": ["Une prière", "Le départ de La Mecque vers Médine", "Un livre"], "r": 1 },
-      { "q": "Quand commence le calendrier des musulmans ?", "c": ["À la naissance du Prophète", "À sa mort", "À l'hégire"], "r": 2 }
+      {
+       "q": "Dans quelle ville le Prophète est-il né ?",
+       "c": [
+        "Médine",
+        "La Mecque",
+        "Le Caire"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Que veut dire « al-Amîn » ?",
+       "c": [
+        "Le digne de confiance",
+        "Le voyageur",
+        "Le savant"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Quel ange a apporté la révélation ?",
+       "c": [
+        "Gabriel",
+        "Adam",
+        "Noé"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Qu'est-ce que l'hégire ?",
+       "c": [
+        "Une prière",
+        "Le départ de La Mecque vers Médine",
+        "Un livre"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Quand commence le calendrier des musulmans ?",
+       "c": [
+        "À la naissance du Prophète",
+        "À sa mort",
+        "À l'hégire"
+       ],
+       "r": 2
+      }
      ]
     },
     {
-     "n": 3, "titre": "Le Coran", "resume": "Ce qu'il est, comment il a été transmis, premières écoutes.",
+     "n": 3,
+     "titre": "Le Coran",
+     "resume": "Ce qu'il est, comment il a été transmis, premières écoutes.",
      "lecons": [
-      { "titre": "La parole de Dieu",
-        "texte": ["Le Coran est la parole de Dieu. Il a été révélé au Prophète Muhammad par l'ange Gabriel.", "La révélation a duré environ vingt-trois ans, peu à peu.", "Le mot « Coran » veut dire : ce que l'on lit, ce que l'on récite."],
-        "mots": [{ "ar": "قرآن", "tr": "qurʾān", "ph": "qour'ân", "fr": "lecture, récitation" }],
-        "retenir": "Le Coran est fait pour être lu et récité." },
-      { "titre": "Sourates et versets",
-        "texte": ["Le Coran compte 114 chapitres. Un chapitre s'appelle une sourate.", "Chaque sourate est faite de phrases appelées versets.", "La première sourate s'appelle Al-Fâtiha, « l'Ouverture ». La langue du Coran est l'arabe."],
-        "mots": [{ "ar": "سورة", "tr": "sūra", "ph": "soûra", "fr": "sourate, chapitre" }, { "ar": "آية", "tr": "āya", "ph": "âya", "fr": "verset, signe" }, { "ar": "الفاتحة", "tr": "al-Fātiḥa", "ph": "al-Fâtiha", "fr": "l'Ouverture" }],
-        "retenir": "114 sourates, et la première est Al-Fâtiha." },
-      { "titre": "De maître à élève",
-        "texte": ["Les compagnons du Prophète ont appris le Coran par cœur. Ils l'ont aussi écrit.", "Depuis, le Coran se transmet de maître à élève : on écoute, puis on répète.", "Il existe plusieurs façons reconnues de le réciter. NÛR suit celle de Warsh, très répandue en Afrique du Nord et en Afrique de l'Ouest."],
-        "mots": [{ "ar": "حافظ", "tr": "ḥāfiẓ", "ph": "hâfiz", "fr": "celui qui connaît le Coran par cœur" }, { "ar": "رواية", "tr": "riwāya", "ph": "riwâya", "fr": "transmission, façon de réciter" }, { "ar": "ورش", "tr": "Warsh", "ph": "Warch", "fr": "nom d'un grand transmetteur" }],
-        "retenir": "On apprend le Coran en écoutant un maître." },
-      { "titre": "Écouter avec respect",
-        "texte": ["On écoute le Coran dans le calme, avec attention.", "Avant de réciter, on demande à Dieu Sa protection, puis on dit : « Au nom de Dieu, le Tout Miséricordieux, le Très Miséricordieux ».", "Première écoute : ouvrir la sourate Al-Fâtiha dans « Réciter »."],
-        "mots": [{ "ar": "بسم الله", "tr": "bismi llāh", "ph": "bismillâh", "fr": "au nom de Dieu" }, { "ar": "ترتيل", "tr": "tartīl", "ph": "tartîl", "fr": "récitation lente et claire" }],
-        "lien": { "txt": "Ouvrir Al-Fâtiha", "href": "#/reciter/1" },
-        "retenir": "On commence par « bismillâh »." }
+      {
+       "titre": "La parole de Dieu",
+       "texte": [
+        "Le Coran est la parole de Dieu. Il a été révélé au Prophète Muhammad par l'ange Gabriel.",
+        "La révélation a duré environ vingt-trois ans, peu à peu.",
+        "Le mot « Coran » veut dire : ce que l'on lit, ce que l'on récite."
+       ],
+       "mots": [
+        {
+         "ar": "قرآن",
+         "tr": "qurʾān",
+         "ph": "qour'ân",
+         "fr": "lecture, récitation"
+        }
+       ],
+       "retenir": "Le Coran est fait pour être lu et récité."
+      },
+      {
+       "titre": "Sourates et versets",
+       "texte": [
+        "Le Coran compte 114 chapitres. Un chapitre s'appelle une sourate.",
+        "Chaque sourate est faite de phrases appelées versets.",
+        "La première sourate s'appelle Al-Fâtiha, « l'Ouverture ». La langue du Coran est l'arabe."
+       ],
+       "mots": [
+        {
+         "ar": "سورة",
+         "tr": "sūra",
+         "ph": "soûra",
+         "fr": "sourate, chapitre"
+        },
+        {
+         "ar": "آية",
+         "tr": "āya",
+         "ph": "âya",
+         "fr": "verset, signe"
+        },
+        {
+         "ar": "الفاتحة",
+         "tr": "al-Fātiḥa",
+         "ph": "al-Fâtiha",
+         "fr": "l'Ouverture"
+        }
+       ],
+       "retenir": "114 sourates, et la première est Al-Fâtiha."
+      },
+      {
+       "titre": "De maître à élève",
+       "texte": [
+        "Les compagnons du Prophète ont appris le Coran par cœur. Ils l'ont aussi écrit.",
+        "Depuis, le Coran se transmet de maître à élève : on écoute, puis on répète.",
+        "Il existe plusieurs façons reconnues de le réciter. NÛR suit celle de Warsh, très répandue en Afrique du Nord et en Afrique de l'Ouest."
+       ],
+       "mots": [
+        {
+         "ar": "حافظ",
+         "tr": "ḥāfiẓ",
+         "ph": "hâfiz",
+         "fr": "celui qui connaît le Coran par cœur"
+        },
+        {
+         "ar": "رواية",
+         "tr": "riwāya",
+         "ph": "riwâya",
+         "fr": "transmission, façon de réciter"
+        },
+        {
+         "ar": "ورش",
+         "tr": "Warsh",
+         "ph": "Warch",
+         "fr": "nom d'un grand transmetteur"
+        }
+       ],
+       "retenir": "On apprend le Coran en écoutant un maître."
+      },
+      {
+       "titre": "Écouter avec respect",
+       "texte": [
+        "On écoute le Coran dans le calme, avec attention.",
+        "Avant de réciter, on demande à Dieu Sa protection, puis on dit : « Au nom de Dieu, le Tout Miséricordieux, le Très Miséricordieux ».",
+        "Première écoute : ouvrir la sourate Al-Fâtiha dans « Réciter »."
+       ],
+       "mots": [
+        {
+         "ar": "بسم الله",
+         "tr": "bismi llāh",
+         "ph": "bismillâh",
+         "fr": "au nom de Dieu"
+        },
+        {
+         "ar": "ترتيل",
+         "tr": "tartīl",
+         "ph": "tartîl",
+         "fr": "récitation lente et claire"
+        }
+       ],
+       "lien": {
+        "txt": "Ouvrir Al-Fâtiha",
+        "href": "#/reciter/1"
+       },
+       "retenir": "On commence par « bismillâh »."
+      }
      ],
      "quiz": [
-      { "q": "Qu'est-ce que le Coran ?", "c": ["La parole de Dieu", "Un livre d'histoire", "Un calendrier"], "r": 0 },
-      { "q": "Combien de sourates compte le Coran ?", "c": ["28", "114", "1 000"], "r": 1 },
-      { "q": "Comment s'appelle la première sourate ?", "c": ["Al-Ikhlâs", "An-Nâs", "Al-Fâtiha"], "r": 2 },
-      { "q": "Quelle façon de réciter NÛR suit-elle ?", "c": ["Celle de Warsh", "Aucune", "Une façon inventée"], "r": 0 },
-      { "q": "Que dit-on avant de commencer ?", "c": ["Au revoir", "Bismillâh", "Rien"], "r": 1 }
+      {
+       "q": "Qu'est-ce que le Coran ?",
+       "c": [
+        "La parole de Dieu",
+        "Un livre d'histoire",
+        "Un calendrier"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Combien de sourates compte le Coran ?",
+       "c": [
+        "28",
+        "114",
+        "1 000"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Comment s'appelle la première sourate ?",
+       "c": [
+        "Al-Ikhlâs",
+        "An-Nâs",
+        "Al-Fâtiha"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Quelle façon de réciter NÛR suit-elle ?",
+       "c": [
+        "Celle de Warsh",
+        "Aucune",
+        "Une façon inventée"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Que dit-on avant de commencer ?",
+       "c": [
+        "Au revoir",
+        "Bismillâh",
+        "Rien"
+       ],
+       "r": 1
+      }
      ]
     },
     {
-     "n": 4, "titre": "Les fondements", "resume": "Six piliers de la foi, cinq piliers de l'islam.",
+     "n": 4,
+     "titre": "Les fondements",
+     "resume": "Six piliers de la foi, cinq piliers de l'islam.",
      "lecons": [
-      { "titre": "La foi : trois premiers piliers",
-        "texte": ["La foi repose sur six piliers. Voici les trois premiers.", "Croire en Dieu. Croire en Ses anges, créés de lumière, que l'on ne voit pas. Croire en Ses livres, dont le Coran.", "Croire, c'est avoir confiance avec son cœur."],
-        "mots": [{ "ar": "إيمان", "tr": "īmān", "ph": "îmân", "fr": "foi" }, { "ar": "ملائكة", "tr": "malāʾika", "ph": "malâ'ika", "fr": "anges" }, { "ar": "كتب", "tr": "kutub", "ph": "koutoub", "fr": "livres" }],
-        "retenir": "Dieu, Ses anges, Ses livres." },
-      { "titre": "La foi : trois autres piliers",
-        "texte": ["Voici les trois autres piliers de la foi.", "Croire en Ses messagers. Croire au Jour dernier, le jour où chacun retrouvera ce qu'il a fait. Croire au destin : rien n'arrive sans que Dieu le sache.", "Cela fait six piliers en tout."],
-        "mots": [{ "ar": "رسل", "tr": "rusul", "ph": "rousoul", "fr": "messagers" }, { "ar": "اليوم الآخر", "tr": "al-yawm al-ākhir", "ph": "al-yawm al-âkhir", "fr": "le Jour dernier" }, { "ar": "قدر", "tr": "qadar", "ph": "qadar", "fr": "destin" }],
-        "retenir": "Ses messagers, le Jour dernier, le destin." },
-      { "titre": "L'islam : trois premiers piliers",
-        "texte": ["La pratique de l'islam repose sur cinq piliers. Voici les trois premiers.", "L'attestation de foi, la chahâda. La prière, cinq fois par jour. L'aumône obligatoire : donner une part de ce que l'on possède à ceux qui en ont besoin.", "La prière se dit salât. L'aumône obligatoire se dit zakât."],
-        "mots": [{ "ar": "صلاة", "tr": "ṣalāt", "ph": "salât", "fr": "prière" }, { "ar": "زكاة", "tr": "zakāt", "ph": "zakât", "fr": "aumône obligatoire" }],
-        "retenir": "Chahâda, prière, aumône." },
-      { "titre": "L'islam : deux autres piliers",
-        "texte": ["Le quatrième pilier est le jeûne du mois de Ramadan : ne pas manger ni boire de l'aube au coucher du soleil. Les jeunes enfants n'y sont pas tenus ; ils apprennent peu à peu.", "Le cinquième pilier est le pèlerinage à La Mecque, une fois dans la vie, pour celui qui en a les moyens.", "Cela fait cinq piliers en tout."],
-        "mots": [{ "ar": "صوم", "tr": "ṣawm", "ph": "sawm", "fr": "jeûne" }, { "ar": "رمضان", "tr": "Ramaḍān", "ph": "Ramadân", "fr": "le mois du jeûne" }, { "ar": "حج", "tr": "ḥajj", "ph": "hadj", "fr": "pèlerinage" }],
-        "retenir": "Jeûne du Ramadan, pèlerinage." }
+      {
+       "titre": "La foi : trois premiers piliers",
+       "texte": [
+        "La foi repose sur six piliers. Voici les trois premiers.",
+        "Croire en Dieu. Croire en Ses anges, créés de lumière, que l'on ne voit pas. Croire en Ses livres, dont le Coran.",
+        "Croire, c'est avoir confiance avec son cœur."
+       ],
+       "mots": [
+        {
+         "ar": "إيمان",
+         "tr": "īmān",
+         "ph": "îmân",
+         "fr": "foi"
+        },
+        {
+         "ar": "ملائكة",
+         "tr": "malāʾika",
+         "ph": "malâ'ika",
+         "fr": "anges"
+        },
+        {
+         "ar": "كتب",
+         "tr": "kutub",
+         "ph": "koutoub",
+         "fr": "livres"
+        }
+       ],
+       "retenir": "Dieu, Ses anges, Ses livres."
+      },
+      {
+       "titre": "La foi : trois autres piliers",
+       "texte": [
+        "Voici les trois autres piliers de la foi.",
+        "Croire en Ses messagers. Croire au Jour dernier, le jour où chacun retrouvera ce qu'il a fait. Croire au destin : rien n'arrive sans que Dieu le sache.",
+        "Cela fait six piliers en tout."
+       ],
+       "mots": [
+        {
+         "ar": "رسل",
+         "tr": "rusul",
+         "ph": "rousoul",
+         "fr": "messagers"
+        },
+        {
+         "ar": "اليوم الآخر",
+         "tr": "al-yawm al-ākhir",
+         "ph": "al-yawm al-âkhir",
+         "fr": "le Jour dernier"
+        },
+        {
+         "ar": "قدر",
+         "tr": "qadar",
+         "ph": "qadar",
+         "fr": "destin"
+        }
+       ],
+       "retenir": "Ses messagers, le Jour dernier, le destin."
+      },
+      {
+       "titre": "L'islam : trois premiers piliers",
+       "texte": [
+        "La pratique de l'islam repose sur cinq piliers. Voici les trois premiers.",
+        "L'attestation de foi, la chahâda. La prière, cinq fois par jour. L'aumône obligatoire : donner une part de ce que l'on possède à ceux qui en ont besoin.",
+        "La prière se dit salât. L'aumône obligatoire se dit zakât."
+       ],
+       "mots": [
+        {
+         "ar": "صلاة",
+         "tr": "ṣalāt",
+         "ph": "salât",
+         "fr": "prière"
+        },
+        {
+         "ar": "زكاة",
+         "tr": "zakāt",
+         "ph": "zakât",
+         "fr": "aumône obligatoire"
+        }
+       ],
+       "retenir": "Chahâda, prière, aumône."
+      },
+      {
+       "titre": "L'islam : deux autres piliers",
+       "texte": [
+        "Le quatrième pilier est le jeûne du mois de Ramadan : ne pas manger ni boire de l'aube au coucher du soleil. Les jeunes enfants n'y sont pas tenus ; ils apprennent peu à peu.",
+        "Le cinquième pilier est le pèlerinage à La Mecque, une fois dans la vie, pour celui qui en a les moyens.",
+        "Cela fait cinq piliers en tout."
+       ],
+       "mots": [
+        {
+         "ar": "صوم",
+         "tr": "ṣawm",
+         "ph": "sawm",
+         "fr": "jeûne"
+        },
+        {
+         "ar": "رمضان",
+         "tr": "Ramaḍān",
+         "ph": "Ramadân",
+         "fr": "le mois du jeûne"
+        },
+        {
+         "ar": "حج",
+         "tr": "ḥajj",
+         "ph": "hadj",
+         "fr": "pèlerinage"
+        }
+       ],
+       "retenir": "Jeûne du Ramadan, pèlerinage."
+      }
      ],
      "quiz": [
-      { "q": "Combien la foi a-t-elle de piliers ?", "c": ["Cinq", "Six", "Dix"], "r": 1 },
-      { "q": "Combien l'islam a-t-il de piliers ?", "c": ["Cinq", "Six", "Sept"], "r": 0 },
-      { "q": "Combien de prières y a-t-il chaque jour ?", "c": ["Deux", "Trois", "Cinq"], "r": 2 },
-      { "q": "Qu'est-ce que la zakât ?", "c": ["L'aumône obligatoire", "Le pèlerinage", "Le jeûne"], "r": 0 },
-      { "q": "Où se fait le pèlerinage ?", "c": ["À Médine", "À La Mecque", "À Paris"], "r": 1 }
+      {
+       "q": "Combien la foi a-t-elle de piliers ?",
+       "c": [
+        "Cinq",
+        "Six",
+        "Dix"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Combien l'islam a-t-il de piliers ?",
+       "c": [
+        "Cinq",
+        "Six",
+        "Sept"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Combien de prières y a-t-il chaque jour ?",
+       "c": [
+        "Deux",
+        "Trois",
+        "Cinq"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Qu'est-ce que la zakât ?",
+       "c": [
+        "L'aumône obligatoire",
+        "Le pèlerinage",
+        "Le jeûne"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Où se fait le pèlerinage ?",
+       "c": [
+        "À Médine",
+        "À La Mecque",
+        "À Paris"
+       ],
+       "r": 1
+      }
      ]
     },
     {
-     "n": 5, "titre": "L'alphabet arabe, première partie", "resume": "Les lettres, leurs formes et leurs sons.",
+     "n": 5,
+     "titre": "L'alphabet arabe, première partie",
+     "resume": "Les lettres, leurs formes et leurs sons.",
      "lecons": [
-      { "titre": "Une écriture de droite à gauche",
-        "texte": ["L'arabe s'écrit de droite à gauche. Un livre arabe s'ouvre donc « à l'envers » d'un livre français.", "L'alphabet compte 28 lettres. Il n'y a pas de majuscules.", "Les lettres s'attachent entre elles, et leur forme change un peu selon leur place dans le mot."],
-        "mots": [{ "ar": "حرف", "tr": "ḥarf", "ph": "harf", "fr": "lettre" }, { "ar": "حروف", "tr": "ḥurūf", "ph": "houroûf", "fr": "lettres" }],
-        "retenir": "28 lettres, de droite à gauche." },
-      { "titre": "Quatorze premières lettres",
-        "texte": ["Voici les quatorze premières lettres. Lire le nom de chaque lettre à voix haute, lentement.", "Il n'est pas nécessaire de tout retenir d'un coup. Trois ou quatre lettres par jour suffisent."],
-        "lettres": [0, 14],
-        "retenir": "Peu de lettres chaque jour, mais chaque jour." },
-      { "titre": "Quatorze lettres suivantes",
-        "texte": ["Voici les quatorze lettres suivantes.", "Certaines se ressemblent : seul le nombre de points change. Regarder les points avec attention."],
-        "lettres": [14, 28],
-        "retenir": "Les points font la différence entre deux lettres." },
-      { "titre": "Les sons propres à l'arabe",
-        "texte": ["Quelques sons n'existent pas en français. Ils viennent du fond de la gorge, ou se prononcent « lourd ».", "On ne les apprend pas en lisant : on les apprend en écoutant un enseignant, puis en répétant.", "Les enregistrements des lettres seront ajoutés à NÛR dès qu'ils seront prêts."],
-        "mots": [{ "ar": "ح", "tr": "ḥ", "ph": "h soufflé", "fr": "lettre Hâ'" }, { "ar": "ع", "tr": "ʿ", "ph": "son de gorge", "fr": "lettre ʿAyn" }, { "ar": "ق", "tr": "q", "ph": "k du fond de la gorge", "fr": "lettre Qâf" }],
-        "lien": { "txt": "Voir la page Alphabet", "href": "#/alphabet" },
-        "retenir": "Ces sons s'apprennent à l'oreille." }
+      {
+       "titre": "Une écriture de droite à gauche",
+       "texte": [
+        "L'arabe s'écrit de droite à gauche. Un livre arabe s'ouvre donc « à l'envers » d'un livre français.",
+        "L'alphabet compte 28 lettres. Il n'y a pas de majuscules.",
+        "Les lettres s'attachent entre elles, et leur forme change un peu selon leur place dans le mot."
+       ],
+       "mots": [
+        {
+         "ar": "حرف",
+         "tr": "ḥarf",
+         "ph": "harf",
+         "fr": "lettre"
+        },
+        {
+         "ar": "حروف",
+         "tr": "ḥurūf",
+         "ph": "houroûf",
+         "fr": "lettres"
+        }
+       ],
+       "retenir": "28 lettres, de droite à gauche."
+      },
+      {
+       "titre": "Quatorze premières lettres",
+       "texte": [
+        "Voici les quatorze premières lettres. Lire le nom de chaque lettre à voix haute, lentement.",
+        "Il n'est pas nécessaire de tout retenir d'un coup. Trois ou quatre lettres par jour suffisent."
+       ],
+       "lettres": [
+        0,
+        14
+       ],
+       "retenir": "Peu de lettres chaque jour, mais chaque jour."
+      },
+      {
+       "titre": "Quatorze lettres suivantes",
+       "texte": [
+        "Voici les quatorze lettres suivantes.",
+        "Certaines se ressemblent : seul le nombre de points change. Regarder les points avec attention."
+       ],
+       "lettres": [
+        14,
+        28
+       ],
+       "retenir": "Les points font la différence entre deux lettres."
+      },
+      {
+       "titre": "Les sons propres à l'arabe",
+       "texte": [
+        "Quelques sons n'existent pas en français. Ils viennent du fond de la gorge, ou se prononcent « lourd ».",
+        "On ne les apprend pas en lisant : on les apprend en écoutant un enseignant, puis en répétant.",
+        "Les enregistrements des lettres seront ajoutés à NÛR dès qu'ils seront prêts."
+       ],
+       "mots": [
+        {
+         "ar": "ح",
+         "tr": "ḥ",
+         "ph": "h soufflé",
+         "fr": "lettre Hâ'"
+        },
+        {
+         "ar": "ع",
+         "tr": "ʿ",
+         "ph": "son de gorge",
+         "fr": "lettre ʿAyn"
+        },
+        {
+         "ar": "ق",
+         "tr": "q",
+         "ph": "k du fond de la gorge",
+         "fr": "lettre Qâf"
+        }
+       ],
+       "lien": {
+        "txt": "Voir la page Alphabet",
+        "href": "#/alphabet"
+       },
+       "retenir": "Ces sons s'apprennent à l'oreille."
+      }
      ],
      "quiz": [
-      { "q": "Dans quel sens s'écrit l'arabe ?", "c": ["De gauche à droite", "De droite à gauche", "De haut en bas"], "r": 1 },
-      { "q": "Combien de lettres compte l'alphabet arabe ?", "c": ["26", "28", "40"], "r": 1 },
-      { "q": "Quelle est cette lettre : ب ?", "c": ["Bâ'", "Mîm", "Noûn"], "r": 0 },
-      { "q": "Quelle est cette lettre : م ?", "c": ["Lâm", "Mîm", "Kâf"], "r": 1 },
-      { "q": "Comment apprend-on les sons propres à l'arabe ?", "c": ["En écoutant et en répétant", "En les devinant", "En les écrivant seulement"], "r": 0 }
+      {
+       "q": "Dans quel sens s'écrit l'arabe ?",
+       "c": [
+        "De gauche à droite",
+        "De droite à gauche",
+        "De haut en bas"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Combien de lettres compte l'alphabet arabe ?",
+       "c": [
+        "26",
+        "28",
+        "40"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Quelle est cette lettre : ب ?",
+       "c": [
+        "Bâ'",
+        "Mîm",
+        "Noûn"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Quelle est cette lettre : م ?",
+       "c": [
+        "Lâm",
+        "Mîm",
+        "Kâf"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Comment apprend-on les sons propres à l'arabe ?",
+       "c": [
+        "En écoutant et en répétant",
+        "En les devinant",
+        "En les écrivant seulement"
+       ],
+       "r": 0
+      }
      ]
     },
     {
-     "n": 6, "titre": "L'alphabet arabe, seconde partie", "resume": "Voyelles, signes de lecture, lire un mot puis une phrase.",
+     "n": 6,
+     "titre": "L'alphabet arabe, seconde partie",
+     "resume": "Voyelles, signes de lecture, lire un mot puis une phrase.",
      "lecons": [
-      { "titre": "Les voyelles brèves",
-        "texte": ["Les voyelles brèves sont de petits signes posés sur la lettre ou sous la lettre.", "Un petit trait au-dessus donne le son « a ». Une petite boucle au-dessus donne le son « ou ». Un petit trait en dessous donne le son « i ».", "Avec la lettre Bâ', cela donne : ba, bou, bi."],
-        "mots": [{ "ar": "بَ", "tr": "ba", "ph": "ba", "fr": "fatha : le son « a »" }, { "ar": "بُ", "tr": "bu", "ph": "bou", "fr": "damma : le son « ou »" }, { "ar": "بِ", "tr": "bi", "ph": "bi", "fr": "kasra : le son « i »" }],
-        "retenir": "Trois voyelles brèves : a, ou, i." },
-      { "titre": "Les voyelles longues",
-        "texte": ["Une voyelle longue dure à peu près deux fois plus longtemps qu'une voyelle brève.", "On l'écrit en ajoutant une lettre après la voyelle brève : alif pour « â », wâw pour « oû », yâ' pour « î ».", "Avec la lettre Bâ', cela donne : bâ, boû, bî."],
-        "mots": [{ "ar": "بَا", "tr": "bā", "ph": "bâ", "fr": "« a » long" }, { "ar": "بُو", "tr": "bū", "ph": "boû", "fr": "« ou » long" }, { "ar": "بِي", "tr": "bī", "ph": "bî", "fr": "« i » long" }],
-        "retenir": "Une voyelle longue dure deux temps." },
-      { "titre": "Trois autres signes",
-        "texte": ["Le soukoun est un petit rond : la lettre se prononce seule, sans voyelle.", "La chadda ressemble à un petit « w » : la lettre est doublée.", "Le tanwîn ajoute le son « n » à la fin d'un mot : an, oun, in."],
-        "mots": [{ "ar": "بْ", "tr": "b", "ph": "b", "fr": "soukoun : pas de voyelle" }, { "ar": "بَّ", "tr": "bba", "ph": "bba", "fr": "chadda : lettre doublée" }],
-        "lien": { "txt": "Voir tous les signes", "href": "#/alphabet" },
-        "retenir": "Soukoun : pas de voyelle. Chadda : lettre doublée." },
-      { "titre": "Lire un mot, puis une phrase",
-        "texte": ["Pour lire, on avance lettre par lettre, de droite à gauche, sans se presser.", "Premier mot : بِسْمِ. On lit bi, puis s, puis mi : « bismi ».", "Première phrase : بِسْمِ اللهِ. On lit « bismi llâhi » : au nom de Dieu."],
-        "mots": [{ "ar": "بِسْمِ", "tr": "bismi", "ph": "bismi", "fr": "au nom de" }, { "ar": "بِسْمِ اللهِ", "tr": "bismi llāhi", "ph": "bismillâhi", "fr": "au nom de Dieu" }],
-        "retenir": "Lettre par lettre, de droite à gauche." }
+      {
+       "titre": "Les voyelles brèves",
+       "texte": [
+        "Les voyelles brèves sont de petits signes posés sur la lettre ou sous la lettre.",
+        "Un petit trait au-dessus donne le son « a ». Une petite boucle au-dessus donne le son « ou ». Un petit trait en dessous donne le son « i ».",
+        "Avec la lettre Bâ', cela donne : ba, bou, bi."
+       ],
+       "mots": [
+        {
+         "ar": "بَ",
+         "tr": "ba",
+         "ph": "ba",
+         "fr": "fatha : le son « a »"
+        },
+        {
+         "ar": "بُ",
+         "tr": "bu",
+         "ph": "bou",
+         "fr": "damma : le son « ou »"
+        },
+        {
+         "ar": "بِ",
+         "tr": "bi",
+         "ph": "bi",
+         "fr": "kasra : le son « i »"
+        }
+       ],
+       "retenir": "Trois voyelles brèves : a, ou, i."
+      },
+      {
+       "titre": "Les voyelles longues",
+       "texte": [
+        "Une voyelle longue dure à peu près deux fois plus longtemps qu'une voyelle brève.",
+        "On l'écrit en ajoutant une lettre après la voyelle brève : alif pour « â », wâw pour « oû », yâ' pour « î ».",
+        "Avec la lettre Bâ', cela donne : bâ, boû, bî."
+       ],
+       "mots": [
+        {
+         "ar": "بَا",
+         "tr": "bā",
+         "ph": "bâ",
+         "fr": "« a » long"
+        },
+        {
+         "ar": "بُو",
+         "tr": "bū",
+         "ph": "boû",
+         "fr": "« ou » long"
+        },
+        {
+         "ar": "بِي",
+         "tr": "bī",
+         "ph": "bî",
+         "fr": "« i » long"
+        }
+       ],
+       "retenir": "Une voyelle longue dure deux temps."
+      },
+      {
+       "titre": "Trois autres signes",
+       "texte": [
+        "Le soukoun est un petit rond : la lettre se prononce seule, sans voyelle.",
+        "La chadda ressemble à un petit « w » : la lettre est doublée.",
+        "Le tanwîn ajoute le son « n » à la fin d'un mot : an, oun, in."
+       ],
+       "mots": [
+        {
+         "ar": "بْ",
+         "tr": "b",
+         "ph": "b",
+         "fr": "soukoun : pas de voyelle"
+        },
+        {
+         "ar": "بَّ",
+         "tr": "bba",
+         "ph": "bba",
+         "fr": "chadda : lettre doublée"
+        }
+       ],
+       "lien": {
+        "txt": "Voir tous les signes",
+        "href": "#/alphabet"
+       },
+       "retenir": "Soukoun : pas de voyelle. Chadda : lettre doublée."
+      },
+      {
+       "titre": "Lire un mot, puis une phrase",
+       "texte": [
+        "Pour lire, on avance lettre par lettre, de droite à gauche, sans se presser.",
+        "Premier mot : بِسْمِ. On lit bi, puis s, puis mi : « bismi ».",
+        "Première phrase : بِسْمِ اللهِ. On lit « bismi llâhi » : au nom de Dieu."
+       ],
+       "mots": [
+        {
+         "ar": "بِسْمِ",
+         "tr": "bismi",
+         "ph": "bismi",
+         "fr": "au nom de"
+        },
+        {
+         "ar": "بِسْمِ اللهِ",
+         "tr": "bismi llāhi",
+         "ph": "bismillâhi",
+         "fr": "au nom de Dieu"
+        }
+       ],
+       "retenir": "Lettre par lettre, de droite à gauche."
+      }
      ],
      "quiz": [
-      { "q": "Quel son donne la fatha ?", "c": ["a", "ou", "i"], "r": 0 },
-      { "q": "Quel son donne la damma ?", "c": ["a", "ou", "i"], "r": 1 },
-      { "q": "Quel son donne la kasra ?", "c": ["a", "ou", "i"], "r": 2 },
-      { "q": "Que veut dire le soukoun ?", "c": ["La lettre est doublée", "La lettre n'a pas de voyelle", "La lettre est longue"], "r": 1 },
-      { "q": "Que fait la chadda ?", "c": ["Elle double la lettre", "Elle efface la lettre", "Elle ajoute un « n »"], "r": 0 }
+      {
+       "q": "Quel son donne la fatha ?",
+       "c": [
+        "a",
+        "ou",
+        "i"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Quel son donne la damma ?",
+       "c": [
+        "a",
+        "ou",
+        "i"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Quel son donne la kasra ?",
+       "c": [
+        "a",
+        "ou",
+        "i"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Que veut dire le soukoun ?",
+       "c": [
+        "La lettre est doublée",
+        "La lettre n'a pas de voyelle",
+        "La lettre est longue"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Que fait la chadda ?",
+       "c": [
+        "Elle double la lettre",
+        "Elle efface la lettre",
+        "Elle ajoute un « n »"
+       ],
+       "r": 0
+      }
      ]
     },
     {
-     "n": 7, "titre": "Se purifier et prier", "resume": "Les ablutions, cinq moments dans la journée, les gestes.",
+     "n": 7,
+     "titre": "Se purifier et prier",
+     "resume": "Les ablutions, cinq moments dans la journée, les gestes.",
      "lecons": [
-      { "titre": "Les ablutions",
-        "texte": ["Avant la prière, on se lave d'une façon précise. Cela s'appelle les ablutions.", "On décide dans son cœur de se purifier. Puis on lave les mains, la bouche, le nez, le visage, les bras jusqu'aux coudes. On passe les mains mouillées sur la tête et les oreilles. On lave les pieds jusqu'aux chevilles.", "L'ordre exact et les détails s'apprennent avec un parent ou un enseignant."],
-        "mots": [{ "ar": "وضوء", "tr": "wuḍūʾ", "ph": "woudoû'", "fr": "ablutions" }, { "ar": "نية", "tr": "niyya", "ph": "niyya", "fr": "intention" }, { "ar": "طهارة", "tr": "ṭahāra", "ph": "tahâra", "fr": "purification" }],
-        "retenir": "On se purifie avant de prier." },
-      { "titre": "Cinq prières dans la journée",
-        "texte": ["Il y a cinq prières chaque jour : à l'aube, au milieu du jour, dans l'après-midi, au coucher du soleil et à la nuit.", "Chaque prière est faite d'unités. La prière de l'aube en compte deux. Celle du milieu du jour, quatre. Celle de l'après-midi, quatre. Celle du coucher du soleil, trois. Celle de la nuit, quatre.", "Les heures changent selon le lieu et la saison. NÛR les affiche dans « Heures de prière »."],
-        "mots": [{ "ar": "ركعة", "tr": "rakʿa", "ph": "rakʿa", "fr": "unité de prière" }, { "ar": "صلاة", "tr": "ṣalāt", "ph": "salât", "fr": "prière" }],
-        "lien": { "txt": "Voir les heures de prière", "href": "#/prieres" },
-        "retenir": "Deux, quatre, quatre, trois, quatre." },
-      { "titre": "Les gestes de la prière",
-        "texte": ["On se tourne vers La Mecque. Debout, on dit : « Dieu est le plus grand ». On récite Al-Fâtiha.", "On s'incline. On se redresse. On se prosterne deux fois, le front au sol. Puis on s'assoit. À la fin, on salue.", "Les gestes s'apprennent en regardant quelqu'un qui sait prier : un parent, un imam."],
-        "mots": [{ "ar": "قبلة", "tr": "qibla", "ph": "qibla", "fr": "direction de la prière" }, { "ar": "الله أكبر", "tr": "Allāhu akbar", "ph": "Allâhou akbar", "fr": "Dieu est le plus grand" }, { "ar": "ركوع", "tr": "rukūʿ", "ph": "roukoûʿ", "fr": "inclinaison" }, { "ar": "سجود", "tr": "sujūd", "ph": "soudjoûd", "fr": "prosternation" }],
-        "retenir": "Debout, incliné, prosterné, assis." },
-      { "titre": "Ne pas rester seul",
-        "texte": ["On peut prier seul. On peut aussi prier à plusieurs, derrière un imam.", "Le vendredi, à la mi-journée, les musulmans se rassemblent à la mosquée.", "Quand c'est possible, il est bon de se rapprocher de la mosquée la plus proche : on y apprend, et l'on n'est plus seul."],
-        "mots": [{ "ar": "مسجد", "tr": "masjid", "ph": "masdjid", "fr": "mosquée" }, { "ar": "جمعة", "tr": "jumuʿa", "ph": "djoumouʿa", "fr": "vendredi, jour du rassemblement" }, { "ar": "إمام", "tr": "imām", "ph": "imâm", "fr": "celui qui dirige la prière" }],
-        "retenir": "La mosquée est un lieu pour apprendre et ne pas rester seul." }
+      {
+       "titre": "Les ablutions",
+       "texte": [
+        "Avant la prière, on se lave d'une façon précise. Cela s'appelle les ablutions.",
+        "On décide dans son cœur de se purifier. Puis on lave les mains, la bouche, le nez, le visage, les bras jusqu'aux coudes. On passe les mains mouillées sur la tête et les oreilles. On lave les pieds jusqu'aux chevilles.",
+        "L'ordre exact et les détails s'apprennent avec un parent ou un enseignant."
+       ],
+       "mots": [
+        {
+         "ar": "وضوء",
+         "tr": "wuḍūʾ",
+         "ph": "woudoû'",
+         "fr": "ablutions"
+        },
+        {
+         "ar": "نية",
+         "tr": "niyya",
+         "ph": "niyya",
+         "fr": "intention"
+        },
+        {
+         "ar": "طهارة",
+         "tr": "ṭahāra",
+         "ph": "tahâra",
+         "fr": "purification"
+        }
+       ],
+       "retenir": "On se purifie avant de prier."
+      },
+      {
+       "titre": "Cinq prières dans la journée",
+       "texte": [
+        "Il y a cinq prières chaque jour : à l'aube, au milieu du jour, dans l'après-midi, au coucher du soleil et à la nuit.",
+        "Chaque prière est faite d'unités. La prière de l'aube en compte deux. Celle du milieu du jour, quatre. Celle de l'après-midi, quatre. Celle du coucher du soleil, trois. Celle de la nuit, quatre.",
+        "Les heures changent selon le lieu et la saison. NÛR les affiche dans « Heures de prière »."
+       ],
+       "mots": [
+        {
+         "ar": "ركعة",
+         "tr": "rakʿa",
+         "ph": "rakʿa",
+         "fr": "unité de prière"
+        },
+        {
+         "ar": "صلاة",
+         "tr": "ṣalāt",
+         "ph": "salât",
+         "fr": "prière"
+        }
+       ],
+       "lien": {
+        "txt": "Voir les heures de prière",
+        "href": "#/prieres"
+       },
+       "retenir": "Deux, quatre, quatre, trois, quatre."
+      },
+      {
+       "titre": "Les gestes de la prière",
+       "texte": [
+        "On se tourne vers La Mecque. Debout, on dit : « Dieu est le plus grand ». On récite Al-Fâtiha.",
+        "On s'incline. On se redresse. On se prosterne deux fois, le front au sol. Puis on s'assoit. À la fin, on salue.",
+        "Les gestes s'apprennent en regardant quelqu'un qui sait prier : un parent, un imam."
+       ],
+       "mots": [
+        {
+         "ar": "قبلة",
+         "tr": "qibla",
+         "ph": "qibla",
+         "fr": "direction de la prière"
+        },
+        {
+         "ar": "الله أكبر",
+         "tr": "Allāhu akbar",
+         "ph": "Allâhou akbar",
+         "fr": "Dieu est le plus grand"
+        },
+        {
+         "ar": "ركوع",
+         "tr": "rukūʿ",
+         "ph": "roukoûʿ",
+         "fr": "inclinaison"
+        },
+        {
+         "ar": "سجود",
+         "tr": "sujūd",
+         "ph": "soudjoûd",
+         "fr": "prosternation"
+        }
+       ],
+       "retenir": "Debout, incliné, prosterné, assis."
+      },
+      {
+       "titre": "Ne pas rester seul",
+       "texte": [
+        "On peut prier seul. On peut aussi prier à plusieurs, derrière un imam.",
+        "Le vendredi, à la mi-journée, les musulmans se rassemblent à la mosquée.",
+        "Quand c'est possible, il est bon de se rapprocher de la mosquée la plus proche : on y apprend, et l'on n'est plus seul."
+       ],
+       "mots": [
+        {
+         "ar": "مسجد",
+         "tr": "masjid",
+         "ph": "masdjid",
+         "fr": "mosquée"
+        },
+        {
+         "ar": "جمعة",
+         "tr": "jumuʿa",
+         "ph": "djoumouʿa",
+         "fr": "vendredi, jour du rassemblement"
+        },
+        {
+         "ar": "إمام",
+         "tr": "imām",
+         "ph": "imâm",
+         "fr": "celui qui dirige la prière"
+        }
+       ],
+       "retenir": "La mosquée est un lieu pour apprendre et ne pas rester seul."
+      }
      ],
      "quiz": [
-      { "q": "Que fait-on avant la prière ?", "c": ["Les ablutions", "Un voyage", "Un repas"], "r": 0 },
-      { "q": "Combien de prières y a-t-il par jour ?", "c": ["Trois", "Cinq", "Sept"], "r": 1 },
-      { "q": "Combien d'unités compte la prière du coucher du soleil ?", "c": ["Deux", "Trois", "Quatre"], "r": 1 },
-      { "q": "Vers où se tourne-t-on pour prier ?", "c": ["Vers La Mecque", "Vers le soleil", "Vers la mer"], "r": 0 },
-      { "q": "Comment s'appelle la prosternation ?", "c": ["Le roukoûʿ", "Le soudjoûd", "La zakât"], "r": 1 }
+      {
+       "q": "Que fait-on avant la prière ?",
+       "c": [
+        "Les ablutions",
+        "Un voyage",
+        "Un repas"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Combien de prières y a-t-il par jour ?",
+       "c": [
+        "Trois",
+        "Cinq",
+        "Sept"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Combien d'unités compte la prière du coucher du soleil ?",
+       "c": [
+        "Deux",
+        "Trois",
+        "Quatre"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Vers où se tourne-t-on pour prier ?",
+       "c": [
+        "Vers La Mecque",
+        "Vers le soleil",
+        "Vers la mer"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Comment s'appelle la prosternation ?",
+       "c": [
+        "Le roukoûʿ",
+        "Le soudjoûd",
+        "La zakât"
+       ],
+       "r": 1
+      }
      ]
     },
     {
-     "n": 8, "titre": "Al-Fâtiha", "resume": "La lire et la comprendre, verset par verset.",
+     "n": 8,
+     "titre": "Al-Fâtiha",
+     "resume": "La lire et la comprendre, verset par verset.",
      "lecons": [
-      { "titre": "L'Ouverture",
-        "texte": ["Al-Fâtiha est la première sourate du Coran. Son nom veut dire « l'Ouverture ».", "Elle compte sept versets. On la récite dans chaque unité de la prière.", "C'est une prière adressée à Dieu : d'abord on Le loue, puis on Lui demande d'être guidé."],
-        "mots": [{ "ar": "الفاتحة", "tr": "al-Fātiḥa", "ph": "al-Fâtiha", "fr": "l'Ouverture" }],
-        "lien": { "txt": "Lire Al-Fâtiha dans « Réciter »", "href": "#/reciter/1" },
-        "retenir": "Sept versets, récités dans chaque prière." },
-      { "titre": "Versets 1 à 3 : la louange",
-        "texte": ["Les trois premiers versets louent Dieu.", "Lire chaque verset lentement, d'abord avec la phonétique, puis en regardant l'arabe."],
-        "versets": { "s": 1, "a": [1, 2, 3], "sens": ["Louange à Dieu, Seigneur des mondes.", "Le Tout Miséricordieux, le Très Miséricordieux.", "Roi du Jour de la rétribution."] },
-        "retenir": "On commence par remercier et louer Dieu." },
-      { "titre": "Versets 4 et 5 : la demande",
-        "texte": ["Au milieu de la sourate, on s'adresse directement à Dieu.", "On Lui dit qu'on L'adore, Lui seul, et on Lui demande Son aide."],
-        "versets": { "s": 1, "a": [4, 5], "sens": ["C'est Toi que nous adorons, et c'est à Toi que nous demandons de l'aide.", "Guide-nous sur le chemin droit."] },
-        "retenir": "On demande à Dieu de nous guider." },
-      { "titre": "Versets 6 et 7 : le chemin",
-        "texte": ["Les deux derniers versets décrivent le chemin droit.", "À la fin de la sourate, on dit « âmîn », qui veut dire : « Ô Dieu, exauce ».", "Apprendre Al-Fâtiha par cœur est le premier grand pas."],
-        "versets": { "s": 1, "a": [6, 7], "sens": ["Le chemin de ceux que Tu as comblés de bienfaits.", "Non pas le chemin de ceux qui ont mérité la colère, ni de ceux qui se sont égarés."] },
-        "mots": [{ "ar": "آمين", "tr": "āmīn", "ph": "âmîn", "fr": "Ô Dieu, exauce" }],
-        "lien": { "txt": "Mémoriser Al-Fâtiha", "href": "#/reciter/1" },
-        "retenir": "On termine en disant « âmîn »." }
+      {
+       "titre": "L'Ouverture",
+       "texte": [
+        "Al-Fâtiha est la première sourate du Coran. Son nom veut dire « l'Ouverture ».",
+        "Elle compte sept versets. On la récite dans chaque unité de la prière.",
+        "C'est une prière adressée à Dieu : d'abord on Le loue, puis on Lui demande d'être guidé."
+       ],
+       "mots": [
+        {
+         "ar": "الفاتحة",
+         "tr": "al-Fātiḥa",
+         "ph": "al-Fâtiha",
+         "fr": "l'Ouverture"
+        }
+       ],
+       "lien": {
+        "txt": "Lire Al-Fâtiha dans « Réciter »",
+        "href": "#/reciter/1"
+       },
+       "retenir": "Sept versets, récités dans chaque prière."
+      },
+      {
+       "titre": "Versets 1 à 3 : la louange",
+       "texte": [
+        "Les trois premiers versets louent Dieu.",
+        "Lire chaque verset lentement, d'abord avec la phonétique, puis en regardant l'arabe."
+       ],
+       "versets": {
+        "s": 1,
+        "a": [
+         1,
+         2,
+         3
+        ],
+        "sens": [
+         "Louange à Dieu, Seigneur des mondes.",
+         "Le Tout Miséricordieux, le Très Miséricordieux.",
+         "Roi du Jour de la rétribution."
+        ]
+       },
+       "retenir": "On commence par remercier et louer Dieu."
+      },
+      {
+       "titre": "Versets 4 et 5 : la demande",
+       "texte": [
+        "Au milieu de la sourate, on s'adresse directement à Dieu.",
+        "On Lui dit qu'on L'adore, Lui seul, et on Lui demande Son aide."
+       ],
+       "versets": {
+        "s": 1,
+        "a": [
+         4,
+         5
+        ],
+        "sens": [
+         "C'est Toi que nous adorons, et c'est à Toi que nous demandons de l'aide.",
+         "Guide-nous sur le chemin droit."
+        ]
+       },
+       "retenir": "On demande à Dieu de nous guider."
+      },
+      {
+       "titre": "Versets 6 et 7 : le chemin",
+       "texte": [
+        "Les deux derniers versets décrivent le chemin droit.",
+        "À la fin de la sourate, on dit « âmîn », qui veut dire : « Ô Dieu, exauce ».",
+        "Apprendre Al-Fâtiha par cœur est le premier grand pas."
+       ],
+       "versets": {
+        "s": 1,
+        "a": [
+         6,
+         7
+        ],
+        "sens": [
+         "Le chemin de ceux que Tu as comblés de bienfaits.",
+         "Non pas le chemin de ceux qui ont mérité la colère, ni de ceux qui se sont égarés."
+        ]
+       },
+       "mots": [
+        {
+         "ar": "آمين",
+         "tr": "āmīn",
+         "ph": "âmîn",
+         "fr": "Ô Dieu, exauce"
+        }
+       ],
+       "lien": {
+        "txt": "Mémoriser Al-Fâtiha",
+        "href": "#/reciter/1"
+       },
+       "retenir": "On termine en disant « âmîn »."
+      }
      ],
      "quiz": [
-      { "q": "Que veut dire « Al-Fâtiha » ?", "c": ["La Fin", "L'Ouverture", "La Lumière"], "r": 1 },
-      { "q": "Combien de versets compte Al-Fâtiha ?", "c": ["Trois", "Cinq", "Sept"], "r": 2 },
-      { "q": "Par quoi commence la sourate ?", "c": ["Par la louange à Dieu", "Par une histoire", "Par une date"], "r": 0 },
-      { "q": "Que demande-t-on à Dieu dans Al-Fâtiha ?", "c": ["De l'argent", "D'être guidé sur le chemin droit", "Un voyage"], "r": 1 },
-      { "q": "Quand récite-t-on Al-Fâtiha ?", "c": ["Dans chaque unité de la prière", "Une fois par an", "Jamais à voix haute"], "r": 0 }
+      {
+       "q": "Que veut dire « Al-Fâtiha » ?",
+       "c": [
+        "La Fin",
+        "L'Ouverture",
+        "La Lumière"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Combien de versets compte Al-Fâtiha ?",
+       "c": [
+        "Trois",
+        "Cinq",
+        "Sept"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Par quoi commence la sourate ?",
+       "c": [
+        "Par la louange à Dieu",
+        "Par une histoire",
+        "Par une date"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Que demande-t-on à Dieu dans Al-Fâtiha ?",
+       "c": [
+        "De l'argent",
+        "D'être guidé sur le chemin droit",
+        "Un voyage"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Quand récite-t-on Al-Fâtiha ?",
+       "c": [
+        "Dans chaque unité de la prière",
+        "Une fois par an",
+        "Jamais à voix haute"
+       ],
+       "r": 0
+      }
      ]
     },
     {
-     "n": 9, "titre": "Premiers pas", "resume": "Courtes sourates en Warsh, belles manières.",
+     "n": 9,
+     "titre": "Premiers pas",
+     "resume": "Courtes sourates en Warsh, belles manières.",
      "lecons": [
-      { "titre": "La sourate Al-Ikhlâs",
-        "texte": ["Al-Ikhlâs est la sourate 112. Elle est très courte et parle de Dieu, l'Unique.", "Lire chaque verset avec la phonétique, puis le répéter trois fois."],
-        "versets": { "s": 112, "a": [1, 2, 3, 4], "sens": ["Dis : Il est Dieu, l'Unique.", "Dieu, Celui dont tous ont besoin.", "Il n'a pas eu d'enfant et n'a pas eu de parent.", "Et personne n'est égal à Lui."] },
-        "lien": { "txt": "Ouvrir la sourate 112", "href": "#/reciter/112" },
-        "retenir": "Al-Ikhlâs dit que Dieu est unique." },
-      { "titre": "Les sourates Al-Falaq et An-Nâs",
-        "texte": ["Les deux dernières sourates du Coran sont Al-Falaq (113) et An-Nâs (114).", "Dans ces deux sourates, on demande à Dieu de nous protéger du mal.", "Les écouter et les répéter dans « Réciter », un verset à la fois."],
-        "mots": [{ "ar": "الفلق", "tr": "al-Falaq", "ph": "al-Falaq", "fr": "l'aube naissante" }, { "ar": "الناس", "tr": "an-Nās", "ph": "an-Nâs", "fr": "les gens" }],
-        "lien": { "txt": "Ouvrir la sourate 113", "href": "#/reciter/113" },
-        "retenir": "On demande à Dieu Sa protection." },
-      { "titre": "Les mots de tous les jours",
-        "texte": ["Pour saluer, on dit : « que la paix soit sur vous ». On répond : « et que la paix soit sur vous aussi ».", "Avant de manger ou de commencer quelque chose, on dit : « au nom de Dieu ».", "Pour remercier Dieu, on dit : « louange à Dieu ». Pour parler de demain, on dit : « si Dieu le veut »."],
-        "mots": [{ "ar": "السلام عليكم", "tr": "as-salāmu ʿalaykum", "ph": "as-salâmou ʿalaykoum", "fr": "que la paix soit sur vous" }, { "ar": "وعليكم السلام", "tr": "wa ʿalaykumu s-salām", "ph": "wa ʿalaykoumou s-salâm", "fr": "et sur vous la paix" }, { "ar": "الحمد لله", "tr": "al-ḥamdu lillāh", "ph": "al-hamdoulillâh", "fr": "louange à Dieu" }, { "ar": "إن شاء الله", "tr": "in shāʾa llāh", "ph": "in châ'allâh", "fr": "si Dieu le veut" }],
-        "retenir": "Saluer, remercier, dire « au nom de Dieu »." },
-      { "titre": "Les belles manières",
-        "texte": ["La foi se voit dans la façon de se conduire.", "Respecter ses parents. Dire la vérité. Être bon avec ses voisins. Tenir ses promesses. Aider celui qui en a besoin.", "Le Prophète a enseigné que personne ne croit vraiment tant qu'il n'aime pas pour son frère ce qu'il aime pour lui-même."],
-        "mots": [{ "ar": "أدب", "tr": "adab", "ph": "adab", "fr": "belles manières" }, { "ar": "صدق", "tr": "ṣidq", "ph": "sidq", "fr": "vérité, sincérité" }, { "ar": "بر الوالدين", "tr": "birr al-wālidayn", "ph": "birr al-wâlidayn", "fr": "bonté envers les parents" }],
-        "source": "Quarante hadiths d'an-Nawawî, n° 13 (al-Bukhârî et Muslim).",
-        "retenir": "Aimer pour les autres ce que l'on aime pour soi." }
+      {
+       "titre": "La sourate Al-Ikhlâs",
+       "texte": [
+        "Al-Ikhlâs est la sourate 112. Elle est très courte et parle de Dieu, l'Unique.",
+        "Lire chaque verset avec la phonétique, puis le répéter trois fois."
+       ],
+       "versets": {
+        "s": 112,
+        "a": [
+         1,
+         2,
+         3,
+         4
+        ],
+        "sens": [
+         "Dis : Il est Dieu, l'Unique.",
+         "Dieu, Celui dont tous ont besoin.",
+         "Il n'a pas eu d'enfant et n'a pas eu de parent.",
+         "Et personne n'est égal à Lui."
+        ]
+       },
+       "lien": {
+        "txt": "Ouvrir la sourate 112",
+        "href": "#/reciter/112"
+       },
+       "retenir": "Al-Ikhlâs dit que Dieu est unique."
+      },
+      {
+       "titre": "Les sourates Al-Falaq et An-Nâs",
+       "texte": [
+        "Les deux dernières sourates du Coran sont Al-Falaq (113) et An-Nâs (114).",
+        "Dans ces deux sourates, on demande à Dieu de nous protéger du mal.",
+        "Les écouter et les répéter dans « Réciter », un verset à la fois."
+       ],
+       "mots": [
+        {
+         "ar": "الفلق",
+         "tr": "al-Falaq",
+         "ph": "al-Falaq",
+         "fr": "l'aube naissante"
+        },
+        {
+         "ar": "الناس",
+         "tr": "an-Nās",
+         "ph": "an-Nâs",
+         "fr": "les gens"
+        }
+       ],
+       "lien": {
+        "txt": "Ouvrir la sourate 113",
+        "href": "#/reciter/113"
+       },
+       "retenir": "On demande à Dieu Sa protection."
+      },
+      {
+       "titre": "Les mots de tous les jours",
+       "texte": [
+        "Pour saluer, on dit : « que la paix soit sur vous ». On répond : « et que la paix soit sur vous aussi ».",
+        "Avant de manger ou de commencer quelque chose, on dit : « au nom de Dieu ».",
+        "Pour remercier Dieu, on dit : « louange à Dieu ». Pour parler de demain, on dit : « si Dieu le veut »."
+       ],
+       "mots": [
+        {
+         "ar": "السلام عليكم",
+         "tr": "as-salāmu ʿalaykum",
+         "ph": "as-salâmou ʿalaykoum",
+         "fr": "que la paix soit sur vous"
+        },
+        {
+         "ar": "وعليكم السلام",
+         "tr": "wa ʿalaykumu s-salām",
+         "ph": "wa ʿalaykoumou s-salâm",
+         "fr": "et sur vous la paix"
+        },
+        {
+         "ar": "الحمد لله",
+         "tr": "al-ḥamdu lillāh",
+         "ph": "al-hamdoulillâh",
+         "fr": "louange à Dieu"
+        },
+        {
+         "ar": "إن شاء الله",
+         "tr": "in shāʾa llāh",
+         "ph": "in châ'allâh",
+         "fr": "si Dieu le veut"
+        }
+       ],
+       "retenir": "Saluer, remercier, dire « au nom de Dieu »."
+      },
+      {
+       "titre": "Les belles manières",
+       "texte": [
+        "La foi se voit dans la façon de se conduire.",
+        "Respecter ses parents. Dire la vérité. Être bon avec ses voisins. Tenir ses promesses. Aider celui qui en a besoin.",
+        "Le Prophète a enseigné que personne ne croit vraiment tant qu'il n'aime pas pour son frère ce qu'il aime pour lui-même."
+       ],
+       "mots": [
+        {
+         "ar": "أدب",
+         "tr": "adab",
+         "ph": "adab",
+         "fr": "belles manières"
+        },
+        {
+         "ar": "صدق",
+         "tr": "ṣidq",
+         "ph": "sidq",
+         "fr": "vérité, sincérité"
+        },
+        {
+         "ar": "بر الوالدين",
+         "tr": "birr al-wālidayn",
+         "ph": "birr al-wâlidayn",
+         "fr": "bonté envers les parents"
+        }
+       ],
+       "source": "Quarante hadiths d'an-Nawawî, n° 13 (al-Bukhârî et Muslim).",
+       "retenir": "Aimer pour les autres ce que l'on aime pour soi."
+      }
      ],
      "quiz": [
-      { "q": "De quoi parle la sourate Al-Ikhlâs ?", "c": ["De Dieu, l'Unique", "D'un voyage", "Du jeûne"], "r": 0 },
-      { "q": "Que répond-on à « as-salâmou ʿalaykoum » ?", "c": ["Bismillâh", "Wa ʿalaykoumou s-salâm", "Âmîn"], "r": 1 },
-      { "q": "Que dit-on avant de manger ?", "c": ["Bismillâh", "Al-Fâtiha", "Rien"], "r": 0 },
-      { "q": "Que dit-on pour remercier Dieu ?", "c": ["In châ'allâh", "Al-hamdoulillâh", "Allâhou akbar"], "r": 1 },
-      { "q": "Laquelle de ces conduites fait partie des belles manières ?", "c": ["Mentir", "Dire la vérité", "Se moquer"], "r": 1 }
+      {
+       "q": "De quoi parle la sourate Al-Ikhlâs ?",
+       "c": [
+        "De Dieu, l'Unique",
+        "D'un voyage",
+        "Du jeûne"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Que répond-on à « as-salâmou ʿalaykoum » ?",
+       "c": [
+        "Bismillâh",
+        "Wa ʿalaykoumou s-salâm",
+        "Âmîn"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Que dit-on avant de manger ?",
+       "c": [
+        "Bismillâh",
+        "Al-Fâtiha",
+        "Rien"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Que dit-on pour remercier Dieu ?",
+       "c": [
+        "In châ'allâh",
+        "Al-hamdoulillâh",
+        "Allâhou akbar"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Laquelle de ces conduites fait partie des belles manières ?",
+       "c": [
+        "Mentir",
+        "Dire la vérité",
+        "Se moquer"
+       ],
+       "r": 1
+      }
      ]
     }
    ]
   },
   {
-   "id": "intermediaire", "nom": "Intermédiaire", "seuil": 1200, "etat": "Contenu en préparation, à valider avec l'imam garant.",
-   "titres": ["Les invocations quotidiennes", "La prière en détail", "Vendredi et fêtes", "Le jeûne du Ramadan", "Zakât et sadaqa", "Hajj et ʿumra", "Les quatre premiers califes", "Tajwid courant et lecture de Warsh", "Le Juzʾ ʿAmma", "Les noms de Dieu", "L'école malikite"]
+   "id": "intermediaire",
+   "nom": "Flamme",
+   "repere": "Intermédiaire",
+   "seuil": 1200,
+   "etat": "Contenu en préparation, à valider avec l'imam garant.",
+   "titres": [
+    "Les invocations quotidiennes",
+    "La prière en détail",
+    "Vendredi et fêtes",
+    "Le jeûne du Ramadan",
+    "Zakât et sadaqa",
+    "Hajj et ʿumra",
+    "Les quatre premiers califes",
+    "Tajwid courant et lecture de Warsh",
+    "Le Juzʾ ʿAmma",
+    "Les noms de Dieu",
+    "L'école malikite"
+   ]
   },
   {
-   "id": "disciple", "nom": "Disciple", "seuil": 1800, "etat": "Contenu en préparation, à valider avec l'imam garant.",
-   "titres": ["Le credo", "Les transactions", "La famille", "La transmission du Coran et Warsh", "Tajwid approfondi", "Sourates choisies", "L'ihsân", "La vie du Prophète", "Les quarante hadiths", "Les facilités du voyageur", "La transmission malikite dans la diaspora", "Épreuve de synthèse"]
+   "id": "disciple",
+   "nom": "Lanterne",
+   "repere": "Disciple",
+   "seuil": 1800,
+   "etat": "Contenu en préparation, à valider avec l'imam garant.",
+   "titres": [
+    "Le credo",
+    "Les transactions",
+    "La famille",
+    "La transmission du Coran et Warsh",
+    "Tajwid approfondi",
+    "Sourates choisies",
+    "L'ihsân",
+    "La vie du Prophète",
+    "Les quarante hadiths",
+    "Les facilités du voyageur",
+    "La transmission malikite dans la diaspora",
+    "Épreuve de synthèse"
+   ]
   },
-  { "id": "cheikh", "nom": "Cheikh Premium", "etat": "En construction." }
+  {
+   "id": "cheikh",
+   "nom": "Étoile",
+   "repere": "Cheikh Premium",
+   "etat": "En construction."
+  }
  ]
 }

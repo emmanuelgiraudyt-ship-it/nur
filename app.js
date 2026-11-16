@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.2.0";
+  var VERSION = "1.2.1";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -848,10 +848,10 @@
   });
 
   var LEVELS = [
-    { id: "initie", nom: "Initié (débutant)", but: "Découvrir : alphabet, voyelles, lecture guidée verset par verset avec phonétique, traduction et audio.", cible: [1, 112, 113, 114], detail: "Mémoriser la Fâtiha (sourate 1) et les trois dernières sourates (112, 113, 114)." },
-    { id: "intermediaire", nom: "Intermédiaire", but: "Lire avec aisance, mémoriser les sourates courtes et acquérir les bases du tajwid.", cible: [99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111], detail: "Mémoriser les sourates 99 à 111." },
-    { id: "disciple", nom: "Disciple", but: "Mémoriser par parties, réviser régulièrement, étudier les règles propres à la riwaya de Warsh avec l'imam garant.", cible: null, detail: "Parcours à définir avec l'imam garant (partie du Coran, révision espacée)." },
-    { id: "cheikh", nom: "Cheikh Premium", but: "Outils de transmission : suivi d'élèves, annotations validées, accompagnement.", cible: null, detail: "Fonctions de transmission et de validation à définir avec l'imam garant." }
+    { id: "initie", nom: "Étincelle (débutant)", but: "Découvrir : alphabet, voyelles, lecture guidée verset par verset avec phonétique, traduction et audio.", cible: [1, 112, 113, 114], detail: "Mémoriser la Fâtiha (sourate 1) et les trois dernières sourates (112, 113, 114)." },
+    { id: "intermediaire", nom: "Flamme", but: "Lire avec aisance, mémoriser les sourates courtes et acquérir les bases du tajwid.", cible: [99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111], detail: "Mémoriser les sourates 99 à 111." },
+    { id: "disciple", nom: "Lanterne", but: "Mémoriser par parties, réviser régulièrement, étudier les règles propres à la riwaya de Warsh avec l'imam garant.", cible: null, detail: "Parcours à définir avec l'imam garant (partie du Coran, révision espacée)." },
+    { id: "cheikh", nom: "Étoile", but: "Outils de transmission : suivi d'élèves, annotations validées, accompagnement.", cible: null, detail: "Fonctions de transmission et de validation à définir avec l'imam garant." }
   ];
   function levelProgress(l, q) {
     if (!l.cible) return null;
@@ -929,7 +929,7 @@
     else if (e === 2) html = '<h2>Comment vous allez avancer</h2><ul class="plain">' +
       '<li><strong>Chaque jour</strong> : quatre petits objectifs, en quelques minutes. Une lecture, un verset, un dhikr, un hadith.</li>' +
       '<li><strong>Chaque étape</strong> : quatre leçons courtes, un quiz et des fiches de révision.</li>' +
-      '<li><strong>Des points privés</strong> : ni classement, ni pénalité. Ils ouvrent les paliers Initié, Intermédiaire et Disciple.</li>' +
+      '<li><strong>Des points privés</strong> : ni classement, ni pénalité. Ils ouvrent les paliers : Étincelle, Flamme, Lanterne, Étoile.</li>' +
       '<li><strong>Rien ne presse</strong> : on passe à la suite quand on se sent prêt.</li></ul>' +
       '<p><a class="btn big" href="#/bienvenue?e=3">Continuer</a></p>';
     else if (e === 3) html = '<h2>Votre profil</h2><div style="text-align:left">' + profilFormHTML() + '</div>' +
@@ -1122,7 +1122,7 @@
       } else html += '<div class="callout">' + esc(pal.etat || "Contenu en préparation.") + '</div>';
       html += '<h3>Les paliers</h3>' + paliers(opt).map(function (p) {
         var dc = S.parcours.declared[p.id], cur = p.id === pal.id, titres = p.titres || (p.etapes || []).map(function (x) { return x.titre; });
-        return '<details class="card"' + (cur ? " open" : "") + '><summary><strong>' + esc(p.nom) + '</strong> <span class="pill">' + (dc ? "déclaré le " + esc(dc.date.split("-").reverse().join("/")) : (cur ? "en cours" : (p.seuil ? p.seuil + " points" : "à venir"))) + '</span></summary>' +
+        return '<details class="card"' + (cur ? " open" : "") + '><summary><strong>' + esc(p.nom) + '</strong>' + (p.repere ? ' <span class="muted">(' + esc(p.repere) + ')</span>' : '') + ' <span class="pill">' + (dc ? "déclaré le " + esc(dc.date.split("-").reverse().join("/")) : (cur ? "en cours" : (p.seuil ? p.seuil + " points" : "à venir"))) + '</span></summary>' +
           (p.etat ? '<p class="muted">' + esc(p.etat) + '</p>' : '') + (titres.length ? '<ol>' + titres.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ol>' : '') + '</details>';
       }).join("");
       html += '<div class="callout">Les points sont privés : ni classement, ni pénalité. Les quiz se reprennent à volonté. ' + esc(opt.parcours.note || "") + '</div>';

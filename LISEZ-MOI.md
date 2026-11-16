@@ -1,13 +1,13 @@
-# NÛR (نور) — application installable (PWA), version 1.2.0
+# NÛR (نور) — application installable (PWA), version 1.2.1
 
 Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, méditation, compteurs de dhikr. Application gratuite, sans abonnement, sans publicité, sans traceur ; les données restent sur l'appareil. Fonctionne hors ligne après le premier chargement.
 
-## Nouveautés de la version 1.2.0
+## Nouveautés des versions 1.2.0 et 1.2.1
 - **Accueil au premier lancement** : présentation en quatre écrans, choix du profil, choix du lieu.
 - **Profils** : jusqu'à cinq par appareil. Choix « Homme », « Femme », et sous chacun « Enfant (garçon) » ou « Enfant (fille) ». Un profil enfant demande l'âge (7 ans au moins), l'accord de l'adulte responsable et un code parental. Ce code est ensuite exigé pour quitter le profil enfant, ouvrir ses réglages et déclarer ses paliers.
 - **Objectifs du jour** : lecture du jour, verset du jour, dhikr du jour, hadith du jour. Quinze points de pratique au plus par jour.
 - **Lecture complète du Coran (khatm)** : versets marqués comme lus, progression par sourate, ordre « débutant » (Al-Fâtiha et sourates courtes d'abord) ou ordre du Coran.
-- **Mon parcours** : palier Initié en neuf étapes ; chaque étape comporte quatre leçons, un quiz de cinq questions et des fiches de révision. Les paliers Intermédiaire, Disciple et Cheikh Premium sont annoncés, leur contenu reste à écrire.
+- **Mon parcours** : premier palier, Étincelle (Initié), en neuf étapes ; chaque étape comporte quatre leçons, un quiz de cinq questions et des fiches de révision. Les paliers Flamme (Intermédiaire), Lanterne (Disciple) et Étoile (Cheikh Premium) sont annoncés, leur contenu reste à écrire.
 - **Phonétique sur tout le Coran** : chaque verset est accompagné de sa phonétique (lecteur, lecture du jour, verset du jour, leçons, méditation). Une case « Lire en arabe seul » la masque. Elle est produite automatiquement à partir du texte Warsh par `translit.js`.
 - **Points** : privés, sans classement ni pénalité. La grille tarifaire de la version précédente (`plans.json`) est supprimée.
 - Les données d'une installation en version 1.1 sont reprises automatiquement dans un premier profil.
@@ -23,7 +23,7 @@ Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, m�
 | Hadith du jour | 3 |
 | Prière cochée (suivi facultatif, désactivé par défaut) | 2, soit 10 par jour au plus |
 
-Seuils des paliers : Initié 800, Intermédiaire 1 200, Disciple 1 800. Le passage de palier demande toutes les étapes terminées, le seuil atteint et la déclaration d'une validation orale auprès d'un imam ou d'un cheikh.
+Seuils des paliers : Étincelle 800, Flamme 1 200, Lanterne 1 800. Le passage de palier demande toutes les étapes terminées, le seuil atteint et la déclaration d'une validation orale auprès d'un imam ou d'un cheikh.
 
 La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4, 3) est provisoire ; elle se règle dans `quotidien.json`.
 
@@ -45,7 +45,7 @@ La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4
 - `KFGQPC-Warsh-Uthmanic.ttf`, `LICENCE-KFGQPC.txt` : police KFGQPC Warsh (non modifiée) et sa licence.
 
 ## Modifier les contenus sans toucher au code
-Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.2.0`) pour que les appareils déjà installés reçoivent la mise à jour.
+Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.2.1`) pour que les appareils déjà installés reçoivent la mise à jour.
 
 ## Sources
 - Texte et police : King Fahd Glorious Quran Printing Complex (KFGQPC), via github.com/thetruetruth/quran-data-kfgqpc. Voir `LICENCE-KFGQPC.txt`.
@@ -54,7 +54,7 @@ Les leçons, les questions, les dhikr et les hadiths se corrigent directement da
 
 ## Points en attente
 - Relecture par l'imam garant des leçons, des quiz, des hadiths, des dhikr et de la phonétique automatique (fiches d'export dans « À propos »). La phonétique automatique a été comparée aux 105 versets rédigés à la main dans la version 1.1 : 89 versets identiques ; les écarts restants tiennent à des choix de notation ou corrigent l'ancien brouillon. Les particularités de Warsh (hamza adoucie, imâla) y sont rendues de façon simplifiée.
-- Contenu des paliers Intermédiaire, Disciple et Cheikh Premium.
+- Contenu des paliers Flamme, Lanterne et Étoile.
 - Traduction française.
 - Audio (récitations, lettres, leçons) et accord des ayants droit.
 - Lien de don de l'association.
