@@ -1,0 +1,5 @@
+{
+ "note": "Réglages de l'éditeur. Renseigner don_url avec le lien de paiement de l'association pour faire apparaître l'encart de don (jamais affiché dans les profils enfants).",
+ "don_url": null,
+ "don_min_eur": 2
+}

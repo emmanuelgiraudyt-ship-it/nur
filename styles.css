@@ -157,3 +157,53 @@ ul.plain { list-style: none; padding: 0; margin: 0; }
 ul.plain li { padding: .35rem 0; border-bottom: 1px solid var(--line); }
 ul.plain li:last-child { border-bottom: 0; }
 .big2 { font-size: 1.8rem; margin-right: .5rem; display: inline-block; min-width: 3rem; }
+
+/* v1.2 : bienvenue, profils, objectifs du jour, khatm, parcours */
+.salut { font-size: 1.15rem; font-weight: 600; margin: 0 0 .6rem; }
+.steps { list-style: none; margin: .4rem 0 .8rem; padding: 0; counter-reset: st; }
+.steps li { counter-increment: st; }
+.steps li a { display: flex; align-items: center; gap: .7rem; padding: .5rem .1rem; border-bottom: 1px solid var(--line); text-decoration: none; color: inherit; min-height: 48px; }
+.steps li:last-child a { border-bottom: 0; }
+.steps li a::before { content: counter(st); display: inline-flex; align-items: center; justify-content: center; width: 1.9rem; height: 1.9rem; border-radius: 50%; border: 1px solid var(--gold); color: var(--gold); font-size: .85rem; flex: none; }
+.steps li.done a::before { content: "\2713"; background: var(--gold); color: var(--panel); }
+.steps li .pt { margin-left: auto; color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.week { display: flex; gap: .35rem; margin-top: .7rem; }
+.week span { flex: 1; text-align: center; font-size: .75rem; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: .3rem 0; }
+.week span.on { border-color: var(--gold); background: var(--soft); color: var(--ink); font-weight: 700; }
+.week span.today { outline: 2px solid var(--gold); outline-offset: 1px; }
+.chips { display: flex; gap: .4rem; flex-wrap: wrap; margin: .6rem 0; }
+.chip { font: inherit; min-height: 44px; padding: .4rem .9rem; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+.chip.on { border-color: var(--gold); background: var(--soft); font-weight: 700; }
+.tile.wide { grid-column: 1 / -1; min-height: 0; margin-bottom: .9rem; }
+.tile.wide .bar { margin: .5rem 0 .3rem; }
+.ob { text-align: center; padding-top: .6rem; }
+.ob .obLogo { font-size: 4.2rem; color: var(--gold); line-height: 1.4; }
+.ob .lead, .lead { font-size: 1.12rem; }
+.ob ul.plain { text-align: left; margin: 1rem 0 1.4rem; }
+.ob ul.plain li { padding: .6rem 0; }
+.btn.big { font-size: 1.08rem; padding: .85rem 1.6rem; min-width: 62%; }
+.who { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: .4rem 0 1rem; }
+.who button { font: inherit; min-height: 56px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; font-weight: 600; }
+.who button.sub { font-weight: 500; min-height: 48px; font-size: .95rem; }
+.who button[aria-pressed="true"] { border-color: var(--gold); background: var(--soft); outline: 2px solid var(--gold); }
+.prog { display: flex; align-items: center; gap: .6rem; margin: .1rem 0 1rem; }
+.prog .bar { flex: 1; margin: 0; }
+.mots { width: 100%; border-collapse: collapse; margin: .4rem 0; }
+.mots td { padding: .5rem .3rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.mots td.a { font-family: "KFGQPC Warsh", "Amiri", "Traditional Arabic", serif; font-size: 1.7rem; direction: rtl; text-align: right; color: var(--gold); line-height: 1.7; }
+.mots small { display: block; color: var(--muted); font-size: .8rem; }
+.lesson p { font-size: 1.08rem; }
+.vline { border-bottom: 1px solid var(--line); padding: .3rem 0 .6rem; }
+.vline:last-child { border-bottom: 0; }
+.hq { margin: 0 0 .6rem; padding: 0 0 0 .9rem; border-left: 4px solid var(--gold); font-size: 1.2rem; line-height: 1.5; }
+.flashA { font-size: 2.5rem; color: var(--gold); line-height: 1.9; }
+.qz fieldset { border: 1px solid var(--line); border-radius: 12px; padding: .6rem .9rem .4rem; margin: 0 0 .8rem; background: var(--panel); min-width: 0; }
+.qz legend { font-weight: 600; padding: 0 .3rem; }
+.qz label { display: flex; align-items: center; gap: .6rem; min-height: 44px; }
+.qz .ok { color: var(--gold); font-weight: 700; font-size: .85rem; }
+.qz .ko { color: var(--danger); font-size: .85rem; }
+.flash { min-height: 230px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; text-align: center; cursor: pointer; width: 100%; font: inherit; color: inherit; }
+.flash .a { font-family: "KFGQPC Warsh", "Amiri", "Traditional Arabic", serif; font-size: 3rem; color: var(--gold); direction: rtl; line-height: 1.7; }
+.list li.locked a { opacity: .55; }
+details.card > summary { cursor: pointer; min-height: 32px; }
+details.card ol { margin: .5rem 0 0; padding-left: 1.3rem; }

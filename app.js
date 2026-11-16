@@ -6,15 +6,17 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.1.0";
-  var KEY = "nur:v1";
+  var VERSION = "1.2.0";
+  var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
   function DEF() {
     return {
-      settings: { method: "MWL", theme: "auto", fs: 1, hijriOffset: 0, loc: null, offsets: {}, dhuhrMin: 0, customFajr: 18, customIsha: 17, pin: null, notif: false, layers: { phon: true, fr: true }, speed: 1 },
+      settings: { method: "MWL", theme: "auto", fs: 1, hijriOffset: 0, loc: null, offsets: {}, dhuhrMin: 0, customFajr: 18, customIsha: 17, pin: null, notif: false, layers: { phon: true, fr: true }, speed: 1, prayerTrack: false, dose: 5, lecture: "debutant" },
       last: null, bookmarks: [], hifz: {}, journal: [], gratitudes: [], intentions: [], stars: 0,
-      tidj: { items: [], log: {} }
+      tidj: { items: [], log: {} },
+      days: {}, pts: { pratique: 0, prieres: 0 }, khatm: { read: {}, since: null },
+      parcours: { lecons: {}, quiz: {}, opened: null, declared: {}, base: 0 }, temps: 0
     };
   }
   function merge(d, r) {
@@ -24,18 +26,171 @@
     }
     return d;
   }
-  function load() { try { return merge(DEF(), JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) { return DEF(); } }
-  var S = load();
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast("Enregistrement local impossible (stockage plein ou désactivé)."); } }
+  /* ------------------------------------------------------------ profils (cinq au plus par appareil) */
+  /* Chaque profil a ses propres données. Le code parental est commun à l'appareil. */
+  var MAXP = 5;
+  function loadStore() {
+    var st = null, old = null;
+    try { st = JSON.parse(localStorage.getItem(KEY2)); } catch (e) { st = null; }
+    if (st && st.profiles && st.data) return st;
+    try { old = JSON.parse(localStorage.getItem(KEY)); } catch (e2) { old = null; }
+    if (old) {
+      var d = merge(DEF(), old), pin = d.settings.pin || null; d.settings.pin = null;
+      return { v: 2, active: "p1", profiles: [{ id: "p1", nom: "", type: "adulte", age: null, cree: Date.now() }], data: { p1: d }, pin: pin, onboarded: true };
+    }
+    return { v: 2, active: null, profiles: [], data: {}, pin: null, onboarded: false };
+  }
+  var STORE = loadStore();
+  function curData() { return STORE.active && STORE.data[STORE.active] ? merge(DEF(), STORE.data[STORE.active]) : DEF(); }
+  var S = curData();
+  function save() {
+    try { if (STORE.active) STORE.data[STORE.active] = S; localStorage.setItem(KEY2, JSON.stringify(STORE)); }
+    catch (e) { toast("Enregistrement local impossible (stockage plein ou désactivé)."); }
+  }
   function toast(msg) { var t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove("show"); }, 2600); }
+  var TYPES = { homme: "Homme", femme: "Femme", garcon: "Enfant (garçon)", fille: "Enfant (fille)", adulte: "Adulte" };
+  function prof() { for (var i = 0; i < STORE.profiles.length; i++) if (STORE.profiles[i].id === STORE.active) return STORE.profiles[i]; return null; }
+  function isChild(p) { p = p || prof(); return !!p && (p.type === "garcon" || p.type === "fille"); }
+  function addProfile(o) {
+    var id = "p" + Date.now().toString(36), d = DEF(), cur = STORE.active ? S.settings : null;
+    if (cur) { d.settings.loc = cur.loc; d.settings.method = cur.method; d.settings.offsets = cur.offsets; d.settings.hijriOffset = cur.hijriOffset; d.settings.theme = cur.theme; d.settings.customFajr = cur.customFajr; d.settings.customIsha = cur.customIsha; }
+    STORE.profiles.push({ id: id, nom: o.nom || "", type: o.type || "adulte", age: o.age || null, cree: Date.now() });
+    STORE.data[id] = d;
+    return id;
+  }
+  function switchProfile(id) {
+    if (STORE.active) STORE.data[STORE.active] = S;
+    STORE.active = id; S = curData(); parentOK = 0; save(); applyTheme(); scheduleNotifs();
+  }
+  /* Code parental : demandé pour sortir d'un profil enfant, ouvrir ses réglages ou déclarer son palier. */
+  var parentOK = 0;
+  function askPin(msg) {
+    if (!STORE.pin) return Promise.resolve(true);
+    var c = prompt(msg || "Code parental");
+    if (c == null) return Promise.resolve(false);
+    return pinHash(c).then(function (h) { if (h === STORE.pin) return true; toast("Code incorrect."); return false; });
+  }
+  function guardParent(fn) {
+    if (!(isChild() && STORE.pin && Date.now() > parentOK)) return fn();
+    return askPin("Code parental (page réservée à l'adulte)").then(function (ok) {
+      if (ok) { parentOK = Date.now() + 5 * 60000; return fn(); }
+      return { title: "Réservé à l'adulte", html: '<div class="callout">Cette page est réservée à l\'adulte responsable du profil.</div><p><a class="btn" href="#/">Retour à l\'accueil</a></p>', back: "#/" };
+    });
+  }
+
+  /* ------------------------------------------------------------ points, objectifs du jour, khatm */
+  /* Barème validé : leçon 10, quiz 30, pratique quotidienne plafonnée à 15, prière déclarée 2 (10 par jour). */
+  var PTS = { lecture: 5, verset: 3, dhikr: 4, hadith: 3 }, CAP = 15, PRI = 2;
+  var OBJ = [["lecture", "Lecture du jour"], ["verset", "Verset du jour"], ["dhikr", "Dhikr du jour"], ["hadith", "Hadith du jour"]];
+  function today() { return dayKey(ymd(Date.now(), loc().tz)); }
+  function dayIndex() { var t = ymd(Date.now(), loc().tz); return Math.floor(Date.UTC(t.y, t.m - 1, t.d) / 864e5); }
+  function dayRec(k) { k = k || today(); if (!S.days[k]) S.days[k] = { f: {}, pr: {}, p: 0 }; return S.days[k]; }
+  function pruneDays() { var ks = Object.keys(S.days).sort(); while (ks.length > 60) delete S.days[ks.shift()]; }
+  function award(kind) {
+    var d = dayRec(); if (d.f[kind]) return 0;
+    var add = Math.max(0, Math.min(PTS[kind] || 0, CAP - d.p));
+    d.f[kind] = 1; d.p += add; S.pts.pratique = (S.pts.pratique || 0) + add; pruneDays(); save();
+    return add;
+  }
+  function togglePrayer(k) {
+    var d = dayRec();
+    if (d.pr[k]) { delete d.pr[k]; S.pts.prieres = Math.max(0, (S.pts.prieres || 0) - PRI); }
+    else { d.pr[k] = 1; S.pts.prieres = (S.pts.prieres || 0) + PRI; }
+    save();
+  }
+  function firstTodo(d) { for (var i = 0; i < OBJ.length; i++) if (!d.f[OBJ[i][0]]) return i + 1; return 5; }
+  function weekHTML() {
+    var L = loc(), t0 = ymd(Date.now(), L.tz), out = '<div class="week" aria-label="Régularité des sept derniers jours">';
+    for (var i = 6; i >= 0; i--) {
+      var o = addDays(t0, -i), k = dayKey(o), on = S.days[k] && S.days[k].p > 0;
+      var lab = new Intl.DateTimeFormat("fr-FR", { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(o.y, o.m - 1, o.d))).replace(".", "");
+      out += '<span class="' + (on ? "on" : "") + (i === 0 ? " today" : "") + '" title="' + k + (on ? " : pratique faite" : "") + '">' + esc(lab) + '</span>';
+    }
+    return out + '</div>';
+  }
+  function kRead(sn) { return S.khatm.read[sn] || []; }
+  function kMark(sn, a, on) {
+    var m = S.khatm.read[sn] || [], i = m.indexOf(a);
+    if (on === undefined) on = i < 0;
+    if (on && i < 0) m.push(a);
+    if (!on && i >= 0) m.splice(i, 1);
+    S.khatm.read[sn] = m; if (!S.khatm.since) S.khatm.since = today();
+  }
+  function kStats(q) {
+    var v = 0, su = 0, tot = 0;
+    q.suras.forEach(function (s) { var n = kRead(s.n).length; tot += s.v.length; v += Math.min(n, s.v.length); if (n >= s.v.length) su++; });
+    return { v: v, s: su, tot: tot, pct: tot ? Math.floor(1000 * v / tot) / 10 : 0 };
+  }
+  /* Ordre de la lecture du jour : « débutant » commence par Al-Fâtiha et les sourates courtes, qui ont une phonétique. */
+  function kOrder(q) {
+    var o = [], n;
+    if ((S.settings.lecture || "debutant") === "debutant") { o.push(1); for (n = 114; n >= 99; n--) o.push(n); for (n = 2; n <= 98; n++) o.push(n); }
+    else for (n = 1; n <= 114; n++) o.push(n);
+    return o;
+  }
+  function kNext(q, n) {
+    var order = kOrder(q), out = [];
+    for (var i = 0; i < order.length; i++) {
+      var s = q.byN[order[i]], rd = kRead(s.n);
+      if (rd.length >= s.v.length) continue;
+      for (var j = 0; j < s.v.length && out.length < n; j++) if (rd.indexOf(s.v[j][0]) < 0) out.push({ s: s, a: s.v[j][0], t: s.v[j][1], i: j });
+      if (out.length) break;
+    }
+    return out;
+  }
+  function dailyVerse(q) {
+    var pool = versePool(q), idx = dayIndex() % pool.length;
+    return { sn: pool[idx][0], a: pool[idx][1] };
+  }
+  function phonOf(opt, sn, a, q) {
+    var ph = opt.phon && opt.phon.suras && opt.phon.suras[sn]; if (!ph) return null;
+    var s = q.byN[sn]; for (var i = 0; i < s.v.length; i++) if (s.v[i][0] === a) return ph[i] ? ph[i][0] : null;
+    return null;
+  }
+
+  /* ------------------------------------------------------------ parcours : paliers, étapes, leçons, quiz */
+  function bareme(opt) { return (opt.parcours && opt.parcours.bareme) || { lecon: 10, quiz: 30, quiz_seuil: 80 }; }
+  function paliers(opt) { return (opt.parcours && opt.parcours.paliers) || []; }
+  function palById(opt, id) { var P = paliers(opt); for (var i = 0; i < P.length; i++) if (P[i].id === id) return P[i]; return null; }
+  function curPalier(opt) { var P = paliers(opt); for (var i = 0; i < P.length; i++) if (!S.parcours.declared[P[i].id]) return P[i]; return P[P.length - 1] || null; }
+  function etapeState(pid, et) {
+    var done = 0; et.lecons.forEach(function (x, i) { if (S.parcours.lecons[pid + "." + et.n + "." + (i + 1)]) done++; });
+    var qz = S.parcours.quiz[pid + "." + et.n];
+    return { lec: done, tot: et.lecons.length, quiz: !!(qz && qz.ok), best: qz ? qz.best : null, complete: done === et.lecons.length && !!(qz && qz.ok) };
+  }
+  function etapeOpen(pal, n) {
+    if (n <= 1) return true;
+    for (var i = 0; i < pal.etapes.length; i++) if (pal.etapes[i].n === n - 1) return etapeState(pal.id, pal.etapes[i]).complete;
+    return false;
+  }
+  function lessonPts(opt) {
+    var B = bareme(opt), qz = 0;
+    Object.keys(S.parcours.quiz).forEach(function (k) { if (S.parcours.quiz[k].ok) qz++; });
+    return Object.keys(S.parcours.lecons).length * B.lecon + qz * B.quiz;
+  }
+  function totalPts(opt) { return (S.pts.pratique || 0) + (S.pts.prieres || 0) + lessonPts(opt); }
+  function palierPts(opt) { return Math.max(0, totalPts(opt) - (S.parcours.base || 0)); }
+  function parcoursNow(opt) {
+    var pal = curPalier(opt); if (!pal) return null;
+    var done = 0, cur = null;
+    (pal.etapes || []).forEach(function (et) { if (etapeState(pal.id, et).complete) done++; else if (!cur) cur = et; });
+    return { pal: pal, done: done, tot: (pal.etapes || []).length, cur: cur, pts: palierPts(opt) };
+  }
+  function durTxt(sec) { var m = Math.round((sec || 0) / 60); return Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"); }
+  function motsHTML(mots) {
+    if (!mots || !mots.length) return "";
+    return '<h3>Les mots à connaître</h3><table class="mots"><tbody>' + mots.map(function (w) {
+      return '<tr><td class="a" lang="ar">' + esc(w.ar) + '</td><td><strong>' + esc(w.ph) + '</strong><small>translittération : ' + esc(w.tr) + '</small></td><td>' + esc(w.fr) + '</td></tr>';
+    }).join("") + '</tbody></table><p class="muted">Pour chaque mot : l\'arabe, la prononciation à la française, la translittération, puis le sens.</p>';
+  }
 
   /* ------------------------------------------------------------ données du Coran */
   var Q = null, OPT = null;
   function loadOpt() {
     if (OPT) return Promise.resolve(OPT);
     function get(f) { return fetch(f).then(function (r) { return r && r.ok ? r.json() : null; }).catch(function () { return null; }); }
-    return Promise.all([get("phonetique.json"), get("traduction-fr.json"), get("audio.json"), get("plans.json")]).then(function (a) {
-      OPT = { phon: a[0], fr: a[1], audio: a[2], plans: a[3] }; return OPT;
+    return Promise.all([get("phonetique.json"), get("traduction-fr.json"), get("audio.json"), get("parcours.json"), get("quotidien.json"), get("config.json")]).then(function (a) {
+      OPT = { phon: a[0], fr: a[1], audio: a[2], parcours: a[3], quot: a[4], conf: a[5] || {} }; return OPT;
     });
   }
   function loadQ() {
@@ -119,47 +274,82 @@
   function route(re, fn) { routes.push([re, fn]); }
 
   // Accueil
+  function objectifsHTML(d) {
+    var n = 0; OBJ.forEach(function (o) { if (d.f[o[0]]) n++; });
+    var lab = n === 0 ? "Commencer" : (n < OBJ.length ? "Continuer" : "Revoir mes objectifs");
+    return '<div class="card"><div class="row between"><h3 style="margin:0">Objectifs du jour</h3><span class="pill">' + d.p + ' / ' + CAP + ' points</span></div>' +
+      '<p class="muted">Quelques minutes par jour, à votre rythme.</p><ol class="steps">' + OBJ.map(function (o, i) {
+        return '<li class="' + (d.f[o[0]] ? "done" : "") + '"><a href="#/jour?e=' + (i + 1) + '"><span>' + o[1] + '</span><span class="pt">' + (d.f[o[0]] ? "fait" : "+" + PTS[o[0]]) + '</span></a></li>';
+      }).join("") + '</ol><p class="row"><a class="btn" href="#/jour">' + lab + '</a></p>' + weekHTML() + '</div>';
+  }
+  function parcoursTileHTML(opt) {
+    var st = parcoursNow(opt); if (!st) return "";
+    var seuil = st.pal.seuil || 0, pct = seuil ? Math.min(100, Math.round(100 * st.pts / seuil)) : 0;
+    var line = st.cur ? "Étape " + st.cur.n + " sur " + st.tot + " : " + st.cur.titre : (st.tot ? "Toutes les étapes sont terminées" : (st.pal.etat || ""));
+    return '<a class="tile wide" href="#/parcours"><strong>Mon parcours : ' + esc(st.pal.nom) + '</strong><span>' + esc(line) + '</span>' +
+      (seuil ? '<div class="bar"><i style="width:' + pct + '%"></i></div><span>' + st.pts + ' / ' + seuil + ' points</span>' : '') + '</a>';
+  }
   route(/^\/?$/, function () {
-    var np = nextPrayer(), L = loc();
-    var last = S.last, lastTxt = "";
-    var html = '<div class="card"><div class="muted">' + esc(gregStr()) + '</div><div class="big" style="margin:.2rem 0">' + esc(hijriStr()) + '</div>';
-    if (np) html += '<p style="margin:.4rem 0 0"><strong>' + np.name + ' à ' + fmtT(np.ts, np.tz) + '</strong> <span class="muted">(dans ' + countdown(np.ts) + ' — ' + esc(L.name) + ')</span></p>';
-    html += '<p class="row" style="margin:.6rem 0 0"><a class="btn alt" href="#/prieres">Heures de prière et qibla</a></p></div>';
-    html += '<div class="grid keep">' +
-      '<a class="tile" href="#/apprendre"><strong>Apprendre</strong><span>Mémorisation, tajwid, parcours</span></a>' +
-      '<a class="tile" href="#/reciter"><strong>Réciter</strong><span>Coran en Warsh ʿan Nâfiʿ</span></a>' +
-      '<a class="tile" href="#/mediter"><strong>Méditer</strong><span>Verset du jour, journal</span></a>' +
-      '<a class="tile" href="#/aimer"><strong>Aimer</strong><span>Gratitude, invocations, partage</span></a></div>';
-    if (last) html += '<p style="margin-top:1rem"><a class="btn" href="#/reciter/' + last.s + '?a=' + last.a + '">Reprendre ma lecture</a></p>';
-    html += '<p class="muted" style="margin-top:1.2rem">Sans publicité, sans traceur. Vos données restent sur votre appareil. <a href="#/plus">Plus d\'options</a>.</p>';
-    return { title: "NÛR", html: html, tab: "#/" };
+    return loadOpt().then(function (opt) {
+      var np = nextPrayer(), L = loc(), p = prof(), d = dayRec(), last = S.last, html = "";
+      if (p && p.nom) html += '<p class="salut">Assalâmou ʿalaykoum, ' + esc(p.nom) + '</p>';
+      html += '<div class="card"><div class="muted">' + esc(gregStr()) + '</div><div class="big" style="margin:.2rem 0">' + esc(hijriStr()) + '</div>';
+      if (np) html += '<p style="margin:.4rem 0 0"><strong>' + np.name + ' à ' + fmtT(np.ts, np.tz) + '</strong> <span class="muted">(dans ' + countdown(np.ts) + ' — ' + esc(L.name) + ')</span></p>';
+      html += '<p class="row" style="margin:.6rem 0 0"><a class="btn alt" href="#/prieres">Heures de prière et qibla</a></p></div>';
+      var wd = new Intl.DateTimeFormat("en-US", { timeZone: L.tz, weekday: "short" }).format(new Date());
+      if (wd === "Fri" && opt.quot && opt.quot.vendredi) html += '<div class="callout">' + esc(opt.quot.vendredi) + '</div>';
+      if (S.settings.prayerTrack) {
+        var np5 = 0; ORDER.forEach(function (o) { if (d.pr[o[0]]) np5++; });
+        html += '<div class="card"><div class="row between"><strong>Mes prières du jour</strong><span class="pill">' + np5 + ' / 5</span></div><div class="chips">' + ORDER.map(function (o) {
+          return '<button class="chip' + (d.pr[o[0]] ? " on" : "") + '" data-pr="' + o[0] + '" aria-pressed="' + !!d.pr[o[0]] + '">' + o[1] + '</button>';
+        }).join("") + '</div><p class="muted" style="margin:0">Suivi privé, conservé sur cet appareil. ' + PRI + ' points par prière.</p></div>';
+      }
+      html += objectifsHTML(d) + parcoursTileHTML(opt);
+      html += '<div class="grid keep">' +
+        '<a class="tile" href="#/apprendre"><strong>Apprendre</strong><span>Parcours, alphabet, tajwid</span></a>' +
+        '<a class="tile" href="#/reciter"><strong>Réciter</strong><span>Coran en Warsh ʿan Nâfiʿ</span></a>' +
+        '<a class="tile" href="#/mediter"><strong>Méditer</strong><span>Verset du jour, journal</span></a>' +
+        '<a class="tile" href="#/aimer"><strong>Aimer</strong><span>Gratitude, invocations, partage</span></a></div>';
+      if (last) html += '<p style="margin-top:1rem"><a class="btn alt" href="#/reciter/' + last.s + '?a=' + last.a + '">Reprendre ma lecture</a></p>';
+      html += '<p class="muted" style="margin-top:1.2rem">Gratuit, sans publicité, sans traceur. Vos données restent sur votre appareil. <a href="#/plus">Plus d\'options</a>.</p>';
+      return { title: "NÛR", html: html, tab: "#/", bind: function (r) {
+        $$("[data-pr]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pr); render(); }; });
+      } };
+    });
   });
 
   // Plus (menu secondaire)
   route(/^\/plus$/, function () {
-    var html = '<ul class="list">' +
-      '<li><a href="#/prieres"><span class="nm">Heures de prière et qibla</span></a></li>' +
-      '<li><a href="#/alphabet"><span class="nm">Alphabet et lecture<small>Pour débuter</small></span></a></li>' +
-      '<li><a href="#/niveaux"><span class="nm">Mes niveaux</span></a></li>' +
-      '<li><a href="#/offres"><span class="nm">Accès et offres</span></a></li>' +
-      '<li><a href="#/tidjaniya"><span class="nm">Tidjaniya — compteurs de dhikr<small>Contenus à fournir par votre mouqaddam</small></span></a></li>' +
-      '<li><a href="#/enfant"><span class="nm">Espace enfant<small>Sourates courtes, étoiles</small></span></a></li>' +
-      '<li><a href="#/reglages"><span class="nm">Réglages</span></a></li>' +
-      '<li><a href="#/apropos"><span class="nm">À propos, sources et licences</span></a></li></ul>' +
-      '<div id="install" class="card" hidden><p>Installer NÛR sur cet appareil pour l\'utiliser hors ligne.</p><button class="btn" id="doInstall">Installer l\'application</button></div>' +
-      '<div class="callout">Sur iPhone ou iPad : ouvrez ce site dans Safari, touchez « Partager », puis « Sur l\'écran d\'accueil ».</div>';
-    return { title: "Plus", html: html, back: "#/", bind: function (r) {
-      if (deferredPrompt) { $("#install", r).hidden = false; $("#doInstall", r).onclick = function () { deferredPrompt.prompt(); deferredPrompt = null; $("#install", r).hidden = true; }; }
-    } };
+    return loadOpt().then(function (opt) {
+      var kid = isChild(), don = opt.conf && opt.conf.don_url;
+      var html = '<ul class="list">' +
+        '<li><a href="#/parcours"><span class="nm">Mon parcours et mes points<small>Paliers, étapes, leçons, quiz</small></span></a></li>' +
+        '<li><a href="#/khatm"><span class="nm">Ma lecture complète du Coran<small>Khatm et lecture du jour</small></span></a></li>' +
+        '<li><a href="#/prieres"><span class="nm">Heures de prière et qibla</span></a></li>' +
+        '<li><a href="#/alphabet"><span class="nm">Alphabet et lecture<small>Pour débuter</small></span></a></li>' +
+        '<li><a href="#/niveaux"><span class="nm">Repères de mémorisation</span></a></li>' +
+        '<li><a href="#/profils"><span class="nm">Profils<small>Jusqu\'à cinq sur cet appareil, adultes et enfants</small></span></a></li>' +
+        (kid ? '' : '<li><a href="#/tidjaniya"><span class="nm">Tidjaniya — compteurs de dhikr<small>Contenus à fournir par votre mouqaddam</small></span></a></li>') +
+        '<li><a href="#/enfant"><span class="nm">Espace enfant<small>Sourates courtes, étoiles</small></span></a></li>' +
+        '<li><a href="#/reglages"><span class="nm">Réglages</span></a></li>' +
+        '<li><a href="#/apropos"><span class="nm">À propos, sources et licences</span></a></li></ul>' +
+        (don && !kid ? '<div class="card"><h3>Soutenir NÛR</h3><p>NÛR est gratuite et le restera. Un don libre, à partir de ' + (opt.conf.don_min_eur || 2) + ' euros, aide à la faire vivre. Aucun accès ne dépend du don.</p><p><a class="btn" href="' + esc(don) + '" target="_blank" rel="noopener">Faire un don</a></p></div>' : '') +
+        '<div id="install" class="card" hidden><p>Installer NÛR sur cet appareil pour l\'utiliser hors ligne.</p><button class="btn" id="doInstall">Installer l\'application</button></div>' +
+        '<div class="callout">Sur iPhone ou iPad : ouvrez ce site dans Safari, touchez « Partager », puis « Sur l\'écran d\'accueil ».</div>';
+      return { title: "Plus", html: html, back: "#/", bind: function (r) {
+        if (deferredPrompt) { $("#install", r).hidden = false; $("#doInstall", r).onclick = function () { deferredPrompt.prompt(); deferredPrompt = null; $("#install", r).hidden = true; }; }
+      } };
+    });
   });
 
   // Réciter : liste
   route(/^\/reciter$/, function () {
     return loadQ().then(function (q) {
-      var html = '<h2>Réciter</h2><label class="f" for="q">Rechercher une sourate (nom ou numéro)</label><input type="search" id="q" placeholder="Ex. 18, Al-Kahf, الكهف" autocomplete="off">' +
+      var ks = kStats(q);
+      var html = '<h2>Réciter</h2><div class="card"><div class="row between"><strong>Ma lecture complète</strong><span class="pill">' + ks.s + ' / 114 sourates</span></div><div class="bar"><i style="width:' + ks.pct + '%"></i></div><p class="muted" style="margin:.5rem 0 .6rem">' + ks.v.toLocaleString("fr-FR") + ' / ' + ks.tot.toLocaleString("fr-FR") + ' versets lus</p><p class="row" style="margin:0"><a class="btn" href="#/jour?e=1">Lecture du jour</a><a class="btn alt" href="#/khatm">Détail du khatm</a></p></div><label class="f" for="q">Rechercher une sourate (nom ou numéro)</label><input type="search" id="q" placeholder="Ex. 18, Al-Kahf, الكهف" autocomplete="off">' +
         (S.last ? '<p style="margin-top:.8rem"><a class="btn" href="#/reciter/' + S.last.s + '?a=' + S.last.a + '">Reprendre : ' + esc(q.byN[S.last.s].en) + ', verset ' + S.last.a + '</a></p>' : '') +
         '<ul class="list" id="sl" style="margin-top:1rem">' + q.suras.map(function (s) {
-          return '<li data-k="' + esc((s.n + " " + s.en + " " + s.ar).toLowerCase()) + '"><a href="#/reciter/' + s.n + '"><span class="badge">' + s.n + '</span><span class="nm">' + esc(s.en) + '<small>' + s.v.length + ' versets</small></span><span class="ar">' + esc(s.ar) + '</span></a></li>';
+          return '<li data-k="' + esc((s.n + " " + s.en + " " + s.ar).toLowerCase()) + '"><a href="#/reciter/' + s.n + '"><span class="badge">' + s.n + '</span><span class="nm">' + esc(s.en) + '<small>' + s.v.length + ' versets' + (kRead(s.n).length ? ' · ' + Math.min(kRead(s.n).length, s.v.length) + ' lus' : '') + '</small></span><span class="ar">' + esc(s.ar) + '</span></a></li>';
         }).join("") + '</ul>';
       return { title: "Réciter", html: html, tab: "#/reciter", bind: function (r) {
         $("#q", r).addEventListener("input", function (e) {
@@ -210,13 +400,14 @@
     if (!opt.audio) out += '<div class="callout">Audio : à intégrer après accord des ayants droit sur les récitations de Warsh.</div>';
     else if (audioUrl(opt, "sura", s.n)) out += '<p><button class="btn" id="playS">Écouter la sourate</button> <button class="btn alt" id="stopA">Arrêter</button></p>';
     s.v.forEach(function (v, i) {
-      var isMem = mem.indexOf(v[0]) >= 0, isBm = S.bookmarks.indexOf(s.n + ":" + v[0]) >= 0;
+      var isMem = mem.indexOf(v[0]) >= 0, isBm = S.bookmarks.indexOf(s.n + ":" + v[0]) >= 0, isRead = kRead(s.n).indexOf(v[0]) >= 0;
       out += '<article class="vcard' + (isMem ? " done" : "") + '" data-a="' + v[0] + '"><div class="row between"><span class="badge">' + v[0] + '</span><span class="muted">Page ' + v[2] + '</span></div>' +
         '<div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v[1]) + '</div>';
       if (L.phon && ph && ph[i]) out += '<div class="ph">' + esc(ph[i][0]) + (ph[i][1] ? ' <span class="chk-flag" title="Particularité de Warsh à vérifier avec l\'imam garant">à vérifier</span>' : '') + '</div>';
       if (L.fr && fr && fr[i]) out += '<div class="trfr">' + esc(fr[i]) + '</div>';
       out += '<div class="row">' + (opt.audio && audioUrl(opt, "verse", s.n, v[0]) ? '<button class="btn alt" data-play="' + v[0] + '">Écouter</button>' : '') +
         '<button class="btn alt" data-rep="' + v[0] + '">Répéter <span class="rc">0</span>/3</button>' +
+        '<button class="btn alt" data-read="' + v[0] + '" aria-pressed="' + isRead + '">' + (isRead ? "Lu ✓" : "Marquer lu") + '</button>' +
         '<button class="btn alt" data-mem="' + v[0] + '" aria-pressed="' + isMem + '">' + (isMem ? "Mémorisé" : "Marquer mémorisé") + '</button>' +
         '<button class="btn alt" data-bm="' + v[0] + '" aria-pressed="' + isBm + '">' + (isBm ? "Signet posé" : "Signet") + '</button></div></article>';
     });
@@ -243,6 +434,7 @@
     $$("[data-mem]", r).forEach(function (b) { b.onclick = function () {
       var a = +b.dataset.mem, m = S.hifz[s.n] || [], i = m.indexOf(a); if (i >= 0) m.splice(i, 1); else m.push(a); S.hifz[s.n] = m; save(); render();
     }; });
+    $$("[data-read]", r).forEach(function (b) { b.onclick = function () { kMark(s.n, +b.dataset.read); S.last = { s: s.n, a: +b.dataset.read }; save(); render(); }; });
     $$("[data-bm]", r).forEach(function (b) { b.onclick = function () {
       var k = s.n + ":" + b.dataset.bm, i = S.bookmarks.indexOf(k); if (i >= 0) S.bookmarks.splice(i, 1); else S.bookmarks.push(k); save(); render();
     }; });
@@ -262,6 +454,7 @@
           '<option value="masque"' + (mode === "masque" ? " selected" : "") + '>Récitation : texte masqué</option></select>' +
           '<button class="btn alt" id="fm" aria-label="Réduire la taille du texte">A−</button><button class="btn alt" id="fp" aria-label="Augmenter la taille du texte">A+</button></div>' +
           (mode === "verset" ? layersHTML(opt) : "") +
+          '<div class="row between" style="margin-bottom:.4rem"><span class="muted">Lus : ' + Math.min(kRead(sn).length, s.v.length) + ' / ' + s.v.length + '</span><button class="btn alt" id="readAll">' + (kRead(sn).length >= s.v.length ? "Marquer la sourate non lue" : "Marquer toute la sourate comme lue") + '</button></div>' +
           '<div class="muted">Mémorisés : ' + mem + ' / ' + s.v.length + '</div><div class="bar"><i style="width:' + Math.round(100 * mem / s.v.length) + '%"></i></div>' +
           '<p class="muted">Touchez un verset pour le marquer, le garder en signet ou le méditer. En mode récitation, touchez pour révéler.</p>';
       } else html += '<p class="muted">Touchez un verset après l\'avoir répété pour gagner une étoile.</p>';
@@ -277,6 +470,7 @@
           $("#mode", r).onchange = function (e) { readMode = e.target.value; render(); };
           $("#fm", r).onclick = function () { S.settings.fs = Math.max(.8, +(S.settings.fs - .1).toFixed(1)); save(); applyTheme(); };
           $("#fp", r).onclick = function () { S.settings.fs = Math.min(1.8, +(S.settings.fs + .1).toFixed(1)); save(); applyTheme(); };
+          $("#readAll", r).onclick = function () { var all = kRead(sn).length >= s.v.length; s.v.forEach(function (v) { kMark(sn, v[0], !all); }); save(); render(); };
         }
         if (kid) { document.body.classList.add("kid"); onLeave(function () { document.body.classList.remove("kid"); }); }
         if (mode === "verset" && !kid) bindVerses(r, s, opt);
@@ -297,12 +491,14 @@
           box.innerHTML = '<div class="sheet"><strong>' + esc(s.en) + ', verset ' + a + '</strong>' +
             '<button class="btn alt" id="aMem">' + (isMem ? "Retirer des mémorisés" : "Marquer mémorisé") + '</button>' +
             '<button class="btn alt" id="aBm">' + (isBm ? "Retirer le signet" : "Signet") + '</button>' +
+            '<button class="btn alt" id="aRd">Lu jusqu\'ici</button>' +
             '<a class="btn alt" href="#/mediter/' + sn + '/' + a + '">Méditer</a>' +
             '<button class="btn alt" id="aSh">Partager la référence</button></div>';
           $("#aMem", box).onclick = function () {
             var m = S.hifz[sn] || []; var i = m.indexOf(a); if (i >= 0) m.splice(i, 1); else m.push(a); S.hifz[sn] = m; save(); render();
           };
           $("#aBm", box).onclick = function () { var i = S.bookmarks.indexOf(sn + ":" + a); if (i >= 0) S.bookmarks.splice(i, 1); else S.bookmarks.push(sn + ":" + a); save(); render(); };
+          $("#aRd", box).onclick = function () { s.v.forEach(function (v) { if (v[0] <= a) kMark(sn, v[0], true); }); save(); toast("Versets 1 à " + a + " marqués comme lus."); render(); };
           $("#aSh", box).onclick = function () { share("NÛR", "Sourate " + s.en + " (" + sn + "), verset " + a + " — à lire dans NÛR."); };
         }
         $$(".v", r).forEach(function (el) {
@@ -327,7 +523,7 @@
   route(/^\/apprendre$/, function () {
     return loadQ().then(function (q) {
       var started = q.suras.filter(function (s) { return (S.hifz[s.n] || []).length; });
-      var html = '<h2>Apprendre</h2><div class="grid keep" style="margin-bottom:1rem"><a class="tile" href="#/alphabet"><strong>Alphabet et lecture</strong><span>Lettres, voyelles, signes</span></a><a class="tile" href="#/niveaux"><strong>Mes niveaux</strong><span>Du débutant au cheikh</span></a></div><div class="card"><h3>Parcours de mémorisation</h3><p>Commencez par les dernières sourates, courtes et fréquemment récitées, puis remontez progressivement. Ouvrez une sourate, choisissez le mode « premier mot visible » ou « texte masqué », puis marquez chaque verset mémorisé.</p>' +
+      var html = '<h2>Apprendre</h2><a class="tile wide" href="#/parcours"><strong>Mon parcours, pas à pas</strong><span>Leçons courtes, quiz, fiches de révision, points et paliers</span></a><div class="grid keep" style="margin-bottom:1rem"><a class="tile" href="#/alphabet"><strong>Alphabet et lecture</strong><span>Lettres, voyelles, signes</span></a><a class="tile" href="#/niveaux"><strong>Mémorisation</strong><span>Mes repères, sourate par sourate</span></a></div><div class="card"><h3>Parcours de mémorisation</h3><p>Commencez par les dernières sourates, courtes et fréquemment récitées, puis remontez progressivement. Ouvrez une sourate, choisissez le mode « premier mot visible » ou « texte masqué », puis marquez chaque verset mémorisé.</p>' +
         '<ul class="list">' + [114, 113, 112, 111, 110, 109, 108, 107, 106, 105].map(function (n) {
           var s = q.byN[n], m = (S.hifz[n] || []).length;
           return '<li><a href="#/reciter/' + n + '"><span class="badge">' + n + '</span><span class="nm">' + esc(s.en) + '<small>' + m + ' / ' + s.v.length + ' mémorisés</small></span><span class="ar">' + esc(s.ar) + '</span></a></li>';
@@ -491,7 +687,8 @@
   route(/^\/enfant\/(\d+)$/, function (m, params) { return readerView(+m[1], params, true); });
 
   // Réglages
-  route(/^\/reglages$/, function () {
+  route(/^\/reglages$/, function () { return guardParent(reglagesView); });
+  function reglagesView() {
     var L = loc(), st = S.settings;
     var html = '<h2>Réglages</h2><div class="card"><h3>Lieu</h3><p><strong>' + esc(L.name) + '</strong></p><div class="row"><button class="btn" id="gps">Utiliser ma position</button></div>' +
       '<label class="f" for="city">Ou choisir une ville</label><select id="city"><option value="">—</option>' + CITIES.map(function (c, i) { return '<option value="' + i + '">' + esc(c[0]) + '</option>'; }).join("") + '</select>' +
@@ -501,9 +698,10 @@
       '<details style="margin-top:.7rem"><summary>Ajustements en minutes (pour s\'aligner sur la mosquée locale)</summary>' + [["fajr", "Fajr"], ["sunrise", "Chourouq"], ["dhuhr", "Dhuhr"], ["asr", "ʿAsr"], ["maghrib", "Maghrib"], ["isha", "ʿIshâʾ"]].map(function (p) { return '<label class="f" for="o_' + p[0] + '">' + p[1] + '</label><input type="number" step="1" id="o_' + p[0] + '" data-o="' + p[0] + '" value="' + ((st.offsets && st.offsets[p[0]]) || 0) + '">'; }).join("") + '</details>' +
       '<label class="f" for="hj">Ajustement de la date hégirienne (jours)</label><select id="hj">' + [-2, -1, 0, 1, 2].map(function (n) { return '<option value="' + n + '"' + ((st.hijriOffset || 0) === n ? " selected" : "") + '>' + (n > 0 ? "+" + n : n) + '</option>'; }).join("") + '</select><p class="muted">La date hégirienne affichée suit le calendrier civil d\'Oumm al-Qourâ ; elle peut différer d\'un jour de l\'observation locale.</p>' +
       '<p><label><input type="checkbox" id="nt"' + (st.notif ? " checked" : "") + '> Rappels de prière (uniquement lorsque l\'application est ouverte)</label></p></div>' +
+      '<div class="card"><h3>Ma pratique</h3><p><label><input type="checkbox" id="ptk"' + (st.prayerTrack ? " checked" : "") + '> Suivre mes cinq prières (privé, ' + PRI + ' points par prière)</label></p><p class="muted">Désactivé par défaut. Les prières cochées restent sur cet appareil.</p><p class="row"><a class="btn alt" href="#/khatm">Lecture du jour et khatm</a><a class="btn alt" href="#/profils">Profils</a></p></div>' +
       '<div class="card"><h3>Affichage</h3><label class="f" for="th">Thème</label><select id="th">' + [["auto", "Automatique"], ["light", "Clair"], ["dark", "Sombre"], ["contrast", "Contraste élevé"]].map(function (t) { return '<option value="' + t[0] + '"' + (st.theme === t[0] ? " selected" : "") + '>' + t[1] + '</option>'; }).join("") + '</select><label class="f" for="fs">Taille du texte</label><input type="range" id="fs" min="0.8" max="1.8" step="0.1" value="' + st.fs + '"></div>' +
-      '<div class="card"><h3>Code parental</h3><p class="muted">Protège la sortie de l\'espace enfant. Le code reste sur l\'appareil.</p><label class="f" for="pin">Nouveau code (4 chiffres)</label><input type="password" id="pin" inputmode="numeric" maxlength="4" pattern="[0-9]*"><p class="row"><button class="btn alt" id="pset">Enregistrer</button>' + (st.pin ? '<button class="btn danger" id="pclr">Supprimer le code</button>' : "") + '</p></div>' +
-      '<div class="card"><h3>Mes données</h3><p class="muted">Signets, mémorisation, journal, compteurs : stockés uniquement sur cet appareil.</p><div class="row"><button class="btn alt" id="exp">Exporter</button><label class="btn alt" for="imp" style="margin:0">Importer</label><input type="file" id="imp" accept="application/json" hidden><button class="btn danger" id="rst">Tout effacer</button></div></div>' +
+      '<div class="card"><h3>Code parental</h3><p class="muted">Protège les profils enfants : sortie du profil, réglages, validation des paliers. Le code reste sur l\'appareil.</p><label class="f" for="pin">Nouveau code (4 chiffres)</label><input type="password" id="pin" inputmode="numeric" maxlength="4" pattern="[0-9]*"><p class="row"><button class="btn alt" id="pset">Enregistrer</button>' + (STORE.pin ? '<button class="btn danger" id="pclr">Supprimer le code</button>' : "") + '</p></div>' +
+      '<div class="card"><h3>Mes données</h3><p class="muted">Signets, mémorisation, journal, compteurs, points et parcours du profil actif : stockés uniquement sur cet appareil.</p><div class="row"><button class="btn alt" id="exp">Exporter</button><label class="btn alt" for="imp" style="margin:0">Importer</label><input type="file" id="imp" accept="application/json" hidden><button class="btn danger" id="rst">Tout effacer</button></div></div>' +
       '<div class="card"><h3>Hors ligne</h3><p id="offl" class="muted">Vérification…</p></div>';
     return { title: "Réglages", html: html, back: "#/plus", bind: function (r) {
       function setLoc(l) { S.settings.loc = l; save(); toast("Lieu enregistré : " + l.name); render(); }
@@ -528,30 +726,34 @@
         if (e.target.checked && "Notification" in window) { Notification.requestPermission().then(function (p) { st.notif = p === "granted"; e.target.checked = st.notif; save(); scheduleNotifs(); if (!st.notif) toast("Notifications refusées."); }); }
         else { st.notif = false; save(); scheduleNotifs(); }
       };
+      $("#ptk", r).onchange = function (e) { st.prayerTrack = e.target.checked; save(); toast(st.prayerTrack ? "Suivi des prières activé." : "Suivi des prières désactivé."); };
       $("#th", r).onchange = function (e) { st.theme = e.target.value; save(); applyTheme(); };
       $("#fs", r).oninput = function (e) { st.fs = +e.target.value; save(); applyTheme(); };
-      $("#pset", r).onclick = function () { var v = $("#pin", r).value; if (!/^\d{4}$/.test(v)) return toast("Le code doit comporter 4 chiffres."); pinHash(v).then(function (h) { st.pin = h; save(); toast("Code enregistré."); render(); }); };
-      if ($("#pclr", r)) $("#pclr", r).onclick = function () { st.pin = null; save(); toast("Code supprimé."); render(); };
+      $("#pset", r).onclick = function () { var v = $("#pin", r).value; if (!/^\d{4}$/.test(v)) return toast("Le code doit comporter 4 chiffres."); askPin("Code parental actuel").then(function (ok) { if (!ok) return; pinHash(v).then(function (h) { STORE.pin = h; save(); toast("Code enregistré."); render(); }); }); };
+      if ($("#pclr", r)) $("#pclr", r).onclick = function () {
+        if (STORE.profiles.some(function (p) { return isChild(p); })) return toast("Un profil enfant existe : le code parental ne peut pas être supprimé.");
+        askPin("Code parental actuel").then(function (ok) { if (!ok) return; STORE.pin = null; save(); toast("Code supprimé."); render(); });
+      };
       $("#exp", r).onclick = function () { download("nur-sauvegarde.json", JSON.stringify(S, null, 1)); };
       $("#imp", r).onchange = function (e) {
         var f = e.target.files[0]; if (!f) return; var fr = new FileReader();
         fr.onload = function () { try { S = merge(DEF(), JSON.parse(fr.result)); save(); applyTheme(); toast("Données importées."); render(); } catch (x) { toast("Fichier invalide."); } };
         fr.readAsText(f);
       };
-      $("#rst", r).onclick = function () { if (confirm("Effacer toutes les données de NÛR sur cet appareil ?")) { localStorage.removeItem(KEY); S = DEF(); applyTheme(); toast("Données effacées."); render(); } };
+      $("#rst", r).onclick = function () { if (confirm("Effacer tous les profils et toutes les données de NÛR sur cet appareil ?")) { localStorage.removeItem(KEY); localStorage.removeItem(KEY2); STORE = loadStore(); S = curData(); applyTheme(); toast("Données effacées."); location.hash = "#/bienvenue"; } };
       var off = $("#offl", r);
       if ("serviceWorker" in navigator) navigator.serviceWorker.getRegistration().then(function (reg) { off.textContent = reg && reg.active ? "L'application et le texte du Coran sont disponibles hors ligne sur cet appareil." : "Le mode hors ligne s'active après le premier chargement complet (connexion requise une fois)."; });
       else off.textContent = "Ce navigateur ne permet pas le mode hors ligne.";
     } };
-  });
+  }
 
   // À propos
   route(/^\/apropos$/, function () {
     var html = '<h2>À propos</h2><p>NÛR (نور) est une application islamique francophone, sans publicité, sans représentation d\'être vivant, conçue pour les croyants de tous niveaux, avec une attention particulière à la diaspora africaine de rite malikite.</p>' +
       '<div class="card"><h3>Riwaya</h3><p>Le texte est celui de la riwaya de Warsh ʿan Nâfiʿ, selon les données et la police du Complexe du Roi Fahd d\'impression du Noble Coran (KFGQPC), version 0.10 (5 août 2021).</p></div>' +
       '<div class="card"><h3>Sources et licences</h3><ul><li>Données du texte : KFGQPC, relayées par le dépôt public « thetruetruth/quran-data-kfgqpc » (github.com/thetruetruth/quran-data-kfgqpc).</li><li>Police « KFGQPC Warsh Uthmanic Script » : © KFGQPC. Usage, copie et distribution gratuits ; vente, modification et ingénierie inverse interdites. Licence complète : <a href="LICENCE-KFGQPC.txt">LICENCE-KFGQPC.txt</a>.</li><li>Calcul des prières : algorithme astronomique de position solaire, validé à moins d\'une minute contre une bibliothèque indépendante.</li></ul></div>' +
-      '<div class="card"><h3>Points en attente</h3><ul><li>Validation par l\'imam garant de la présente version (texte Warsh, leçons de tajwid, formulations).</li><li>Phonétique : brouillon pour la Fâtiha et les sourates 99 à 114, à valider par l\'imam garant (fiche d\'export ci-dessous).</li><li>Traduction française : à intégrer à partir d\'une source dont les droits sont établis (fichier traduction-fr.json).</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Abonnements et paiements : non inclus dans cette version, gratuite.</li><li>Notifications d\'adhan en arrière-plan : nécessitent une application native.</li></ul></div>' +
-      '<p><button class="btn alt" id="expPh">Exporter la fiche de validation (phonétique)</button></p><p class="muted">Version ' + VERSION + '. Aucune donnée personnelle n\'est collectée ni transmise.</p>';
+      '<div class="card"><h3>Points en attente</h3><ul><li>Validation par l\'imam garant de la présente version (texte Warsh, leçons de tajwid, formulations).</li><li>Phonétique : brouillon pour la Fâtiha et les sourates 99 à 114, à valider par l\'imam garant (fiche d\'export ci-dessous).</li><li>Traduction française : à intégrer à partir d\'une source dont les droits sont établis (fichier traduction-fr.json).</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Application gratuite, sans abonnement ni publicité.</li><li>Leçons du parcours, hadiths et dhikr du jour : rédigés pour cette version, à valider par l\'imam garant (fiche d\'export ci-dessous).</li><li>Enregistrements des lettres et des leçons : à produire.</li><li>Notifications d\'adhan en arrière-plan : nécessitent une application native.</li></ul></div>' +
+      '<p class="row"><button class="btn alt" id="expPh">Exporter la fiche de validation (phonétique)</button><button class="btn alt" id="expPc">Exporter la fiche de validation (parcours et quotidien)</button></p><p class="muted">Version ' + VERSION + '. Aucune donnée personnelle n\'est collectée ni transmise.</p>';
     return { title: "À propos", html: html, back: "#/plus", bind: function (r) {
       $("#expPh", r).onclick = function () {
         Promise.all([loadQ(), loadOpt()]).then(function (res) {
@@ -563,10 +765,32 @@
           download("fiche-validation-phonetique.csv", "\ufeff" + rows.join("\n"), "text/csv;charset=utf-8");
         });
       };
+      $("#expPc", r).onclick = function () {
+        loadOpt().then(function (o) {
+          if (!o.parcours) return toast("Aucun contenu à exporter.");
+          var rows = ["Partie;Repère;Élément;Texte;Décision de l'imam;Correction"], cell = function (t) { return '"' + String(t == null ? "" : t).replace(/"/g, '""') + '"'; };
+          var add = function (a, b, c, t) { rows.push([cell(a), cell(b), cell(c), cell(t), "", ""].join(";")); };
+          paliers(o).forEach(function (p) { (p.etapes || []).forEach(function (et) {
+            et.lecons.forEach(function (l, i) {
+              var rp = p.nom + " " + et.n + "." + (i + 1);
+              add("Leçon", rp, "Titre", l.titre); l.texte.forEach(function (t) { add("Leçon", rp, "Texte", t); });
+              (l.mots || []).forEach(function (w) { add("Leçon", rp, "Mot", w.ar + " | " + w.tr + " | " + w.ph + " | " + w.fr); });
+              if (l.versets) l.versets.sens.forEach(function (t, k) { add("Leçon", rp, "Sens du verset " + l.versets.s + ":" + l.versets.a[k], t); });
+              add("Leçon", rp, "À retenir", l.retenir);
+            });
+            et.quiz.forEach(function (qq, i) { add("Quiz", p.nom + " " + et.n + ", question " + (i + 1), qq.q, qq.c.map(function (c, j) { return (j === qq.r ? "[x] " : "[ ] ") + c; }).join(" / ")); });
+          }); });
+          var qt = o.quot || {};
+          (qt.dhikr || []).forEach(function (w, i) { add("Dhikr du jour", String(i + 1), w.ar, w.tr + " | " + w.ph + " | " + w.fr + " | cible " + w.cible); });
+          (qt.hadiths || []).forEach(function (h) { add("Hadith du jour", "an-Nawawî n° " + h.n, h.rapporteur + " ; " + h.recueils, h.sens); });
+          if (qt.vendredi) add("Vendredi", "", "Suggestion", qt.vendredi);
+          download("fiche-validation-parcours.csv", "\ufeff" + rows.join("\n"), "text/csv;charset=utf-8");
+        });
+      };
     } };
   });
 
-  /* ------------------------------------------------------------ alphabet, niveaux, offres */
+  /* ------------------------------------------------------------ alphabet, repères de mémorisation */
   var LETTERS = [
     ["ا", "Alif", "â", "Support de la voyelle longue « â » ; porte aussi la hamza (ء)."],
     ["ب", "Bâʾ", "b", "Comme le « b » de « bateau »."],
@@ -627,7 +851,7 @@
   }
   route(/^\/niveaux$/, function () {
     return loadQ().then(function (q) {
-      var html = '<h2>Mes niveaux</h2><div class="callout">Contenu des niveaux : <strong>proposition à valider</strong> avec l\'imam garant. Vos progrès se calculent à partir des versets que vous marquez comme mémorisés.</div>';
+      var html = '<h2>Repères de mémorisation</h2><div class="callout">Repères de mémorisation : <strong>proposition à valider</strong> avec l\'imam garant. Ils se calculent à partir des versets marqués comme mémorisés. Les points et les paliers se trouvent dans « Mon parcours ».</div>';
       var current = null;
       LEVELS.forEach(function (l) { var p = levelProgress(l, q); if (!current && (!p || p.pct < 100)) current = l.id; });
       html += LEVELS.map(function (l, i) {
@@ -635,37 +859,390 @@
         return '<div class="card"><div class="row between"><h3 style="margin:0">' + (i + 1) + '. ' + esc(l.nom) + '</h3>' + (l.id === current ? '<span class="pill" style="border-color:var(--gold);color:var(--gold)">Niveau actuel</span>' : (p && p.pct === 100 ? '<span class="pill">Acquis</span>' : '')) + '</div>' +
           '<p>' + esc(l.but) + '</p><p class="muted">' + esc(l.detail) + '</p>' +
           (p ? '<div class="muted">' + p.mem + ' / ' + p.tot + ' versets mémorisés (' + p.pct + ' %)</div><div class="bar"><i style="width:' + p.pct + '%"></i></div>' : '') + '</div>';
-      }).join("") + '<p class="row"><a class="btn" href="#/alphabet">Alphabet et lecture</a><a class="btn alt" href="#/offres">Accès et offres</a></p>';
-      return { title: "Niveaux", html: html, back: "#/apprendre", tab: "#/apprendre" };
+      }).join("") + '<p class="row"><a class="btn" href="#/alphabet">Alphabet et lecture</a><a class="btn alt" href="#/parcours">Mon parcours</a></p>';
+      return { title: "Mémorisation", html: html, back: "#/apprendre", tab: "#/apprendre" };
     });
   });
 
-  var MATRIX = [
-    ["Lecture du Coran en Warsh, hors ligne", [1, 1, 1, 1]],
-    ["Heures de prière, qibla, calendrier hégirien", [1, 1, 1, 1]],
-    ["Alphabet, lecture guidée, phonétique", [1, 1, 1, 1]],
-    ["Mémorisation, signets, journal", [1, 1, 1, 1]],
-    ["Parcours Intermédiaire et tajwid", [0, 1, 1, 1]],
-    ["Parcours Disciple (révision, règles de Warsh)", [0, 0, 1, 1]],
-    ["Outils de transmission (suivi d'élèves)", [0, 0, 0, 1]]
-  ];
-  function priceTxt(v, unit) { return v == null ? "À fixer" : new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(v) + (unit || ""); }
-  route(/^\/offres$/, function () {
-    return loadOpt().then(function (opt) {
-      var P0 = (opt.plans && opt.plans.individuel) || [];
-      var html = '<h2>Accès et offres</h2><div class="callout">Répartition des fonctions par niveau : <strong>proposition</strong>. Les tarifs ne sont pas encore fixés et le paiement n\'est pas encore actif : toutes les fonctions sont ouvertes dans cette version.</div>' +
-        '<div class="scroll"><table class="month"><thead><tr><th style="text-align:left">Fonction</th>' + LEVELS.map(function (l) { return '<th>' + esc(l.nom.split(" ")[0]) + '</th>'; }).join("") + '</tr></thead><tbody>' +
-        MATRIX.map(function (r) { return '<tr><td style="text-align:left">' + esc(r[0]) + '</td>' + r[1].map(function (x) { return '<td>' + (x ? "oui" : "—") + '</td>'; }).join("") + '</tr>'; }).join("") +
-        '<tr><td style="text-align:left"><strong>Tarif mensuel</strong></td>' + LEVELS.map(function (l, i) { var p = P0[i]; return '<td>' + (p && p.gratuit ? "Gratuit" : priceTxt(p && p.prix_mensuel, " /mois")) + '</td>'; }).join("") + '</tr>' +
-        '<tr><td style="text-align:left"><strong>Tarif annuel</strong></td>' + LEVELS.map(function (l, i) { var p = P0[i]; return '<td>' + (p && p.gratuit ? "Gratuit" : priceTxt(p && p.prix_annuel, " /an")) + '</td>'; }).join("") + '</tr></tbody></table></div>';
-      var f = opt.plans && opt.plans.famille;
-      html += '<div class="card" style="margin-top:1rem"><h3>Famille</h3><p>1 parent et jusqu\'à 4 enfants, avec interface enfant dédiée.</p><p><strong>' + priceTxt(f && f.prix_annuel, " /an") + '</strong> · ' + priceTxt(f && f.prix_mensuel, " /mois") + '</p></div>';
-      html += '<div class="card"><h3>Mosquées (forfait annuel)</h3><ul class="plain">' + ((opt.plans && opt.plans.mosquee) || [{ nom: "Mosquée S", fideles: 50 }, { nom: "Mosquée M", fideles: 200 }, { nom: "Mosquée L", illimite: true }]).map(function (m) {
-        return '<li><strong>' + esc(m.nom) + '</strong> — ' + (m.illimite ? "fidèles illimités" : m.fideles + " fidèles") + ' : ' + priceTxt(m.prix_annuel, " /an") + '</li>'; }).join("") + '</ul></div>';
-      html += '<p class="muted">Principes : zéro publicité, zéro représentation d\'être vivant, imam garant.</p>';
-      return { title: "Offres", html: html, back: "#/plus", tab: null };
+  /* ------------------------------------------------------------ bienvenue (premier lancement) et profils */
+  var pf = { nom: "", type: null, age: "" };
+  function profilFormHTML() {
+    var kidSel = pf.type === "garcon" || pf.type === "fille";
+    return '<label class="f" for="pn">Prénom (facultatif)</label><input type="text" id="pn" maxlength="24" autocomplete="off" value="' + esc(pf.nom) + '">' +
+      '<p id="whoL" class="muted" style="margin:.9rem 0 .25rem">Qui utilise ce profil ?</p>' +
+      '<div class="who" role="group" aria-labelledby="whoL">' +
+      '<button type="button" data-t="homme" aria-pressed="' + (pf.type === "homme") + '">Homme</button>' +
+      '<button type="button" data-t="femme" aria-pressed="' + (pf.type === "femme") + '">Femme</button>' +
+      '<button type="button" class="sub" data-t="garcon" aria-pressed="' + (pf.type === "garcon") + '">Enfant (garçon)</button>' +
+      '<button type="button" class="sub" data-t="fille" aria-pressed="' + (pf.type === "fille") + '">Enfant (fille)</button></div>' +
+      '<div id="kidBox" class="card" style="text-align:left"' + (kidSel ? "" : " hidden") + '><h3>Profil enfant : accord de l\'adulte</h3>' +
+      '<p class="muted">Un profil enfant se crée sous la responsabilité d\'un adulte, à partir de 7 ans.</p>' +
+      '<label class="f" for="pa">Âge de l\'enfant</label><input type="number" id="pa" min="7" max="17" inputmode="numeric" value="' + esc(pf.age) + '">' +
+      '<label class="chk" style="margin-top:.6rem"><input type="checkbox" id="pok"> Je suis l\'adulte responsable de cet enfant et j\'autorise ce profil.</label>' +
+      '<label class="f" for="pc">' + (STORE.pin ? "Code parental" : "Choisir un code parental (4 chiffres)") + '</label><input type="password" id="pc" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="off">' +
+      '<p class="muted">Ce code sera demandé pour quitter le profil enfant, ouvrir ses réglages et valider ses paliers.</p></div>';
+  }
+  function bindProfilForm(r) {
+    $$(".who button", r).forEach(function (b) { b.onclick = function () {
+      pf.type = b.dataset.t; pf.nom = $("#pn", r).value;
+      $$(".who button", r).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      $("#kidBox", r).hidden = !(pf.type === "garcon" || pf.type === "fille");
+    }; });
+  }
+  function submitProfil(r) {
+    var nom = $("#pn", r).value.trim().slice(0, 24), type = pf.type || "adulte";
+    if (STORE.profiles.length >= MAXP) { toast("Cinq profils au plus sur cet appareil."); return Promise.resolve(null); }
+    if (type === "garcon" || type === "fille") {
+      var age = Math.round(+$("#pa", r).value), code = $("#pc", r).value;
+      if (!(age >= 7 && age <= 17)) { toast("L'âge doit être compris entre 7 et 17 ans."); return Promise.resolve(null); }
+      if (!$("#pok", r).checked) { toast("L'accord de l'adulte responsable est nécessaire."); return Promise.resolve(null); }
+      if (!/^\d{4}$/.test(code)) { toast("Le code parental doit comporter 4 chiffres."); return Promise.resolve(null); }
+      return pinHash(code).then(function (h) {
+        if (STORE.pin && STORE.pin !== h) { toast("Code parental incorrect."); return null; }
+        STORE.pin = h; return addProfile({ nom: nom, type: type, age: age });
+      });
+    }
+    return Promise.resolve(addProfile({ nom: nom, type: type }));
+  }
+  function finishOb() {
+    if (!STORE.profiles.length) switchProfile(addProfile({ nom: "", type: "adulte" }));
+    STORE.onboarded = true; save(); pf = { nom: "", type: null, age: "" }; location.hash = "#/";
+  }
+  route(/^\/bienvenue$/, function (m, params) {
+    var e = Math.max(1, Math.min(4, +params.e || 1));
+    if (e === 3 && STORE.profiles.length) e = 4;
+    var bar = '<div class="prog"><div class="bar"><i style="width:' + (e * 25) + '%"></i></div><span class="muted">' + e + ' / 4</span></div>', html;
+    if (e === 1) html = '<div class="obLogo ar" lang="ar" aria-hidden="true">نور</div><h2>Bienvenue dans NÛR</h2>' +
+      '<p class="lead">Apprendre le Coran et les bases de la foi, pas à pas, à votre rythme.</p>' +
+      '<ul class="plain"><li>Gratuit, sans publicité.</li><li>Vos données restent sur votre appareil.</li><li>Un parcours simple, pour qui découvre comme pour qui reprend.</li></ul>' +
+      '<p><a class="btn big" href="#/bienvenue?e=2">Commencer</a></p><p><button class="btn alt" id="skip">Passer l\'introduction</button></p>';
+    else if (e === 2) html = '<h2>Comment vous allez avancer</h2><ul class="plain">' +
+      '<li><strong>Chaque jour</strong> : quatre petits objectifs, en quelques minutes. Une lecture, un verset, un dhikr, un hadith.</li>' +
+      '<li><strong>Chaque étape</strong> : quatre leçons courtes, un quiz et des fiches de révision.</li>' +
+      '<li><strong>Des points privés</strong> : ni classement, ni pénalité. Ils ouvrent les paliers Initié, Intermédiaire et Disciple.</li>' +
+      '<li><strong>Rien ne presse</strong> : on passe à la suite quand on se sent prêt.</li></ul>' +
+      '<p><a class="btn big" href="#/bienvenue?e=3">Continuer</a></p>';
+    else if (e === 3) html = '<h2>Votre profil</h2><div style="text-align:left">' + profilFormHTML() + '</div>' +
+      '<p><button class="btn big" id="go">Continuer</button></p><p><button class="btn alt" id="skip3">Passer</button></p>';
+    else html = '<h2>Votre lieu</h2><p>Le lieu sert à calculer les heures de prière. Il reste sur votre appareil.</p>' +
+      '<p><button class="btn big" id="gps">Utiliser ma position</button></p>' +
+      '<div style="text-align:left"><label class="f" for="city">Ou choisir une ville</label><select id="city"><option value="">—</option>' + CITIES.map(function (c, i) { return '<option value="' + i + '">' + esc(c[0]) + '</option>'; }).join("") + '</select></div>' +
+      '<p style="margin-top:1.2rem"><button class="btn alt" id="later">Plus tard</button></p>';
+    return { title: "Bienvenue", html: '<div class="ob">' + bar + html + '</div>', bare: true, tab: null, bind: function (r) {
+      var sk = $("#skip", r); if (sk) sk.onclick = finishOb;
+      if (e === 3) {
+        bindProfilForm(r);
+        $("#go", r).onclick = function () { submitProfil(r).then(function (id) { if (!id) return; switchProfile(id); location.hash = "#/bienvenue?e=4"; }); };
+        $("#skip3", r).onclick = function () { switchProfile(addProfile({ nom: "", type: "adulte" })); location.hash = "#/bienvenue?e=4"; };
+      }
+      if (e === 4) {
+        var setL = function (l) { if (!STORE.profiles.length) switchProfile(addProfile({ nom: "", type: "adulte" })); S.settings.loc = l; save(); finishOb(); };
+        $("#gps", r).onclick = function () {
+          if (!navigator.geolocation) return toast("Géolocalisation indisponible. Choisissez une ville.");
+          navigator.geolocation.getCurrentPosition(function (p) { setL({ name: "Ma position (GPS)", lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); },
+            function () { toast("Position refusée ou indisponible. Choisissez une ville."); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+        };
+        $("#city", r).onchange = function (ev) { if (ev.target.value === "") return; var c = CITIES[+ev.target.value]; setL({ name: c[0], lat: c[1], lng: c[2], tz: c[3] }); };
+        $("#later", r).onclick = finishOb;
+      }
+    } };
+  });
+
+  route(/^\/profils$/, function () {
+    return guardParent(function () {
+      var html = '<h2>Profils</h2><p class="muted">Jusqu\'à ' + MAXP + ' profils sur cet appareil. Chacun garde ses points, sa lecture et son parcours.</p>';
+      html += STORE.profiles.map(function (p, i) {
+        var act = p.id === STORE.active;
+        return '<div class="card"><div class="row between"><div><strong>' + esc(p.nom || ("Profil " + (i + 1))) + '</strong><div class="muted">' + esc(TYPES[p.type] || "Adulte") + (p.age ? ", " + p.age + " ans" : "") + '</div></div>' +
+          (act ? '<span class="pill" style="border-color:var(--gold);color:var(--gold)">Profil actif</span>' : '') + '</div><p class="row" style="margin:.7rem 0 0">' +
+          (act ? '' : '<button class="btn" data-use="' + p.id + '">Utiliser ce profil</button>') + (STORE.profiles.length > 1 ? '<button class="btn danger" data-del="' + p.id + '">Supprimer</button>' : '') + '</p></div>';
+      }).join("");
+      html += STORE.profiles.length < MAXP ? '<p><a class="btn alt" href="#/profils/nouveau">Ajouter un profil</a></p>' : '<p class="muted">Le nombre maximal de profils est atteint.</p>';
+      html += '<p class="muted">Quitter un profil enfant, ouvrir ses réglages ou valider ses paliers demande le code parental.</p>';
+      return { title: "Profils", html: html, back: "#/plus", bind: function (r) {
+        $$("[data-use]", r).forEach(function (b) { b.onclick = function () { switchProfile(b.dataset.use); toast("Profil changé."); location.hash = "#/"; }; });
+        $$("[data-del]", r).forEach(function (b) { b.onclick = function () {
+          if (!confirm("Supprimer ce profil et toutes ses données ?")) return;
+          askPin("Code parental").then(function (ok) {
+            if (!ok) return;
+            var id = b.dataset.del;
+            STORE.profiles = STORE.profiles.filter(function (x) { return x.id !== id; }); delete STORE.data[id];
+            if (STORE.active === id) { STORE.active = STORE.profiles[0].id; S = curData(); }
+            save(); applyTheme(); toast("Profil supprimé."); render();
+          });
+        }; });
+      } };
     });
   });
+  route(/^\/profils\/nouveau$/, function () {
+    return guardParent(function () {
+      var html = '<h2>Nouveau profil</h2>' + profilFormHTML() + '<p class="row" style="margin-top:1rem"><button class="btn" id="go">Créer le profil</button><a class="btn alt" href="#/profils">Annuler</a></p>';
+      return { title: "Nouveau profil", html: html, back: "#/profils", bind: function (r) {
+        bindProfilForm(r);
+        $("#go", r).onclick = function () { submitProfil(r).then(function (id) { if (!id) return; pf = { nom: "", type: null, age: "" }; switchProfile(id); toast("Profil créé."); location.hash = "#/"; }); };
+      } };
+    });
+  });
+
+  /* ------------------------------------------------------------ objectifs du jour */
+  var dz = { k: null, n: 0 };
+  route(/^\/jour$/, function (m, params) {
+    return Promise.all([loadQ(), loadOpt()]).then(function (res) {
+      var q = res[0], opt = res[1], qt = opt.quot || {}, d = dayRec();
+      var e = Math.max(1, Math.min(5, +params.e || firstTodo(d)));
+      var key = e <= 4 ? OBJ[e - 1][0] : null, done = !!(key && d.f[key]), nextHref = "#/jour?e=" + (e + 1), bind = null;
+      var html = e <= 4 ? '<div class="prog"><div class="bar"><i style="width:' + (e * 25) + '%"></i></div><span class="muted">' + e + ' / 4</span></div>' : '';
+      var doneNote = done ? '<div class="callout">Objectif déjà validé aujourd\'hui.</div>' : '';
+      function nav(lbl) { return '<p class="row">' + (done ? '<a class="btn" href="' + nextHref + '">Suivant</a>' : '<button class="btn" id="ok">' + lbl + '</button><a class="btn alt" href="' + nextHref + '">Passer</a>') + '</p>'; }
+      function give() { var p = award(key); toast(p ? "+" + p + " points" : "Objectif validé."); location.hash = nextHref; }
+      function validate(r, before) { var b = $("#ok", r); if (b) b.onclick = function () { if (before) before(); give(); }; }
+      if (e === 1) {
+        var nx = done ? [] : kNext(q, S.settings.dose || 5);
+        html += '<h2>Lecture du jour</h2>' + doneNote;
+        if (nx.length) {
+          var s0 = nx[0].s, hasPh = !!phonOf(opt, s0.n, nx[0].a, q);
+          html += '<p class="muted">' + esc(surahLabel(s0)) + (nx.length > 1 ? ', versets ' + nx[0].a + ' à ' + nx[nx.length - 1].a : ', verset ' + nx[0].a) + '. Lire lentement, à voix haute si possible.</p>';
+          if (nx[0].i === 0 && s0.n !== 1 && s0.n !== 9) html += '<div class="basmala">' + esc(q.basmala) + '</div>';
+          html += '<div class="card">' + nx.map(function (v) {
+            var ph = phonOf(opt, v.s.n, v.a, q);
+            return '<div class="vline"><div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v.t) + '</div>' + (ph ? '<div class="ph">' + esc(ph) + '</div>' : '') + '</div>';
+          }).join("") + '</div><p class="muted">Texte : riwaya de Warsh ʿan Nâfiʿ. ' + (hasPh ? 'Phonétique : brouillon en cours de validation.' : 'La phonétique de cette sourate n\'est pas encore disponible : la lecture se fait en arabe, ou avec l\'aide d\'un enseignant.') + '</p>' + nav("J'ai lu ces versets");
+        } else if (!done) html += '<div class="callout">Toutes les sourates sont marquées comme lues. Le khatm peut être recommencé depuis « Ma lecture complète du Coran ».</div>' + nav("J'ai fait ma lecture du jour");
+        else html += '<p class="row"><a class="btn" href="' + nextHref + '">Suivant</a><a class="btn alt" href="#/reciter">Lire encore</a></p>';
+        bind = function (r) { validate(r, function () { nx.forEach(function (v) { kMark(v.s.n, v.a, true); }); if (nx.length) { var l = nx[nx.length - 1]; S.last = { s: l.s.n, a: l.a }; } }); };
+      } else if (e === 2) {
+        var dv = dailyVerse(q), ph2 = phonOf(opt, dv.sn, dv.a, q);
+        html += '<h2>Verset du jour</h2>' + doneNote + verseHTML(q, dv.sn, dv.a) + (ph2 ? '<div class="ph">' + esc(ph2) + '</div>' : '') +
+          '<p>Lire ce verset, puis garder un instant de silence pour y réfléchir.</p><p class="row"><a class="btn alt" href="#/mediter">Écrire dans mon journal</a></p>' + nav("J'ai médité ce verset");
+        bind = function (r) { validate(r); };
+      } else if (e === 3) {
+        var L3 = qt.dhikr || [], it = L3.length ? L3[dayIndex() % L3.length] : null, cible = it ? (isChild() ? Math.min(11, it.cible) : it.cible) : 0;
+        if (dz.k !== today()) dz = { k: today(), n: 0 };
+        html += '<h2>Dhikr du jour</h2>' + doneNote;
+        if (!it) html += '<div class="callout warn">Contenu indisponible : une connexion est nécessaire au premier chargement.</div>';
+        else html += '<div class="card counter"><div class="flashA ar" lang="ar" dir="rtl">' + esc(it.ar) + '</div><p><strong>' + esc(it.ph) + '</strong><br><span class="muted">translittération : ' + esc(it.tr) + '</span></p><p>' + esc(it.fr) + '</p>' +
+          '<div class="num" id="dn" aria-live="polite">' + dz.n + ' / ' + cible + '</div><div class="bar"><i id="db" style="width:' + Math.min(100, Math.round(100 * dz.n / cible)) + '%"></i></div>' +
+          '<p><button class="tap" id="dt">Toucher pour compter</button></p></div>' + NOTE_VALIDATION;
+        html += done ? '<p class="row"><a class="btn" href="' + nextHref + '">Suivant</a></p>' :
+          '<p class="row"><button class="btn" id="ok"' + (it && dz.n >= cible ? "" : " disabled") + '>J\'ai terminé ce dhikr</button><button class="btn alt" id="okAlt">Déjà fait sans compter</button><a class="btn alt" href="' + nextHref + '">Passer</a></p>';
+        bind = function (r) {
+          var t = $("#dt", r);
+          if (t) t.onclick = function () {
+            dz.n++; if (navigator.vibrate) navigator.vibrate(12);
+            $("#dn", r).textContent = dz.n + " / " + cible; $("#db", r).style.width = Math.min(100, Math.round(100 * dz.n / cible)) + "%";
+            var ok = $("#ok", r); if (ok && dz.n >= cible) ok.disabled = false;
+          };
+          validate(r); var alt = $("#okAlt", r); if (alt) alt.onclick = give;
+        };
+      } else if (e === 4) {
+        var H = qt.hadiths || [], hd = H.length ? H[dayIndex() % H.length] : null;
+        html += '<h2>Hadith du jour</h2>' + doneNote;
+        if (!hd) html += '<div class="callout warn">Contenu indisponible : une connexion est nécessaire au premier chargement.</div>';
+        else html += '<div class="card"><blockquote class="hq">' + esc(hd.sens) + '</blockquote><p class="muted">Sens du hadith, dans une formulation simplifiée. ' + esc(qt.hadith_source || "") + ', n° ' + hd.n + '. Rapporté par ' + esc(hd.rapporteur) + ' ; recueils : ' + esc(hd.recueils) + '.</p></div>' + NOTE_VALIDATION +
+          '<p>Une question à se poser : comment mettre cette parole en pratique aujourd\'hui ?</p>';
+        html += nav("J'ai lu et médité");
+        bind = function (r) { validate(r); };
+      } else {
+        var n5 = 0; OBJ.forEach(function (o) { if (d.f[o[0]]) n5++; });
+        html += '<h2>Bilan du jour</h2><div class="card"><p class="big" style="font-size:1.6rem">' + n5 + ' objectif' + (n5 > 1 ? "s" : "") + ' sur 4</p><p>' + d.p + ' points de pratique aujourd\'hui (plafond quotidien : ' + CAP + ').</p>' + weekHTML() +
+          '<p class="muted" style="margin-top:.8rem">Les points sont privés : ni classement, ni pénalité. Ce qui compte, c\'est la régularité.</p></div>' +
+          (n5 < 4 ? '<p class="row"><a class="btn" href="#/jour?e=' + firstTodo(d) + '">Reprendre mes objectifs</a></p>' : '<p>À demain, si Dieu le veut.</p>') +
+          '<p class="row"><a class="btn' + (n5 < 4 ? " alt" : "") + '" href="#/parcours">Continuer mon parcours</a><a class="btn alt" href="#/">Retour à l\'accueil</a></p>';
+      }
+      return { title: "Objectifs du jour", html: html, back: "#/", tab: "#/", bind: bind };
+    });
+  });
+
+  /* ------------------------------------------------------------ khatm : lecture complète */
+  route(/^\/khatm$/, function () {
+    return loadQ().then(function (q) {
+      var st = kStats(q), dose = S.settings.dose || 5, mode = S.settings.lecture || "debutant";
+      var html = '<h2>Ma lecture complète du Coran</h2><div class="card"><p class="big" style="font-size:1.6rem">' + st.v.toLocaleString("fr-FR") + ' / ' + st.tot.toLocaleString("fr-FR") + ' versets lus</p>' +
+        '<div class="bar"><i style="width:' + st.pct + '%"></i></div><p class="muted" style="margin-top:.5rem">' + String(st.pct).replace(".", ",") + ' % · ' + st.s + ' / 114 sourates terminées' + (S.khatm.since ? ' · commencé le ' + esc(S.khatm.since.split("-").reverse().join("/")) : '') + '</p>' +
+        '<p class="row"><a class="btn" href="#/jour?e=1">Lecture du jour</a><a class="btn alt" href="#/reciter">Choisir une sourate</a></p></div>' +
+        '<div class="card"><h3>Réglage de la lecture du jour</h3><label class="f" for="kd">Nombre de versets par jour</label><select id="kd">' + [3, 5, 10, 20].map(function (n) { return '<option value="' + n + '"' + (dose === n ? " selected" : "") + '>' + n + ' versets</option>'; }).join("") + '</select>' +
+        '<label class="f" for="km">Ordre de lecture</label><select id="km"><option value="debutant"' + (mode === "debutant" ? " selected" : "") + '>Débutant : Al-Fâtiha et sourates courtes d\'abord</option><option value="mushaf"' + (mode === "mushaf" ? " selected" : "") + '>Ordre du Coran, de la sourate 1 à la sourate 114</option></select>' +
+        '<p class="muted">La lecture du jour rapporte ' + PTS.lecture + ' points, une fois par jour. Dans le lecteur, le bouton « Marquer lu » fait aussi avancer le khatm.</p></div>';
+      var prog = q.suras.filter(function (s) { return kRead(s.n).length > 0; });
+      html += '<h3>Sourates commencées</h3><ul class="list">' + (prog.map(function (s) {
+        var n = Math.min(kRead(s.n).length, s.v.length);
+        return '<li><a href="#/reciter/' + s.n + '"><span class="badge">' + s.n + '</span><span class="nm">' + esc(s.en) + '<small>' + n + ' / ' + s.v.length + ' versets lus' + (n >= s.v.length ? " · terminée" : "") + '</small></span><span class="ar">' + esc(s.ar) + '</span></a></li>';
+      }).join("") || '<li class="muted">Aucune sourate commencée.</li>') + '</ul><p style="margin-top:1rem"><button class="btn danger" id="kr">Recommencer le khatm à zéro</button></p>';
+      return { title: "Khatm", html: html, back: "#/plus", tab: "#/reciter", bind: function (r) {
+        $("#kd", r).onchange = function (ev) { S.settings.dose = +ev.target.value; save(); toast("Réglage enregistré."); };
+        $("#km", r).onchange = function (ev) { S.settings.lecture = ev.target.value; save(); toast("Réglage enregistré."); };
+        $("#kr", r).onclick = function () {
+          if (!confirm("Remettre la progression du khatm à zéro ? Les points acquis sont conservés.")) return;
+          (isChild() ? askPin("Code parental") : Promise.resolve(true)).then(function (ok) { if (!ok) return; S.khatm = { read: {}, since: null }; save(); toast("Khatm remis à zéro."); render(); });
+        };
+      } };
+    });
+  });
+
+  /* ------------------------------------------------------------ parcours : paliers, étapes, leçons, quiz, fiches */
+  function etapeOf(opt, pid, n) {
+    var pal = palById(opt, pid); if (!pal || !pal.etapes) return null;
+    for (var i = 0; i < pal.etapes.length; i++) if (pal.etapes[i].n === n) return { pal: pal, et: pal.etapes[i] };
+    return null;
+  }
+  var NO_PARCOURS = { title: "Mon parcours", html: '<div class="callout warn">Le parcours n\'a pas pu être chargé : une connexion est nécessaire au premier chargement.</div><p><a class="btn" href="#/">Retour à l\'accueil</a></p>', back: "#/apprendre", tab: "#/apprendre" };
+  function lockedView(back) { return { title: "Mon parcours", html: '<div class="callout">Cette partie s\'ouvrira quand la précédente sera terminée. Rien ne presse.</div><p><a class="btn" href="' + back + '">Retour</a></p>', back: back, tab: "#/apprendre" }; }
+
+  route(/^\/parcours$/, function () {
+    return loadOpt().then(function (opt) {
+      if (!opt.parcours) return NO_PARCOURS;
+      if (!S.parcours.opened) { S.parcours.opened = today(); save(); }
+      var st = parcoursNow(opt), pal = st.pal, kid = isChild(), seuil = pal.seuil || 0, pct = seuil ? Math.min(100, Math.round(100 * st.pts / seuil)) : 0;
+      var html = '<h2>Mon parcours</h2><div class="card"><div class="row between"><h3 style="margin:0">Palier : ' + esc(pal.nom) + '</h3>' + (seuil ? '<span class="pill">' + st.pts + ' / ' + seuil + ' points</span>' : '') + '</div>' +
+        (pal.but ? '<p>' + esc(pal.but) + '</p>' : '') + (seuil ? '<div class="bar"><i style="width:' + pct + '%"></i></div>' : '') +
+        '<p class="muted" style="margin-top:.6rem">Leçons et quiz : ' + lessonPts(opt) + ' · Objectifs du jour : ' + (S.pts.pratique || 0) + ' · Prières : ' + (S.pts.prieres || 0) + '</p>' +
+        (kid ? '' : '<p class="muted">Parcours ouvert le ' + esc(S.parcours.opened.split("-").reverse().join("/")) + ' · temps passé dans NÛR : ' + durTxt(S.temps) + ' (pour information seulement).</p>') + '</div>';
+      if (pal.etapes) {
+        html += '<h3>Les étapes</h3><ul class="list">' + pal.etapes.map(function (et) {
+          var s = etapeState(pal.id, et), open = etapeOpen(pal, et.n);
+          var sub = s.complete ? "Étape terminée" : (open ? s.lec + " / " + s.tot + " leçons · quiz " + (s.quiz ? "réussi" : "à faire") : "S'ouvre après l'étape " + (et.n - 1));
+          return '<li class="' + (open ? "" : "locked") + '"><a href="#/parcours/' + pal.id + '/' + et.n + '"><span class="badge">' + (s.complete ? "✓" : et.n) + '</span><span class="nm">' + esc(et.titre) + '<small>' + esc(sub) + '</small></span></a></li>';
+        }).join("") + '</ul>';
+        var c1 = st.done === st.tot, c2 = st.pts >= seuil;
+        html += '<div class="card"><h3>Passer au palier suivant</h3><ul class="plain"><li>' + (c1 ? "✓" : "○") + ' Toutes les étapes terminées : ' + st.done + ' / ' + st.tot + '</li><li>' + (c2 ? "✓" : "○") + ' Seuil de points atteint : ' + st.pts + ' / ' + seuil + '</li><li>○ Validation orale auprès d\'un imam ou d\'un cheikh, déclarée ci-dessous</li></ul>';
+        if (c1 && c2) html += '<label class="chk" style="margin-top:.6rem"><input type="checkbox" id="dcl"> Je déclare avoir validé ce palier oralement auprès d\'un imam ou d\'un cheikh.</label>' +
+          '<label class="f" for="dim">Nom de l\'imam ou du cheikh (facultatif)</label><input type="text" id="dim" maxlength="60" autocomplete="off"><p class="row" style="margin-top:.8rem"><button class="btn" id="dgo">Déclarer le palier</button></p>' +
+          (kid ? '<p class="muted">Pour un profil enfant, le code parental est demandé.</p>' : '');
+        else html += '<p class="muted">La déclaration s\'ouvrira lorsque les deux premières conditions seront remplies. Les points manquants se gagnent avec les objectifs du jour.</p>';
+        html += '</div>';
+      } else html += '<div class="callout">' + esc(pal.etat || "Contenu en préparation.") + '</div>';
+      html += '<h3>Les paliers</h3>' + paliers(opt).map(function (p) {
+        var dc = S.parcours.declared[p.id], cur = p.id === pal.id, titres = p.titres || (p.etapes || []).map(function (x) { return x.titre; });
+        return '<details class="card"' + (cur ? " open" : "") + '><summary><strong>' + esc(p.nom) + '</strong> <span class="pill">' + (dc ? "déclaré le " + esc(dc.date.split("-").reverse().join("/")) : (cur ? "en cours" : (p.seuil ? p.seuil + " points" : "à venir"))) + '</span></summary>' +
+          (p.etat ? '<p class="muted">' + esc(p.etat) + '</p>' : '') + (titres.length ? '<ol>' + titres.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ol>' : '') + '</details>';
+      }).join("");
+      html += '<div class="callout">Les points sont privés : ni classement, ni pénalité. Les quiz se reprennent à volonté. ' + esc(opt.parcours.note || "") + '</div>';
+      return { title: "Mon parcours", html: html, back: "#/apprendre", tab: "#/apprendre", bind: function (r) {
+        var go = $("#dgo", r);
+        if (go) go.onclick = function () {
+          if (!$("#dcl", r).checked) return toast("Cochez d'abord la déclaration.");
+          var nom = $("#dim", r).value.trim().slice(0, 60);
+          (kid ? askPin("Code parental (validation par l'adulte)") : Promise.resolve(true)).then(function (ok) {
+            if (!ok) return;
+            S.parcours.declared[pal.id] = { date: today(), imam: nom }; S.parcours.base = totalPts(opt); save();
+            toast("Palier " + pal.nom + " déclaré."); render();
+          });
+        };
+      } };
+    });
+  });
+
+  var lastQuiz = null;
+  route(/^\/parcours\/([a-z]+)\/(\d+)\/quiz$/, function (m) {
+    return loadOpt().then(function (opt) {
+      var x = opt.parcours && etapeOf(opt, m[1], +m[2]); if (!x) return NO_PARCOURS;
+      var pal = x.pal, et = x.et, back = "#/parcours/" + pal.id + "/" + et.n, key = pal.id + "." + et.n, B = bareme(opt), s = etapeState(pal.id, et);
+      if (!etapeOpen(pal, et.n) || s.lec < s.tot) return lockedView(back);
+      var res = lastQuiz && lastQuiz.key === key ? lastQuiz : null;
+      var html = '<h2>Quiz : ' + esc(et.titre) + '</h2>';
+      if (res) html += '<div class="callout' + (res.ok ? "" : " warn") + '"><strong>' + res.good + ' bonne' + (res.good > 1 ? "s" : "") + ' réponse' + (res.good > 1 ? "s" : "") + ' sur ' + et.quiz.length + ' (' + res.pct + ' %).</strong> ' +
+        (res.ok ? "Quiz réussi." + (res.gain ? " +" + res.gain + " points." : "") : "Il faut " + B.quiz_seuil + " % pour valider. Le quiz se reprend à volonté, sans pénalité.") + '</div>';
+      else html += '<p class="muted">' + et.quiz.length + ' questions. Il faut ' + B.quiz_seuil + ' % de bonnes réponses. Le quiz se reprend à volonté, sans pénalité.</p>';
+      html += '<form class="qz" id="qf">' + et.quiz.map(function (qq, i) {
+        return '<fieldset><legend>' + (i + 1) + '. ' + esc(qq.q) + '</legend>' + qq.c.map(function (c, j) {
+          var mark = "";
+          if (res) { if (j === qq.r) mark = ' <span class="ok">bonne réponse</span>'; else if (res.ans[i] === j) mark = ' <span class="ko">votre réponse</span>'; }
+          return '<label><input type="radio" name="q' + i + '" value="' + j + '"' + (res ? (res.ans[i] === j ? " checked" : "") + " disabled" : "") + '> <span>' + esc(c) + mark + '</span></label>';
+        }).join("") + '</fieldset>';
+      }).join("") + '</form>';
+      html += res ? '<p class="row">' + (res.ok ? '<a class="btn" href="#/parcours">Retour au parcours</a>' : '<button class="btn" id="again">Recommencer le quiz</button>') + '<a class="btn alt" href="' + back + '">Retour à l\'étape</a>' + (res.ok ? '<button class="btn alt" id="again">Refaire le quiz</button>' : '') + '</p>' :
+        '<p class="row"><button class="btn" id="send">Valider mes réponses</button><a class="btn alt" href="' + back + '">Retour à l\'étape</a></p>';
+      return { title: "Quiz", html: html, back: back, tab: "#/apprendre", bind: function (r) {
+        var ag = $("#again", r); if (ag) ag.onclick = function () { lastQuiz = null; render(); window.scrollTo(0, 0); };
+        var sd = $("#send", r);
+        if (sd) sd.onclick = function () {
+          var ans = [], good = 0, miss = false;
+          et.quiz.forEach(function (qq, i) { var c = $('input[name="q' + i + '"]:checked', r); if (!c) miss = true; else { ans[i] = +c.value; if (+c.value === qq.r) good++; } });
+          if (miss) return toast("Répondez à toutes les questions.");
+          var pct = Math.round(100 * good / et.quiz.length), ok = pct >= B.quiz_seuil, prev = S.parcours.quiz[key] || { ok: false, best: 0 }, gain = ok && !prev.ok ? B.quiz : 0;
+          S.parcours.quiz[key] = { ok: prev.ok || ok, best: Math.max(prev.best || 0, pct) }; save();
+          lastQuiz = { key: key, ans: ans, good: good, pct: pct, ok: ok, gain: gain }; render(); window.scrollTo(0, 0);
+        };
+      } };
+    });
+  });
+
+  var fi = { key: null, i: 0, flip: false };
+  route(/^\/parcours\/([a-z]+)\/(\d+)\/fiches$/, function (m) {
+    return loadOpt().then(function (opt) {
+      var x = opt.parcours && etapeOf(opt, m[1], +m[2]); if (!x) return NO_PARCOURS;
+      var pal = x.pal, et = x.et, back = "#/parcours/" + pal.id + "/" + et.n, key = pal.id + "." + et.n, cards = [];
+      if (!etapeOpen(pal, et.n)) return lockedView("#/parcours");
+      et.lecons.forEach(function (l) {
+        (l.mots || []).forEach(function (w) { cards.push({ a: w.ar, b: w.ph, c: "translittération : " + w.tr, d: w.fr }); });
+        if (l.lettres) LETTERS.slice(l.lettres[0], l.lettres[1]).forEach(function (t) { cards.push({ a: t[0], b: t[1], c: "son : " + t[2], d: t[3] }); });
+      });
+      if (!cards.length) return { title: "Fiches", html: '<p>Aucune fiche pour cette étape.</p>', back: back, tab: "#/apprendre" };
+      if (fi.key !== key) fi = { key: key, i: 0, flip: false };
+      fi.i = Math.max(0, Math.min(cards.length - 1, fi.i));
+      var c = cards[fi.i];
+      var html = '<h2>Fiches de révision</h2><p class="muted">' + esc(et.titre) + ' · fiche ' + (fi.i + 1) + ' sur ' + cards.length + '. Toucher la fiche pour la retourner.</p>' +
+        '<button class="card flash" id="fc" aria-live="polite">' + (fi.flip ? '<strong style="font-size:1.4rem">' + esc(c.b) + '</strong><span class="muted">' + esc(c.c) + '</span><span style="font-size:1.15rem;margin-top:.6rem">' + esc(c.d) + '</span>' : '<span class="a" lang="ar">' + esc(c.a) + '</span><span class="muted">Que veut dire ce mot ? Comment se lit-il ?</span>') + '</button>' +
+        '<p class="row between"><button class="btn alt" id="fp"' + (fi.i === 0 ? " disabled" : "") + '>Précédente</button><button class="btn alt" id="fn"' + (fi.i === cards.length - 1 ? " disabled" : "") + '>Suivante</button></p>' +
+        '<p><a class="btn alt" href="' + back + '">Retour à l\'étape</a></p>';
+      return { title: "Fiches", html: html, back: back, tab: "#/apprendre", bind: function (r) {
+        $("#fc", r).onclick = function () { fi.flip = !fi.flip; render(); };
+        $("#fp", r).onclick = function () { fi.i--; fi.flip = false; render(); };
+        $("#fn", r).onclick = function () { fi.i++; fi.flip = false; render(); };
+      } };
+    });
+  });
+
+  route(/^\/parcours\/([a-z]+)\/(\d+)\/(\d+)$/, function (m) {
+    return Promise.all([loadQ(), loadOpt()]).then(function (res) {
+      var q = res[0], opt = res[1], x = opt.parcours && etapeOf(opt, m[1], +m[2]); if (!x) return NO_PARCOURS;
+      var pal = x.pal, et = x.et, li = +m[3], lc = et.lecons[li - 1], back = "#/parcours/" + pal.id + "/" + et.n, B = bareme(opt);
+      if (!lc) return NO_PARCOURS;
+      var key = pal.id + "." + et.n + "." + li, done = !!S.parcours.lecons[key];
+      if (!etapeOpen(pal, et.n) || (li > 1 && !S.parcours.lecons[pal.id + "." + et.n + "." + (li - 1)])) return lockedView(back);
+      var nextHref = li < et.lecons.length ? back + "/" + (li + 1) : back;
+      var html = '<p class="muted">Étape ' + et.n + ' · leçon ' + li + ' sur ' + et.lecons.length + '</p><div class="lesson"><h2>' + esc(lc.titre) + '</h2>' + lc.texte.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("");
+      if (lc.lettres) html += '<div class="lgrid">' + LETTERS.slice(lc.lettres[0], lc.lettres[1]).map(function (l) {
+        return '<div class="lcard"><div class="lg ar" lang="ar">' + l[0] + '</div><div><strong>' + esc(l[1]) + '</strong> <span class="pill">' + esc(l[2]) + '</span><div class="muted">' + esc(l[3]) + '</div></div></div>';
+      }).join("") + '</div>';
+      if (lc.versets) {
+        var sv = q.byN[lc.versets.s];
+        html += '<div class="card">' + lc.versets.a.map(function (a, k) {
+          var v = sv.v.filter(function (z) { return z[0] === a; })[0], ph = phonOf(opt, sv.n, a, q);
+          return '<div class="vline"><div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v ? v[1] : "") + '</div>' + (ph ? '<div class="ph">' + esc(ph) + '</div>' : '') + '<div class="trfr">' + esc(lc.versets.sens[k] || "") + '</div></div>';
+        }).join("") + '</div><p class="muted">Texte : riwaya de Warsh ʿan Nâfiʿ. Phonétique : brouillon. Le sens en français est une formulation approchée, rédigée pour NÛR.</p>';
+      }
+      html += motsHTML(lc.mots) + (lc.source ? '<p class="muted">Source : ' + esc(lc.source) + '</p>' : '') + '<div class="callout"><strong>À retenir.</strong> ' + esc(lc.retenir || "") + '</div>' +
+        (lc.lien ? '<p><a class="btn alt" href="' + esc(lc.lien.href) + '">' + esc(lc.lien.txt) + '</a></p>' : '') + '</div>' + NOTE_VALIDATION +
+        '<p class="muted">Audio de la leçon : à venir, après accord des ayants droit.</p>' +
+        '<p class="row">' + (done ? '<a class="btn" href="' + nextHref + '">' + (li < et.lecons.length ? "Leçon suivante" : "Retour à l'étape") + '</a><span class="pill">Leçon terminée</span>' : '<button class="btn" id="fin">J\'ai compris : leçon terminée</button>') + '<a class="btn alt" href="' + back + '">Retour à l\'étape</a></p>';
+      return { title: "Leçon", html: html, back: back, tab: "#/apprendre", bind: function (r) {
+        var f = $("#fin", r);
+        if (f) f.onclick = function () { S.parcours.lecons[key] = today(); save(); toast("+" + B.lecon + " points"); location.hash = nextHref; };
+      } };
+    });
+  });
+
+  route(/^\/parcours\/([a-z]+)\/(\d+)$/, function (m) {
+    return loadOpt().then(function (opt) {
+      var x = opt.parcours && etapeOf(opt, m[1], +m[2]); if (!x) return NO_PARCOURS;
+      var pal = x.pal, et = x.et, s = etapeState(pal.id, et), base = "#/parcours/" + pal.id + "/" + et.n, B = bareme(opt);
+      if (!etapeOpen(pal, et.n)) return lockedView("#/parcours");
+      var html = '<p class="muted">' + esc(pal.nom) + ' · étape ' + et.n + ' sur ' + pal.etapes.length + '</p><h2>' + esc(et.titre) + '</h2><p>' + esc(et.resume || "") + '</p>' +
+        '<h3>Les leçons</h3><ul class="list">' + et.lecons.map(function (l, i) {
+          var dn = !!S.parcours.lecons[pal.id + "." + et.n + "." + (i + 1)], open = i === 0 || !!S.parcours.lecons[pal.id + "." + et.n + "." + i];
+          return '<li class="' + (open ? "" : "locked") + '"><a href="' + base + '/' + (i + 1) + '"><span class="badge">' + (dn ? "✓" : (i + 1)) + '</span><span class="nm">' + esc(l.titre) + '<small>' + (dn ? "Terminée" : (open ? "+" + B.lecon + " points" : "S'ouvre après la leçon précédente")) + '</small></span></a></li>';
+        }).join("") + '</ul>' +
+        '<h3>Le quiz</h3><div class="card"><p>' + (s.quiz ? "Quiz réussi" + (s.best != null ? " (meilleur résultat : " + s.best + " %)." : ".") : (s.lec < s.tot ? "Le quiz s'ouvre quand les " + s.tot + " leçons sont terminées." : "Les leçons sont terminées : le quiz est ouvert." + (s.best != null ? " Meilleur résultat : " + s.best + " %." : ""))) + '</p>' +
+        '<p class="row">' + (s.lec === s.tot ? '<a class="btn' + (s.quiz ? " alt" : "") + '" href="' + base + '/quiz">' + (s.quiz ? "Refaire le quiz" : "Passer le quiz (+" + B.quiz + " points)") + '</a>' : '') + '<a class="btn alt" href="' + base + '/fiches">Fiches de révision</a></p></div>';
+      if (s.complete) {
+        var nx = etapeOf(opt, pal.id, et.n + 1);
+        html += '<div class="callout">Étape terminée. ' + (nx ? "L'étape suivante est ouverte." : "Toutes les étapes de ce palier sont terminées.") + '</div><p><a class="btn" href="' + (nx ? "#/parcours/" + pal.id + "/" + (et.n + 1) : "#/parcours") + '">' + (nx ? "Étape suivante : " + esc(nx.et.titre) : "Voir mon palier") + '</a></p>';
+      }
+      return { title: "Étape " + et.n, html: html, back: "#/parcours", tab: "#/apprendre" };
+    });
+  });
+  route(/^\/offres$/, function () { location.hash = "#/parcours"; return { title: "NÛR", html: "" }; });
 
   /* ------------------------------------------------------------ routeur */
   var deferredPrompt = null;
@@ -681,6 +1258,7 @@
     cleanups.splice(0).forEach(function (f) { try { f(); } catch (e) {} });
     var raw = location.hash.replace(/^#/, "") || "/", qi = raw.indexOf("?"), path = qi >= 0 ? raw.slice(0, qi) : raw, params = {};
     if (qi >= 0) raw.slice(qi + 1).split("&").forEach(function (kv) { var p = kv.split("="); params[p[0]] = decodeURIComponent(p[1] || ""); });
+    if (!STORE.onboarded && path.indexOf("/bienvenue") !== 0) { location.hash = "#/bienvenue"; return; }
     var found = null;
     for (var i = 0; i < routes.length; i++) { var m = routes[i][0].exec(path); if (m) { found = [routes[i][1], m]; break; } }
     if (!found) { found = [function () { return { title: "NÛR", html: '<p>Page introuvable. <a href="#/">Retour à l\'accueil</a></p>' }; }, []]; }
@@ -690,11 +1268,12 @@
       document.title = (v.title && v.title !== "NÛR" ? v.title + " — " : "") + "NÛR";
       $("#title").innerHTML = v.title === "NÛR" ? 'NÛR <span class="ar" aria-hidden="true">نور</span>' : esc(v.title);
       var back = $("#back"); back.hidden = !v.back; back.onclick = function () {
-        if (v.kid && S.settings.pin) { var c = prompt("Code parental"); if (c == null) return; pinHash(c).then(function (h) { if (h === S.settings.pin) location.hash = v.back; else toast("Code incorrect."); }); }
-        else if (v.back === "#/plus" && v.title === "Espace enfant" && S.settings.pin) { var c2 = prompt("Code parental"); if (c2 == null) return; pinHash(c2).then(function (h) { if (h === S.settings.pin) location.hash = v.back; else toast("Code incorrect."); }); }
+        if (v.kid && STORE.pin) { var c = prompt("Code parental"); if (c == null) return; pinHash(c).then(function (h) { if (h === STORE.pin) location.hash = v.back; else toast("Code incorrect."); }); }
+        else if (v.back === "#/plus" && v.title === "Espace enfant" && STORE.pin) { var c2 = prompt("Code parental"); if (c2 == null) return; pinHash(c2).then(function (h) { if (h === STORE.pin) location.hash = v.back; else toast("Code incorrect."); }); }
         else location.hash = v.back;
       };
       drawTabs(v.tab === undefined ? null : v.tab);
+      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild());
       if (v.bind) v.bind(main);
       if (keepScroll) window.scrollTo(0, y0); else if (!params.a) window.scrollTo(0, 0);
       main.focus({ preventScroll: true });
@@ -725,7 +1304,10 @@
   window.addEventListener("online", netState); window.addEventListener("offline", netState);
 
   applyTheme(); netState(); render(); scheduleNotifs();
-  setInterval(function () { if (location.hash === "" || location.hash === "#/") render(); }, 60000);
+  setInterval(function () {
+    if (STORE.active && document.visibilityState !== "hidden") { S.temps = (S.temps || 0) + 60; save(); }
+    if (location.hash === "" || location.hash === "#/") render();
+  }, 60000);
   if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});
-  window.__NUR__ = { render: render, state: function () { return S; } };
+  window.__NUR__ = { render: render, state: function () { return S; }, store: function () { return STORE; } };
 })();

@@ -1,0 +1,29 @@
+{
+ "statut": "brouillon",
+ "date": "2026-11-16",
+ "note": "Sélection et formulations rédigées pour NÛR. Elles ne sont PAS encore validées par l'imam garant. Le sens des hadiths est donné dans une formulation simplifiée, non comme une traduction littérale.",
+ "points": { "lecture": 5, "verset": 3, "dhikr": 4, "hadith": 3 },
+ "dhikr": [
+  { "ar": "سبحان الله", "tr": "subḥāna llāh", "ph": "soubhânallâh", "fr": "Gloire à Dieu", "cible": 33 },
+  { "ar": "الحمد لله", "tr": "al-ḥamdu lillāh", "ph": "al-hamdoulillâh", "fr": "Louange à Dieu", "cible": 33 },
+  { "ar": "الله أكبر", "tr": "Allāhu akbar", "ph": "Allâhou akbar", "fr": "Dieu est le plus grand", "cible": 33 },
+  { "ar": "أستغفر الله", "tr": "astaghfiru llāh", "ph": "astaghfiroullâh", "fr": "Je demande pardon à Dieu", "cible": 33 },
+  { "ar": "لا إله إلا الله", "tr": "lā ilāha illā llāh", "ph": "lâ ilâha illallâh", "fr": "Il n'y a de dieu que Dieu", "cible": 33 },
+  { "ar": "لا حول ولا قوة إلا بالله", "tr": "lā ḥawla wa lā quwwata illā billāh", "ph": "lâ hawla wa lâ qouwwata illâ billâh", "fr": "Il n'y a de force et de puissance que par Dieu", "cible": 33 },
+  { "ar": "اللهم صل على سيدنا محمد", "tr": "Allāhumma ṣalli ʿalā sayyidinā Muḥammad", "ph": "Allâhoumma salli ʿalâ sayyidinâ Mouhammad", "fr": "Ô Dieu, accorde Ta bénédiction à notre maître Muhammad", "cible": 33 }
+ ],
+ "hadiths": [
+  { "n": 1, "sens": "Les actes ne valent que par les intentions, et chacun reçoit selon son intention.", "rapporteur": "ʿUmar ibn al-Khattâb", "recueils": "al-Bukhârî et Muslim" },
+  { "n": 7, "sens": "La religion, c'est la sincérité et le bon conseil.", "rapporteur": "Tamîm ad-Dârî", "recueils": "Muslim" },
+  { "n": 12, "sens": "Fait partie du bel islam d'une personne de laisser ce qui ne la regarde pas.", "rapporteur": "Abû Hurayra", "recueils": "at-Tirmidhî" },
+  { "n": 13, "sens": "Aucun de vous ne croit vraiment tant qu'il n'aime pas pour son frère ce qu'il aime pour lui-même.", "rapporteur": "Anas ibn Mâlik", "recueils": "al-Bukhârî et Muslim" },
+  { "n": 15, "sens": "Que celui qui croit en Dieu et au Jour dernier dise du bien ou se taise ; qu'il honore son voisin ; qu'il honore son invité.", "rapporteur": "Abû Hurayra", "recueils": "al-Bukhârî et Muslim" },
+  { "n": 16, "sens": "Un homme demanda un conseil au Prophète. Il lui répondit : « Ne te mets pas en colère », et le répéta plusieurs fois.", "rapporteur": "Abû Hurayra", "recueils": "al-Bukhârî" },
+  { "n": 18, "sens": "Crains Dieu où que tu sois, fais suivre la mauvaise action d'une bonne qui l'efface, et comporte-toi bien avec les gens.", "rapporteur": "Abû Dharr et Muʿâdh ibn Jabal", "recueils": "at-Tirmidhî" },
+  { "n": 21, "sens": "Dis : « Je crois en Dieu », puis reste droit.", "rapporteur": "Sufyân ibn ʿAbdallâh", "recueils": "Muslim" },
+  { "n": 26, "sens": "Chaque jour, chaque bonne action est une aumône : réconcilier deux personnes, aider quelqu'un, dire une bonne parole, écarter du chemin ce qui gêne.", "rapporteur": "Abû Hurayra", "recueils": "al-Bukhârî et Muslim" },
+  { "n": 36, "sens": "Celui qui soulage un croyant d'une peine, Dieu le soulagera d'une peine au Jour dernier ; et celui qui prend un chemin pour chercher le savoir, Dieu lui facilite un chemin vers le Paradis.", "rapporteur": "Abû Hurayra", "recueils": "Muslim" }
+ ],
+ "hadith_source": "Les Quarante hadiths de l'imam an-Nawawî",
+ "vendredi": "C'est vendredi. Si c'est possible, il est bon de ne pas rester seul et de se rapprocher de la mosquée la plus proche pour la prière du vendredi."
+}
