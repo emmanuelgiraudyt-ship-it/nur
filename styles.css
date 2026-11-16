@@ -207,3 +207,7 @@ ul.plain li:last-child { border-bottom: 0; }
 .list li.locked a { opacity: .55; }
 details.card > summary { cursor: pointer; min-height: 32px; }
 details.card ol { margin: .5rem 0 0; padding-left: 1.3rem; }
+
+/* phonétique sous chaque verset dans la lecture continue (espace enfant) */
+.mushaf .phx { display: block; direction: ltr; text-align: left; text-align-last: left; font-family: "Source Serif 4", Georgia, "Times New Roman", serif; font-size: calc(1rem * var(--fs)); line-height: 1.5; margin: 0 0 .7rem; }
+.ph { overflow-wrap: anywhere; }

@@ -1,7 +1,7 @@
 /* NÛR — service worker : fonctionnement hors ligne (cache de l'application, du texte et de la police). */
 const VERSION = "nur-v1.2.0";
 const SHELL = [
-  "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./manifest.webmanifest",
+  "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./translit.js", "./manifest.webmanifest",
   "./quran.json", "./phonetique.json", "./parcours.json", "./quotidien.json", "./config.json", "./KFGQPC-Warsh-Uthmanic.ttf", "./LICENCE-KFGQPC.txt",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"
 ];

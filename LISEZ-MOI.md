@@ -8,6 +8,7 @@ Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, m�
 - **Objectifs du jour** : lecture du jour, verset du jour, dhikr du jour, hadith du jour. Quinze points de pratique au plus par jour.
 - **Lecture complète du Coran (khatm)** : versets marqués comme lus, progression par sourate, ordre « débutant » (Al-Fâtiha et sourates courtes d'abord) ou ordre du Coran.
 - **Mon parcours** : palier Initié en neuf étapes ; chaque étape comporte quatre leçons, un quiz de cinq questions et des fiches de révision. Les paliers Intermédiaire, Disciple et Cheikh Premium sont annoncés, leur contenu reste à écrire.
+- **Phonétique sur tout le Coran** : chaque verset est accompagné de sa phonétique (lecteur, lecture du jour, verset du jour, leçons, méditation). Une case « Lire en arabe seul » la masque. Elle est produite automatiquement à partir du texte Warsh par `translit.js`.
 - **Points** : privés, sans classement ni pénalité. La grille tarifaire de la version précédente (`plans.json`) est supprimée.
 - Les données d'une installation en version 1.1 sont reprises automatiquement dans un premier profil.
 
@@ -36,10 +37,11 @@ La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4
 - `prayer.js` : calcul astronomique des prières et de la qibla.
 - `sw.js`, `manifest.webmanifest` : mode hors ligne et installation.
 - `quran.json` : texte Warsh (KFGQPC, v0.10, 6 214 versets).
-- `phonetique.json` : phonétique (brouillon) de la sourate 1 et des sourates 99 à 114.
+- `translit.js` : phonétique automatique du texte Warsh (ou = « ou » français ; â, î, oû = voyelles longues ; forme de pause en fin de verset).
+- `phonetique.json` : corrections de phonétique validées par l'imam garant ; vide pour l'instant, la phonétique automatique s'applique partout.
 - `parcours.json` : paliers, étapes, leçons et quiz du parcours.
 - `quotidien.json` : dhikr et hadiths du jour, points des objectifs.
-- `config.json` : lien de don de l'association (vide tant que le lien n'existe pas ; l'encart de don reste alors masqué, et il n'apparaît jamais dans un profil enfant).
+- `config.json` : lien de don de l'association (vide tant que le lien n'existe pas ; l'encart « Soutenir NÛR (en construction) » s'affiche alors sans bouton, et il n'apparaît jamais dans un profil enfant).
 - `KFGQPC-Warsh-Uthmanic.ttf`, `LICENCE-KFGQPC.txt` : police KFGQPC Warsh (non modifiée) et sa licence.
 
 ## Modifier les contenus sans toucher au code
@@ -51,9 +53,9 @@ Les leçons, les questions, les dhikr et les hadiths se corrigent directement da
 - Leçons, quiz et formulations du sens des versets : rédigés pour NÛR ; aucun texte n'est repris d'une autre application.
 
 ## Points en attente
-- Validation par l'imam garant des leçons, des quiz, des hadiths, des dhikr et de la phonétique (fiches d'export dans « À propos »).
+- Relecture par l'imam garant des leçons, des quiz, des hadiths, des dhikr et de la phonétique automatique (fiches d'export dans « À propos »). La phonétique automatique a été comparée aux 105 versets rédigés à la main dans la version 1.1 : 89 versets identiques ; les écarts restants tiennent à des choix de notation ou corrigent l'ancien brouillon. Les particularités de Warsh (hamza adoucie, imâla) y sont rendues de façon simplifiée.
 - Contenu des paliers Intermédiaire, Disciple et Cheikh Premium.
-- Traduction française et phonétique des autres sourates.
+- Traduction française.
 - Audio (récitations, lettres, leçons) et accord des ayants droit.
 - Lien de don de l'association.
 - Notifications d'adhan en arrière-plan (application native).
