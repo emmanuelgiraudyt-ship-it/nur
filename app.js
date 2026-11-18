@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.5.0";
+  var VERSION = "1.5.1";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -1183,6 +1183,9 @@
     [/^: validée aujourd'hui \(\+(\d+) points\)\.$/, [": done today (+$1 points).", "：今日已完成（+$1 分）。", ": أُنجز اليوم (+$1 نقاط)."]],
     [/^(.+) \(lieu par défaut\)$/, ["$1 (default location)", "$1（默认地点）", "$1 (الموقع الافتراضي)"]],
     [/^(\d+) points par prière marquée\. Suivi privé, sur cet appareil\.$/, ["$1 points per prayer marked. Private, on this device.", "每记录一次礼拜得 $1 分。仅保存在本设备。", "$1 نقاط لكل صلاة مسجّلة. متابعة خاصة على هذا الجهاز."]],
+    [/^C'est l'heure de la prière\.$/, ["It is time for prayer.", "礼拜时间到了。", "حان وقت الصلاة."]],
+    [/^Tes objectifs du jour t'attendent\.$/, ["Today's goals are waiting for you.", "今日目标在等你。", "أهداف اليوم في انتظارك."]],
+    [/^Ton verset du jour t'attend\.$/, ["Your verse of the day is waiting.", "今日经文在等你。", "آية اليوم في انتظارك."]],
     [/^(\d+) \/ (\d+) versets$/, ["$1 / $2 verses", "$1 / $2 节", "$1 / $2 آية"]], [/^(\d+) \/ 114 sourates$/, ["$1 / 114 surahs", "$1 / 114 章", "$1 / 114 سورة"]]
   ];
   function tr(t) {
@@ -1689,7 +1692,7 @@
     var html = '<h2>À propos</h2><p>NÛR (نور) est une application islamique francophone, sans publicité, sans représentation d\'être vivant, conçue pour les croyants de tous niveaux, avec une attention particulière à la diaspora africaine de rite malikite.</p>' +
       '<div class="card"><h3>Riwaya</h3><p>Le texte est celui de la riwaya de Warsh ʿan Nâfiʿ, selon les données et la police du Complexe du Roi Fahd d\'impression du Noble Coran (KFGQPC), version 0.10 (5 août 2021).</p></div>' +
       '<div class="card"><h3>Sources et licences</h3><ul><li>Données du texte : KFGQPC, relayées par le dépôt public « thetruetruth/quran-data-kfgqpc » (github.com/thetruetruth/quran-data-kfgqpc).</li><li>Police « KFGQPC Warsh Uthmanic Script » : © KFGQPC. Usage, copie et distribution gratuits ; vente, modification et ingénierie inverse interdites. Licence complète : <a href="LICENCE-KFGQPC.txt">LICENCE-KFGQPC.txt</a>.</li><li>Calcul des prières : algorithme astronomique de position solaire, validé à moins d\'une minute contre une bibliothèque indépendante.</li></ul></div>' +
-      '<div class="card"><h3>Points en attente</h3><ul><li>Contenus de la présente version (texte Warsh, tajwid, leçons, quiz, dhikr, hadiths, phonétique) : validés par l\'imam garant.</li><li>Phonétique : produite automatiquement pour tout le Coran à partir du texte Warsh ; d\'éventuelles corrections s\'ajoutent dans le fichier phonetique.json (fiche d\'export ci-dessous).</li><li>Traduction française : à intégrer à partir d\'une source dont les droits sont établis (fichier traduction-fr.json).</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Application gratuite, sans abonnement ni publicité.</li><li>Enregistrements des lettres et des leçons : à produire.</li><li>Notifications d\'adhan en arrière-plan : nécessitent une application native.</li></ul></div>' +
+      '<div class="card"><h3>Points en attente</h3><ul><li>Contenus de la présente version (texte Warsh, tajwid, leçons, quiz, dhikr, hadiths, phonétique) : validés par l\'imam garant.</li><li>Phonétique : produite automatiquement pour tout le Coran à partir du texte Warsh ; d\'éventuelles corrections s\'ajoutent dans le fichier phonetique.json (fiche d\'export ci-dessous).</li><li>Traduction française : à intégrer à partir d\'une source dont les droits sont établis (fichier traduction-fr.json).</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Application gratuite, sans abonnement ni publicité.</li><li>Enregistrements des lettres et des leçons : à produire.</li><li>Notifications de prière : envoyées tant que l\'application est ouverte ou installée et active ; application fermée, le téléphone peut les retenir.</li></ul></div>' +
       '<p class="row"><button class="btn alt" id="expPh">Exporter la phonétique (6 214 versets)</button><button class="btn alt" id="expPc">Exporter le parcours et le quotidien</button></p><p class="muted">Version ' + VERSION + '. Aucune donnée personnelle n\'est collectée ni transmise.</p>';
     return { title: "À propos", html: html, back: "#/plus", bind: function (r) {
       $("#expPh", r).onclick = function () {
@@ -2238,6 +2241,13 @@
 
   function applyTheme() { document.documentElement.setAttribute("data-theme", S.settings.theme || "auto"); document.documentElement.style.setProperty("--fs", S.settings.fs || 1); }
   var notifTimers = [];
+  function notify(title, body, tag) {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    var o = { body: tr(body), icon: "icon-192.png", badge: "icon-192.png", tag: tag || "nur", renotify: true, lang: UIL(), dir: LANG() === "ar" ? "rtl" : "ltr", data: { url: location.pathname + "#/priere" } };
+    var fall = function () { try { new Notification(title, o); } catch (e) {} };
+    if ("serviceWorker" in navigator && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function (r) { if (r && r.showNotification) r.showNotification(title, o).catch(fall); else fall(); }).catch(fall);
+    else fall();
+  }
   function scheduleNotifs() {
     notifTimers.forEach(clearTimeout); notifTimers = [];
     if (!("Notification" in window) || Notification.permission !== "granted") return;
@@ -2245,7 +2255,7 @@
     if (RP.routine || RP.verset) {
       var Lr = loc(), tn = ymd(Date.now(), Lr.tz), nine = Date.UTC(tn.y, tn.m - 1, tn.d, 9) - (new Date(new Date().toLocaleString("en-US", { timeZone: Lr.tz })) - new Date(new Date().toLocaleString("en-US", { timeZone: "UTC" }))), dl = nine - Date.now();
       if (dl < 0) dl += 864e5;
-      notifTimers.push(setTimeout(function () { try { new Notification("NÛR", { body: RP.routine ? "Tes objectifs du jour t'attendent." : "Ton verset du jour t'attend.", icon: "icon-192.png" }); } catch (e) {} }, dl));
+      notifTimers.push(setTimeout(function () { notify("NÛR", RP.routine ? "Tes objectifs du jour t'attendent." : "Ton verset du jour t'attend.", "nur-jour"); }, dl));
     }
     if (!S.settings.notif) return;
     var L = loc(), now = Date.now(), t0 = ymd(now, L.tz);
@@ -2255,7 +2265,7 @@
         if (S.settings.alerts && S.settings.alerts[p[0]] === false) return;
         var d = T[p[0]] - now;
         if (d > 0 && d < 36 * 3600e3) notifTimers.push(setTimeout(function () {
-          try { new Notification("NÛR — " + p[1], { body: "C'est l'heure de la prière.", icon: "icon-192.png" }); } catch (e) {}
+          notify("NÛR — " + p[1], "C'est l'heure de la prière.", "nur-" + p[0]);
         }, d));
       });
     });
@@ -2264,7 +2274,7 @@
   window.addEventListener("online", netState); window.addEventListener("offline", netState);
 
   applyLang(); applyTheme(); netState(); render(); scheduleNotifs(); setTimeout(autoLocate, 1500);
-  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") autoLocate(); });
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") { autoLocate(); scheduleNotifs(); } });
   setInterval(function () {
     if (STORE.active && document.visibilityState !== "hidden") { S.temps = (S.temps || 0) + 60; save(); }
     if (location.hash === "" || location.hash === "#/") render();

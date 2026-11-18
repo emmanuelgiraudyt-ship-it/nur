@@ -1,5 +1,5 @@
 /* NÛR — service worker : fonctionnement hors ligne (cache de l'application, du texte et de la police). */
-const VERSION = "nur-v1.5.0";
+const VERSION = "nur-v1.5.1";
 const SHELL = [
   "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./translit.js", "./manifest.webmanifest",
   "./quran.json", "./phonetique.json", "./parcours.json", "./quotidien.json", "./config.json", "./traduction-fr.json", "./hafs.json", "./KFGQPC-Warsh-Uthmanic.ttf", "./LICENCE-KFGQPC.txt",
@@ -29,3 +29,11 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(fetch(req, { cache: "no-cache" }).then(put).catch(fallback));
 });
 self.addEventListener("message", (e) => { if (e.data === "skipWaiting") self.skipWaiting(); });
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "./#/priere";
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((cs) => {
+    for (const c of cs) if ("focus" in c) { c.navigate && c.navigate(url).catch(() => {}); return c.focus(); }
+    return self.clients.openWindow(url);
+  }));
+});
