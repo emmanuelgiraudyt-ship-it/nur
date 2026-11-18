@@ -1,4 +1,4 @@
-# NÛR (نور) — application installable (PWA), version 1.2.2
+# NÛR (نور) — application installable (PWA), version 1.2.3
 
 Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, méditation, compteurs de dhikr. Application gratuite, sans abonnement, sans publicité, sans traceur ; les données restent sur l'appareil. Fonctionne hors ligne après le premier chargement.
 
@@ -48,7 +48,7 @@ La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4
 - `KFGQPC-Warsh-Uthmanic.ttf`, `LICENCE-KFGQPC.txt` : police KFGQPC Warsh (non modifiée) et sa licence.
 
 ## Modifier les contenus sans toucher au code
-Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.2.2`) pour que les appareils déjà installés reçoivent la mise à jour.
+Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.2.3`) pour que les appareils déjà installés reçoivent la mise à jour.
 
 ## Sources
 - Texte et police : King Fahd Glorious Quran Printing Complex (KFGQPC), via github.com/thetruetruth/quran-data-kfgqpc. Voir `LICENCE-KFGQPC.txt`.

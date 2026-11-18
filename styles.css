@@ -224,3 +224,12 @@ details.card ol { margin: .5rem 0 0; padding-left: 1.3rem; }
 .pts { text-decoration: none; color: var(--ink); border: 1px solid var(--gold); background: var(--soft); border-radius: 999px; padding: .35rem .75rem; font-size: .85rem; font-weight: 700; white-space: nowrap; min-height: 36px; display: inline-flex; align-items: center; }
 .top h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ptsline { font-size: .95rem; }
+
+/* lecteur : réglages sur une ligne, progression groupée */
+.modeRow { display: grid; grid-template-columns: 1fr auto auto; gap: .5rem; align-items: center; margin: .7rem 0 .2rem; }
+.modeRow select { width: 100%; max-width: none; margin: 0; }
+.modeRow .btn { padding-left: .8rem; padding-right: .8rem; }
+.prog2 .bar { margin: .5rem 0 .4rem; }
+.ptsline { margin: .2rem 0 0; font-size: .92rem; }
+.basmalaPh { text-align: center; margin: -.3rem 0 .9rem; }
+.vcard.lu { border-left: 4px solid var(--gold); }
