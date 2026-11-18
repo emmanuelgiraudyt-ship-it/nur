@@ -1,6 +1,16 @@
-# NÛR (نور) — application installable (PWA), version 1.5.1
+# NÛR (نور) — application installable (PWA), version 1.6.0
 
 Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, méditation, compteurs de dhikr. Application gratuite, sans abonnement, sans publicité, sans traceur ; les données restent sur l'appareil. Fonctionne hors ligne après le premier chargement.
+
+## Version 1.6.0
+- Guide des ablutions et de la prière pas à pas, selon l'école malikite (al-Akhdarî, ar-Risâla, al-Muwaṭṭaʾ ; Muslim 234 et 405).
+- Écoute hors ligne : chaque sourate se télécharge (cache « nur-audio ») ; écoute en boucle (verset répété, passage répété) ; enregistrement de sa propre récitation, gardé le temps de la session.
+- Révision programmée des versets mémorisés (1, 3, 7, 14, 30, 60, 120 jours).
+- Glossaire de 58 termes ; son des lettres par la voix arabe de l'appareil ; lecture de l'écran à voix haute (toujours pour l'enfant, sur option pour l'adulte) ; temps d'écran quotidien de l'enfant fixé par l'adulte ; rappel du vendredi.
+- Parcours du nouveau musulman (30 jours, shahâda, grand lavage, Abû Dâwûd 355 et 832, Muslim 121).
+- Espace femme : règles malikites (Khalîl, ar-Risâla, al-Akhdarî ; Bukhârî 579) et pause du suivi des prières pendant les règles ou les lochies, gardée sur l'appareil.
+- Jeûne (Ramaḍân, jours à rattraper, jeûnes recommandés, Abû Dâwûd 2357) et calculateur de zakât (or 85 g ou argent 595 g, 2,5 % ; FCFA converti en euros à 655,957).
+- Traduction intégrale de l'interface et des contenus (leçons, quiz, hadiths, dhikr, guides) en anglais, chinois et arabe : dictionnaires i18n-en.json, i18n-zh.json, i18n-ar.json, gardés hors ligne ; la phonétique passe en transcription internationale hors du français.
 
 ## Version 1.5.1
 - Notifications de prière et de rappel affichées par le service worker : elles fonctionnent aussi sur Android, application ouverte ou installée et active. Un toucher ouvre l'écran Prière.
@@ -71,11 +81,14 @@ La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4
 - `phonetique.json` : corrections de phonétique validées par l'imam garant ; vide pour l'instant, la phonétique automatique s'applique partout.
 - `parcours.json` : paliers, étapes, leçons et quiz du parcours.
 - `quotidien.json` : dhikr et hadiths du jour, points des objectifs.
+- `contenus.js` : guides de la version 1.6 (ablutions, prière, glossaire, nouveau musulman, espace femme, jeûne, zakât, vendredi), en français.
+- `i18n-en.json`, `i18n-zh.json`, `i18n-ar.json` : traductions de tous les textes de l'application (clé = texte français ; les nombres sont notés {0}, {1}…). Une correction de traduction se fait dans ces fichiers.
+- `traduction-en.json` (Rowwad, QuranEnc), `traduction-zh.json` (Muhammad Makin, QuranEnc), `tafsir-ar.json` (al-Tafsîr al-Muyassar, tanzil.net) : sens du Coran selon la langue choisie.
 - `config.json` : lien de don de l'association (vide tant que le lien n'existe pas ; l'encart « Soutenir NÛR (en construction) » s'affiche alors sans bouton, et il n'apparaît jamais dans un profil enfant).
 - `KFGQPC-Warsh-Uthmanic.ttf`, `LICENCE-KFGQPC.txt` : police KFGQPC Warsh (non modifiée) et sa licence.
 
 ## Modifier les contenus sans toucher au code
-Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.5.1`) pour que les appareils déjà installés reçoivent la mise à jour.
+Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Si un texte français change, sa traduction doit être reprise dans les trois fichiers `i18n-*.json` (sinon le texte reste en français dans les autres langues). Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.6.0`) pour que les appareils déjà installés reçoivent la mise à jour.
 
 ## Sources
 - Texte et police : King Fahd Glorious Quran Printing Complex (KFGQPC), via github.com/thetruetruth/quran-data-kfgqpc. Voir `LICENCE-KFGQPC.txt`.

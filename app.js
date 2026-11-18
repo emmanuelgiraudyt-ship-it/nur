@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.5.1";
+  var VERSION = "1.6.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -169,7 +169,7 @@
   }
   function phonOn() { return !S.settings.layers || S.settings.layers.phon !== false; }
   function phonLine(sn, a, q) { var o = ""; if (phonOn()) { var p = phonOf(OPT, sn, a, q); if (p) o = '<div class="ph" lang="ar-Latn">' + esc(p) + '</div>'; } return o + (typeof frLine === "function" ? frLine(sn, a, q) : ""); }
-  function arSeulHTML() { return '<div class="laychk"><label class="chk"><input type="checkbox" class="lyp"' + (phonOn() ? " checked" : "") + '> Phonétique</label><label class="chk"><input type="checkbox" class="lyf"' + (frOn() ? " checked" : "") + '> Français</label></div>'; }
+  function arSeulHTML() { return '<div class="laychk"><label class="chk"><input type="checkbox" class="lyp"' + (phonOn() ? " checked" : "") + '> Phonétique</label><label class="chk"><input type="checkbox" class="lyf"' + (frOn() ? " checked" : "") + '> ' + (LK() === "fr" ? "Français" : (LK() === "ar" ? "Tafsir" : "Traduction")) + '</label></div>'; }
   function bindArSeul(r) {
     $$(".lyp", r).forEach(function (c) { c.onchange = function () { S.settings.layers = S.settings.layers || {}; S.settings.layers.phon = c.checked; save(); render(); }; });
     $$(".lyf", r).forEach(function (c) { c.onchange = function () { S.settings.layers = S.settings.layers || {}; S.settings.layers.fr = c.checked; save(); render(); }; });
@@ -208,7 +208,7 @@
   function motsHTML(mots) {
     if (!mots || !mots.length) return "";
     return '<h3>Les mots à connaître</h3><table class="mots"><tbody>' + mots.map(function (w) {
-      return '<tr><td class="a" lang="ar">' + esc(w.ar) + '</td><td><strong>' + esc(w.ph) + '</strong><small>translittération : ' + esc(w.tr) + '</small></td><td>' + esc(w.fr) + '</td></tr>';
+      return '<tr><td class="a" lang="ar">' + esc(w.ar) + '</td><td><strong class="ph">' + esc(w.ph) + '</strong><small>translittération : ' + esc(w.tr) + '</small></td><td>' + esc(w.fr) + '</td></tr>';
     }).join("") + '</tbody></table><p class="muted">Pour chaque mot : l\'arabe, la prononciation à la française, la translittération, puis le sens.</p>';
   }
 
@@ -309,6 +309,426 @@
   /* ------------------------------------------------------------ vues */
   var routes = [];
   function route(re, fn) { routes.push([re, fn]); }
+  /* ================================================================ v1.6 : lots 1 et 2 (guides, hors ligne, mémorisation, enfant, converti, femme, jeûne, zakât) */
+  function NC() { return window.NUR_C || {}; }
+  var STATL = { obligatoire: "obligatoire", sunna: "sunna", "recommandé": "recommandé" };
+  function statPill(s) { return s ? '<span class="pill st-' + (s === "obligatoire" ? "ob" : (s === "sunna" ? "su" : "re")) + '">' + STATL[s] + '</span>' : ''; }
+  function formule(ar, ph, sens, src) {
+    return '<div class="formule">' + (ar ? '<div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(ar) + '</div>' : '') + (ph ? '<div class="ph" lang="ar-Latn">' + esc(ph) + '</div>' : '') +
+      (sens ? '<div class="sens">' + esc(sens) + '</div>' : '') + (src ? '<div class="muted small">' + esc(src) + '</div>' : '') + '</div>';
+  }
+  function srcList(L) { return L && L.length ? '<p class="muted small">Sources : ' + L.map(esc).join(" ; ") + '</p>' : ''; }
+  function ulist(L) { return '<ul class="plain dots">' + L.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>'; }
+
+  /* ---------------------------------------------------------------- phonétique : forme internationale pour l'anglais, le chinois et l'arabe */
+  function phIntl(s) {
+    return String(s).replace(/oû/g, "ū").replace(/Oû/g, "Ū").replace(/ou/g, "u").replace(/Ou/g, "U").replace(/â/g, "ā").replace(/Â/g, "Ā")
+      .replace(/î/g, "ī").replace(/Î/g, "Ī").replace(/dj/g, "j").replace(/Dj/g, "J").replace(/ch/g, "sh").replace(/Ch/g, "Sh");
+  }
+
+  /* ---------------------------------------------------------------- voix de l'appareil (lecture à voix haute, son des lettres) */
+  function voiceLang() { var l = LANG(); return l === "ar" ? "ar-SA" : (l === "zh" ? "zh-CN" : (l === "en-GB" ? "en-GB" : (l === "en-US" ? "en-US" : "fr-FR"))); }
+  function pickVoice(lang) {
+    if (!window.speechSynthesis) return null;
+    var V = speechSynthesis.getVoices() || [], p = lang.slice(0, 2).toLowerCase();
+    return V.filter(function (v) { return v.lang && v.lang.replace("_", "-").toLowerCase() === lang.toLowerCase(); })[0] || V.filter(function (v) { return v.lang && v.lang.toLowerCase().indexOf(p) === 0; })[0] || null;
+  }
+  function speak(text, lang, rate) {
+    if (!window.speechSynthesis) { toast("La lecture à voix haute n'est pas disponible sur cet appareil."); return false; }
+    var v = pickVoice(lang);
+    if (!v && lang.indexOf("ar") === 0) { toast("Aucune voix arabe sur cet appareil : ajoutez-la dans les réglages de synthèse vocale du téléphone ou de l'ordinateur."); return false; }
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text); u.lang = v ? v.lang : lang; if (v) u.voice = v; u.rate = rate || .9;
+    speechSynthesis.speak(u); return true;
+  }
+  if (window.speechSynthesis && speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", function () {});
+  function pageText() {
+    var main = $("#main"), out = [];
+    $$("h2, h3, h4, p, li, .lead2, .sens, label, summary, .tcard b, .tcard small, .fcard b, .fcard span", main).forEach(function (e) {
+      if (e.closest(".mushaf, .ar-line, .ph, [lang='ar'], #pbar")) return;
+      var t = (e.innerText || "").trim(); if (t && out.indexOf(t) < 0) out.push(t);
+    });
+    return out.join(". ").replace(/\s+/g, " ").slice(0, 4000);
+  }
+  function sayBtn() {
+    var top = $("#top"), b = document.getElementById("say"), on = isChild() || !!S.settings.voix;
+    if (!on) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement("button"); b.id = "say"; b.className = "iconbtn"; b.type = "button"; top.insertBefore(b, $("#pts")); }
+    b.setAttribute("aria-label", tr("Lire l'écran à voix haute")); b.innerHTML = ICO.speaker;
+    b.onclick = function () { if (window.speechSynthesis && speechSynthesis.speaking) { speechSynthesis.cancel(); return; } speak(pageText(), voiceLang(), isChild() ? .85 : 1); };
+  }
+  function sayLetter(i) { var L = NC().lettresAr || []; if (L[i]) speak(L[i], "ar-SA", .7); }
+
+  /* ---------------------------------------------------------------- audio hors ligne (cache « nur-audio ») */
+  var AUDC = "nur-audio", AUDK = "nur:audio";
+  function audIdx() { try { return JSON.parse(localStorage.getItem(AUDK)) || {}; } catch (e) { return {}; } }
+  function audSave(x) { try { localStorage.setItem(AUDK, JSON.stringify(x)); } catch (e) {} }
+  function audHas(sn, rec) { var x = audIdx(), r = x[rec || reciter()[0]]; return !!(r && r[sn]); }
+  function audUrls(sn) { return loadHafs().then(function () { var n = (HAFS[sn] || []).length, out = []; for (var h = 1; h <= n; h++) out.push(plUrl(sn, h)); return out; }); }
+  var audBusy = {};
+  function audDownload(sn, onp) {
+    if (!window.caches) { toast("Téléchargement impossible : ce navigateur ne permet pas le stockage hors ligne."); return Promise.resolve(false); }
+    var rec = reciter()[0]; if (audBusy[sn]) return audBusy[sn];
+    audBusy[sn] = Promise.all([audUrls(sn), caches.open(AUDC)]).then(function (a) {
+      var U = a[0], c = a[1], done = 0, fail = 0, i = 0;
+      function next() {
+        if (i >= U.length) return Promise.resolve();
+        var u = U[i++];
+        return c.match(u).then(function (hit) {
+          if (hit) return;
+          return fetch(u, { mode: "cors" }).then(function (r) { if (!r.ok) throw new Error(r.status); return c.put(u, r); });
+        }).catch(function () { fail++; }).then(function () { done++; if (onp) onp(done, U.length); return next(); });
+      }
+      return Promise.all([next(), next(), next(), next()]).then(function () {
+        delete audBusy[sn];
+        if (fail) { toast("Téléchargement incomplet : vérifiez la connexion et réessayez."); return false; }
+        var x = audIdx(); x[rec] = x[rec] || {}; x[rec][sn] = U.length; audSave(x); return true;
+      });
+    }).catch(function () { delete audBusy[sn]; toast("Téléchargement impossible."); return false; });
+    return audBusy[sn];
+  }
+  function audDelete(sn, rec) {
+    rec = rec || reciter()[0];
+    var x = audIdx(); if (x[rec]) delete x[rec][sn]; audSave(x);
+    if (!window.caches) return Promise.resolve();
+    return caches.open(AUDC).then(function (c) {
+      return loadHafs().then(function () {
+        var n = (HAFS[sn] || []).length, P2 = [];
+        for (var h = 1; h <= n; h++) P2.push(c.delete("https://everyayah.com/data/warsh/" + rec + "/" + p3(sn) + p3(h) + ".mp3"));
+        return Promise.all(P2);
+      });
+    });
+  }
+  var plObj = null;
+  function plSrc(u) {
+    if (!window.caches) return Promise.resolve(u);
+    return caches.open(AUDC).then(function (c) { return c.match(u); }).then(function (r) {
+      if (!r) return u;
+      return r.blob().then(function (b) { if (plObj) URL.revokeObjectURL(plObj); plObj = URL.createObjectURL(b); return plObj; });
+    }).catch(function () { return u; });
+  }
+  function audRowHTML(sn) {
+    return '<div class="card audrow" id="audrow"><div class="row between" style="margin:0"><span><b>Écoute hors ligne</b><small class="muted" id="audst">' + (audHas(sn) ? "Récitation enregistrée sur cet appareil." : "Récitation à télécharger pour l'écouter sans connexion.") + '</small></span>' +
+      (audHas(sn) ? '<button class="btn alt small" id="auddel">Supprimer</button>' : '<button class="btn alt small" id="auddl">Télécharger</button>') + '</div></div>';
+  }
+  function bindAudRow(r, sn) {
+    var d = $("#auddl", r), x = $("#auddel", r);
+    if (d) d.onclick = function () {
+      d.disabled = true;
+      audDownload(sn, function (k, n) { var s2 = $("#audst", r); if (s2) s2.textContent = tr("Téléchargement : ") + k + " / " + n; }).then(function (ok) { if (ok) toast("Sourate disponible hors ligne."); render(); });
+    };
+    if (x) x.onclick = function () { audDelete(sn).then(function () { toast("Récitation supprimée de l'appareil."); render(); }); };
+  }
+  route(/^\/audio$/, function () {
+    return loadQ().then(function (q) {
+      var x = audIdx(), rows = [];
+      RECITERS.forEach(function (rc) { var m = x[rc[0]] || {}; Object.keys(m).sort(function (a, b) { return a - b; }).forEach(function (sn) { var s = q.byN[+sn]; if (s) rows.push([rc, s]); }); });
+      var html = '<h2>Récitations hors ligne</h2><p class="muted">Les sourates téléchargées s\'écoutent sans connexion. Pour en ajouter une, ouvrez-la dans « Réciter » et touchez « Télécharger ».</p>' +
+        (rows.length ? '<ul class="list">' + rows.map(function (z) { return '<li><a href="#/reciter/' + z[1].n + '"><span class="badge">' + z[1].n + '</span><span class="nm">' + esc(z[1].fr) + '<small>' + esc(z[0][1]) + '</small></span></a><button class="btn alt small" data-adel="' + z[1].n + '" data-arec="' + z[0][0] + '">Supprimer</button></li>'; }).join("") + '</ul>' : '<div class="callout">Aucune récitation téléchargée pour l\'instant.</div>');
+      return { title: "Hors ligne", html: html, back: "#/reglages", bind: function (r) {
+        $$("[data-adel]", r).forEach(function (b) { b.onclick = function () { audDelete(+b.dataset.adel, b.dataset.arec).then(function () { toast("Récitation supprimée de l'appareil."); render(); }); }; });
+      } };
+    });
+  });
+
+  /* ---------------------------------------------------------------- écoute en boucle (verset répété, passage répété) */
+  function playLoop(sn, a1, a2, rep, loops) {
+    return loadHafs().then(function () {
+      var A = HAFS[sn] || []; PL.sn = sn; PL.q = [];
+      A.forEach(function (fl, i) { if (fl[1] >= a1 && fl[0] <= a2) PL.q.push([i + 1, Math.max(fl[0], a1)]); });
+      PL.rep = Math.max(1, rep || 1); PL.cnt = 0; PL.loops = loops || 0; PL.loopN = 1; PL.range = [a1, a2];
+      plGo(0);
+    });
+  }
+  function loopSheet(sn, N, a0) {
+    var a1 = a0 || 1, a2 = a0 || N;
+    function opts(v) { var o = ""; for (var i = 1; i <= N; i++) o += '<option value="' + i + '"' + (i === v ? " selected" : "") + '>' + i + '</option>'; return o; }
+    openSheet("Écouter en boucle", '<label class="f" for="lpa">Du verset</label><select id="lpa">' + opts(a1) + '</select><label class="f" for="lpb">Au verset</label><select id="lpb">' + opts(a2) + '</select>' +
+      '<label class="f" for="lpr">Répéter chaque verset</label><select id="lpr"><option value="1">1 fois</option><option value="3" selected>3 fois</option><option value="5">5 fois</option><option value="7">7 fois</option><option value="10">10 fois</option></select>' +
+      '<label class="f" for="lpl">Répéter le passage</label><select id="lpl"><option value="1">1 fois</option><option value="3">3 fois</option><option value="5">5 fois</option><option value="0">Sans fin</option></select>' +
+      '<p><button class="btn" id="lpgo">▶ Lancer la boucle</button></p><p class="muted">Écouter, répéter, puis réciter sans regarder : c\'est la méthode de mémorisation la plus sûre.</p>', function (w) {
+      $("#lpgo", w).onclick = function () {
+        var x = +$("#lpa", w).value, y = +$("#lpb", w).value; if (y < x) { var t = x; x = y; y = t; }
+        closeSheet(); playLoop(sn, x, y, +$("#lpr", w).value, +$("#lpl", w).value);
+      };
+    });
+  }
+
+  /* ---------------------------------------------------------------- enregistrer sa récitation (reste sur l'appareil, le temps de la session) */
+  var RECS = {}, recMR = null;
+  function recSheet(sn, a) {
+    var key = sn + ":" + a;
+    function body() {
+      return '<p class="muted">Récite le verset, puis compare avec le récitateur. L\'enregistrement reste sur cet appareil et s\'efface à la fermeture de l\'application.</p>' +
+        '<p class="row">' + (recMR ? '<button class="btn" id="rstop">■ Arrêter</button>' : '<button class="btn" id="rgo">● M\'enregistrer</button>') +
+        '<button class="btn alt" id="rref">▶ Récitateur</button>' + (RECS[key] ? '<button class="btn alt" id="rme">▶ Mon enregistrement</button>' : '') + '</p>';
+    }
+    var w = openSheet("Ma récitation", '<div id="recb">' + body() + '</div>', bindR);
+    function refresh() { var b = $("#recb", w); if (!b) return; b.innerHTML = body(); i18n(b); bindR(w); }
+    function bindR(w2) {
+      var g = $("#rgo", w2), s2 = $("#rstop", w2), rf = $("#rref", w2), me = $("#rme", w2);
+      if (g) g.onclick = function () {
+        if (!navigator.mediaDevices || !window.MediaRecorder) return toast("L'enregistrement n'est pas disponible sur cet appareil.");
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+          var ch = []; recMR = new MediaRecorder(stream);
+          recMR.ondataavailable = function (e) { if (e.data && e.data.size) ch.push(e.data); };
+          recMR.onstop = function () { stream.getTracks().forEach(function (t) { t.stop(); }); if (RECS[key]) URL.revokeObjectURL(RECS[key]); RECS[key] = URL.createObjectURL(new Blob(ch, { type: recMR.mimeType || "audio/webm" })); recMR = null; refresh(); };
+          recMR.start(); refresh();
+        }).catch(function () { toast("Accès au micro refusé."); });
+      };
+      if (s2) s2.onclick = function () { if (recMR) recMR.stop(); };
+      if (rf) rf.onclick = function () { playVerse(sn, a); };
+      if (me) me.onclick = function () { plStop(); new Audio(RECS[key]).play().catch(function () {}); };
+    }
+  }
+
+  /* ---------------------------------------------------------------- révision programmée des versets mémorisés */
+  var REVI = [1, 3, 7, 14, 30, 60, 120];
+  function revSync() {
+    S.rev = S.rev || {}; var keep = {}, t = today();
+    Object.keys(S.hifz || {}).forEach(function (sn) { (S.hifz[sn] || []).forEach(function (a) { var k = sn + ":" + a; keep[k] = 1; if (!S.rev[k]) S.rev[k] = { e: 0, d: dayKey(addDays(ymd(Date.now(), loc().tz), 1)) }; }); });
+    Object.keys(S.rev).forEach(function (k) { if (!keep[k]) delete S.rev[k]; });
+    return t;
+  }
+  function revDue() { var t = revSync(); return Object.keys(S.rev).filter(function (k) { return S.rev[k].d <= t; }).sort(function (a, b) { var x = a.split(":"), y = b.split(":"); return (+x[0] - +y[0]) || (+x[1] - +y[1]); }); }
+  function revMark(k, ok) {
+    var r = S.rev[k]; if (!r) return;
+    r.e = ok ? Math.min(REVI.length - 1, r.e + 1) : 0;
+    r.d = dayKey(addDays(ymd(Date.now(), loc().tz), REVI[ok ? r.e : 0]));
+    save();
+  }
+  var revShow = {};
+  route(/^\/revision$/, function () {
+    return Promise.all([loadQ(), loadOpt()]).then(function (res) {
+      var q = res[0], due = revDue(), tot = Object.keys(S.rev).length; save();
+      var html = '<h2>Révision du jour</h2><p class="muted">Chaque verset mémorisé revient à intervalles croissants : 1, 3, 7, 14, 30, 60 puis 120 jours. Récite-le de mémoire, puis vérifie.</p>' +
+        '<div class="row between"><span class="pill">' + due.length + ' à réviser</span><span class="muted">' + tot + ' versets suivis</span></div>';
+      if (!tot) html += '<div class="callout">Aucun verset mémorisé pour l\'instant. Dans « Réciter », touchez « ⋯ » sur un verset puis « Marquer comme mémorisé ».</div>';
+      else if (!due.length) html += '<div class="callout">Tout est révisé pour aujourd\'hui. Reviens demain.</div>';
+      html += due.slice(0, 30).map(function (k) {
+        var p = k.split(":"), sn = +p[0], a = +p[1], s = q.byN[sn], v = s && s.v.filter(function (x) { return x[0] === a; })[0];
+        if (!v) return '';
+        return '<article class="vcard rev" data-k="' + k + '"><div class="row between" style="margin:0"><b>' + esc(s.fr) + ' · ' + a + '</b><button class="ib" data-rp="' + k + '" aria-label="Écouter le verset">▶</button></div>' +
+          (revShow[k] ? '<div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v[1]) + '</div>' + phonLine(sn, a, q) : '<p class="muted">Récite le verset de mémoire, puis affiche-le.</p><button class="btn alt small" data-rs="' + k + '">Afficher le verset</button>') +
+          '<div class="row"><button class="btn small" data-ok="' + k + '">Je l\'ai su</button><button class="btn alt small" data-ko="' + k + '">À revoir</button></div></article>';
+      }).join("");
+      return { title: "Révision", html: html, back: "#/apprendre", tab: "#/apprendre", bind: function (r) {
+        $$("[data-rs]", r).forEach(function (b) { b.onclick = function () { revShow[b.dataset.rs] = 1; render(); }; });
+        $$("[data-rp]", r).forEach(function (b) { b.onclick = function () { var p = b.dataset.rp.split(":"); playVerse(+p[0], +p[1]); }; });
+        $$("[data-ok]", r).forEach(function (b) { b.onclick = function () { revMark(b.dataset.ok, true); delete revShow[b.dataset.ok]; toast("Bien. Prochaine révision plus tard."); render(); }; });
+        $$("[data-ko]", r).forEach(function (b) { b.onclick = function () { revMark(b.dataset.ko, false); delete revShow[b.dataset.ko]; toast("Ce verset reviendra demain."); render(); }; });
+        onLeave(function () { if (location.hash !== "#/revision") plStop(); });
+      } };
+    });
+  });
+
+  /* ---------------------------------------------------------------- guide des ablutions et de la prière */
+  var guideTab = "wudu";
+  route(/^\/guide$/, function (m, params) {
+    if (params.t) guideTab = params.t === "salat" ? "salat" : "wudu";
+    var c = NC(), W = c.wudu, P2 = c.salat;
+    if (!W || !P2) return { title: "Guide", html: '<div class="callout warn">Contenu indisponible. Rechargez l\'application.</div>', back: "#/apprendre" };
+    function steps(L) {
+      return '<ol class="guide">' + L.map(function (e, i) {
+        return '<li><div class="row between" style="margin:0"><b>' + (i + 1) + '. ' + esc(e[0]) + '</b>' + statPill(e[2]) + '</div><p>' + esc(e[1]) + '</p>' + (e[3] ? formule(e[3], e[4], e[5]) : '') + (e[6] ? '<p class="muted small">' + esc(e[6]) + '</p>' : '') + '</li>';
+      }).join("") + '</ol>';
+    }
+    var html = '<h2>Ablutions et prière, pas à pas</h2><div class="seg2"><button data-gt="wudu" aria-selected="' + (guideTab === "wudu") + '">Ablutions</button><button data-gt="salat" aria-selected="' + (guideTab === "salat") + '">Prière</button></div>';
+    if (guideTab === "wudu") {
+      html += '<p>' + esc(W.intro) + '</p>' + steps(W.etapes) + '<div class="callout">' + esc(W.tout) + '</div>' +
+        '<h3>Après les ablutions</h3>' + formule(W.apres[0], W.apres[1], W.apres[2], W.apres[3]) +
+        '<div class="grid2"><div class="card"><h3>Les 7 obligations</h3>' + ulist(W.fard) + '</div><div class="card"><h3>Les 8 sunna</h3>' + ulist(W.sunan) + '</div></div>' +
+        '<div class="card"><h3>Ce qui annule les ablutions</h3>' + ulist(W.annule) + '</div>' +
+        '<div class="card"><h3>Le grand lavage</h3><p>' + esc(W.ghusl) + '</p><h3>Sans eau</h3><p>' + esc(W.tayammum) + '</p></div>' +
+        '<p><button class="btn" data-gt="salat">Continuer avec la prière ' + ICO.arrow + '</button></p>' + srcList(W.sources);
+    } else {
+      html += '<p>' + esc(P2.intro) + '</p><h3>Nombre de rakʿa</h3><table class="month rk5"><thead><tr><th>Prière</th><th>Rakʿa</th><th>Récitation</th></tr></thead><tbody>' +
+        P2.tableau.map(function (x) { return '<tr><td>' + esc(x[0]) + '</td><td>' + esc(x[1]) + '</td><td>' + esc(x[2]) + '</td></tr>'; }).join("") + '</tbody></table>' +
+        '<h3>Une prière de deux rakʿa</h3>' + steps(P2.etapes) + '<div class="callout">' + esc(P2.plus) + '</div>' +
+        '<h3>Al-Fâtiḥa</h3><p class="row"><button class="btn alt" id="gfat">▶ Écouter Al-Fâtiḥa</button><a class="btn alt" href="#/reciter/1">Lire avec la phonétique</a></p>' +
+        '<h3>Le tachahhoud</h3>' + formule(P2.tachahhoud[0], P2.tachahhoud[1], P2.tachahhoud[2], P2.tachahhoud[3]) +
+        '<h3>La prière sur le Prophète</h3>' + formule(P2.ibrahimiyya[0], P2.ibrahimiyya[1], P2.ibrahimiyya[2], P2.ibrahimiyya[3]) +
+        '<p><a class="btn alt" href="#/priere/apres">Après la prière : les invocations</a></p>' + srcList(P2.sources);
+    }
+    return { title: "Guide", html: html, back: "#/apprendre", tab: "#/apprendre", bind: function (r) {
+      $$("[data-gt]", r).forEach(function (b) { b.onclick = function () { guideTab = b.dataset.gt; if (location.hash === "#/guide?t=" + guideTab) render(); else location.hash = "#/guide?t=" + guideTab; }; });
+      var f = $("#gfat", r); if (f) f.onclick = function () { playFrom(1, 1); };
+      onLeave(function () { if (location.hash.indexOf("#/guide") !== 0) plStop(); });
+    } };
+  });
+
+  /* ---------------------------------------------------------------- glossaire */
+  route(/^\/glossaire$/, function () {
+    var G = NC().glossaire || [];
+    var html = '<h2>Glossaire</h2><p class="muted">Les mots de l\'islam employés dans NÛR, expliqués simplement.</p><label class="f" for="gq">Rechercher</label><input id="gq" type="search" autocomplete="off">' +
+      '<dl class="gloss" id="gl">' + G.map(function (g) { return '<div class="gi"><dt><b>' + esc(g[0]) + '</b> <span class="ar" lang="ar">' + esc(g[1]) + '</span></dt><dd>' + esc(g[2]) + '</dd></div>'; }).join("") + '</dl>';
+    return { title: "Glossaire", html: html, back: "#/apprendre", tab: "#/apprendre", bind: function (r) {
+      var inp = $("#gq", r);
+      inp.oninput = function () {
+        var v = inp.value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+        $$(".gi", r).forEach(function (e) { e.hidden = v && e.textContent.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").indexOf(v) < 0; });
+      };
+    } };
+  });
+
+  /* ---------------------------------------------------------------- parcours du converti */
+  route(/^\/converti$/, function () {
+    var C2 = NC().converti; if (!C2) return { title: "Converti", html: "", back: "#/apprendre" };
+    S.conv = S.conv || {}; var done = 0, tot = 0;
+    C2.semaines.forEach(function (w, i) { w[1].forEach(function (t, j) { tot++; if (S.conv[i + "." + j]) done++; }); });
+    return loadQ().then(function (q) {
+      var html = '<h2>Nouveau musulman : mes 30 premiers jours</h2><p>' + esc(C2.intro) + '</p>' +
+        '<div class="card"><h3>La shahâda</h3>' + formule(C2.chahada[0], C2.chahada[1], C2.chahada[2]) + '<p>' + esc(C2.chahadaNote) + '</p></div>' +
+        '<div class="card"><h3>Le grand lavage</h3><p>' + esc(C2.ghusl) + '</p><p class="muted small">' + esc(C2.ghuslSrc) + '</p><p><a href="#/guide?t=wudu">Voir le guide des ablutions ' + ICO.arrow + '</a></p></div>' +
+        '<div class="callout">' + esc(C2.efface) + ' <span class="muted small">(' + esc(C2.effaceSrc) + ')</span></div>' +
+        '<div class="row between"><h3>Mon programme</h3><span class="pill">' + done + ' / ' + tot + '</span></div><div class="bar"><i style="width:' + Math.round(100 * done / Math.max(1, tot)) + '%"></i></div>' +
+        C2.semaines.map(function (w, i) {
+          return '<div class="card"><h3>' + esc(w[0]) + '</h3>' + w[1].map(function (t, j) { var k = i + "." + j; return '<label class="tcard"><span>' + esc(t) + '</span><input type="checkbox" class="sw" data-cv="' + k + '"' + (S.conv[k] ? " checked" : "") + '></label>'; }).join("") + '</div>';
+        }).join("") +
+        '<div class="card"><h3>En attendant de connaître la Fâtiḥa</h3><p>' + esc(C2.minimale) + '</p><p class="muted small">' + esc(C2.minimaleSrc) + '</p><p><a class="btn alt" href="#/guide?t=salat">Guide de la prière</a></p></div>' +
+        '<h3>Les quatre sourates à apprendre en premier</h3><ul class="list">' + C2.sourates.map(function (n) { var s = q.byN[n]; return '<li><a href="#/reciter/' + n + '"><span class="badge">' + n + '</span><span class="nm">' + esc(s.fr) + '<small>' + s.v.length + ' versets</small></span></a></li>'; }).join("") + '</ul>' +
+        '<div class="grid2"><div class="card"><h3>Obligatoire</h3>' + ulist(C2.obligatoire) + '</div><div class="card"><h3>Recommandé</h3>' + ulist(C2.recommande) + '</div></div>' +
+        '<div class="card"><h3>Ce qui n\'est pas obligatoire</h3>' + ulist(C2.pasOblige) + '</div>' +
+        '<label class="tcard"><span><b>Afficher ce parcours sur l\'accueil</b></span><input type="checkbox" class="sw" id="cvh"' + (S.settings.converti ? " checked" : "") + '></label>' +
+        '<p class="row"><a class="btn alt" href="#/glossaire">Glossaire</a><a class="btn alt" href="#/parcours">Parcours Étincelle</a></p>' + srcList(C2.sources);
+      return { title: "Converti", html: html, back: "#/apprendre", tab: "#/apprendre", bind: function (r) {
+        $$("[data-cv]", r).forEach(function (b) { b.onchange = function () { if (b.checked) S.conv[b.dataset.cv] = 1; else delete S.conv[b.dataset.cv]; save(); render(); }; });
+        $("#cvh", r).onchange = function (e) { S.settings.converti = e.target.checked; save(); toast(e.target.checked ? "Parcours affiché sur l'accueil." : "Parcours retiré de l'accueil."); };
+      } };
+    });
+  });
+
+  /* ---------------------------------------------------------------- espace femme : règles malikites et pause */
+  function fPause() { return !!(S.femme && S.femme.pause); }
+  function femmeVisible() { var p = prof(); return !!p && (p.type === "femme" || p.type === "adulte"); }
+  function daysBetween(k1, k2) { var a = k1.split("-"), b = k2.split("-"); return Math.round((Date.UTC(+b[0], b[1] - 1, +b[2]) - Date.UTC(+a[0], a[1] - 1, +a[2])) / 864e5); }
+  route(/^\/femme$/, function () {
+    var F = NC().femme; if (!F) return { title: "Femme", html: "", back: "#/plus" };
+    S.femme = S.femme || { pause: false, type: "hayd", debut: null, hist: [] };
+    var f = S.femme, t = today(), jours = f.pause && f.debut ? daysBetween(f.debut, t) + 1 : 0, max = f.type === "nifas" ? 60 : 15;
+    var html = '<h2>Espace femme</h2><p>' + esc(F.intro) + '</p>' +
+      '<div class="card' + (f.pause ? ' gold' : '') + '"><h3>Pause : règles ou lochies</h3>' +
+      (f.pause ? '<p><b>Pause en cours</b> · ' + (f.type === "nifas" ? "lochies" : "règles") + ' · jour ' + jours + '</p><p class="muted">Le suivi des prières est suspendu, sans perte de points ni de régularité. La lecture et l\'écoute du Coran restent disponibles.</p>' +
+        (jours > max ? '<div class="callout warn">La durée maximale (' + max + ' jours) est dépassée : le sang qui continue n\'est plus celui des ' + (f.type === "nifas" ? "lochies" : "règles") + ' ; la prière et le jeûne reprennent (voir « saignements hors des règles »).</div>' : '') +
+        '<p><button class="btn" id="fend">Fin de la pause</button></p>' :
+        '<p class="muted">Pendant la pause, NÛR ne demande pas de marquer les prières et ne compte aucun manque.</p><div class="seg3"><button data-ft="hayd" aria-pressed="' + (f.type !== "nifas") + '">Règles</button><button data-ft="nifas" aria-pressed="' + (f.type === "nifas") + '">Lochies</button></div><p><button class="btn" id="fgo">Commencer la pause</button></p>') +
+      '<p class="muted small">' + esc(F.confid) + '</p>' +
+      (f.hist && f.hist.length ? '<details><summary>Historique (' + f.hist.length + ')</summary><ul class="plain">' + f.hist.slice(-12).reverse().map(function (h) { return '<li>' + esc(h.d1) + ' → ' + esc(h.d2) + ' · ' + (daysBetween(h.d1, h.d2) + 1) + ' j · ' + (h.t === "nifas" ? "lochies" : "règles") + '</li>'; }).join("") + '</ul><button class="btn alt small" id="fclr">Effacer l\'historique</button></details>' : '') +
+      '</div>' +
+      F.sections.map(function (s) { return '<details class="card"><summary><strong>' + esc(s[0]) + '</strong></summary>' + s[1].map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("") + '</details>'; }).join("") +
+      '<p><a class="btn alt" href="#/guide?t=wudu">Guide du grand lavage et des ablutions</a></p>' + srcList(F.sources);
+    return { title: "Espace femme", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
+      $$("[data-ft]", r).forEach(function (b) { b.onclick = function () { f.type = b.dataset.ft; save(); render(); }; });
+      var g = $("#fgo", r); if (g) g.onclick = function () { f.pause = true; f.debut = t; save(); toast("Pause commencée."); render(); };
+      var e = $("#fend", r); if (e) e.onclick = function () { f.hist = f.hist || []; f.hist.push({ d1: f.debut || t, d2: t, t: f.type }); f.pause = false; f.debut = null; save(); toast("Pause terminée : pense au grand lavage avant de reprendre la prière."); render(); };
+      var c = $("#fclr", r); if (c) c.onclick = function () { if (!confirm(tr("Effacer l'historique des pauses ?"))) return; f.hist = []; save(); render(); };
+    } };
+  });
+
+  /* ---------------------------------------------------------------- jeûne */
+  function hNum(o) {
+    var off = (S.settings.hijriOffset || 0), t = new Date(Date.UTC(o.y, o.m - 1, o.d + off, 12));
+    try {
+      var p = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn", { timeZone: "UTC", day: "numeric", month: "numeric", year: "numeric" }).formatToParts(t);
+      var g = function (k) { var x = p.filter(function (z) { return z.type === k; })[0]; return x ? parseInt(x.value, 10) : 0; };
+      return { d: g("day"), m: g("month"), y: g("year") || parseInt(String((p.filter(function (z) { return z.type === "relatedYear"; })[0] || {}).value), 10) };
+    } catch (e) { return { d: 0, m: 0, y: 0 }; }
+  }
+  function nextHijri(test, max) {
+    var L = loc(), b = ymd(Date.now(), L.tz);
+    for (var i = 0; i < (max || 400); i++) { var o = addDays(b, i), h = hNum(o); if (test(h, o, i)) return { o: o, i: i, h: h }; }
+    return null;
+  }
+  function dLabel(x) { if (!x) return "—"; var s = new Intl.DateTimeFormat(UIL(), { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(new Date(Date.UTC(x.o.y, x.o.m - 1, x.o.d, 12))); return x.i === 0 ? tr("aujourd'hui") + " (" + s + ")" : s; }
+  function dSpan(x) { return '<span data-noi18n>' + esc(dLabel(x)) + '</span>'; }
+  route(/^\/jeune$/, function () {
+    var J = NC().jeune; if (!J) return { title: "Jeûne", html: "", back: "#/plus" };
+    S.jeune = S.jeune || { r: {}, qada: 0 };
+    var L = loc(), b = ymd(Date.now(), L.tz), T = timesFor(L, b), h = hNum(b), ram = h.m === 9, yk = String(h.y), R = S.jeune.r[yk] = S.jeune.r[yk] || {};
+    var nR = 0; Object.keys(R).forEach(function (k) { if (R[k]) nR++; });
+    var html = '<h2>Le jeûne</h2><p>' + esc(J.intro) + '</p>' +
+      '<div class="card"><h3>Aujourd\'hui</h3><div class="rk"><b>' + fmtT(T.fajr, L.tz) + '</b><span>Fin du souḥoûr (heure du Fadjr)</span></div><div class="rk"><b>' + fmtT(T.maghrib, L.tz) + '</b><span>Ifṭâr (heure du Maghrib)</span></div><p class="muted small">' + esc(L.name) + '</p></div>';
+    if (ram) html += '<div class="card"><div class="row between"><h3>Ramaḍân ' + h.y + '</h3><span class="pill">' + nR + ' jours jeûnés</span></div><div class="jgrid">' +
+      (function () { var o = ""; for (var d = 1; d <= 30; d++) o += '<button class="jd' + (R[d] ? " on" : "") + (d === h.d ? " today" : "") + '" data-jd="' + d + '" aria-pressed="' + !!R[d] + '">' + d + '</button>'; return o; })() + '</div><p class="muted small">Touchez un jour pour le marquer comme jeûné.</p></div>';
+    else { var nx = nextHijri(function (x) { return x.m === 9 && x.d === 1; }, 400); html += '<div class="callout"><span>Prochain Ramaḍân :</span> <span data-noi18n>' + esc(dLabel(nx)) + '</span>' + (nx ? ' <span>(dans ' + nx.i + ' jours).</span>' : '') + '</div>'; }
+    html += '<div class="card"><h3>Jours à rattraper</h3><div class="row"><button class="btn alt" id="qm" aria-label="Retirer un jour">−</button><span class="pill big">' + (S.jeune.qada || 0) + '</span><button class="btn alt" id="qp" aria-label="Ajouter un jour">+</button></div><p class="muted small">Jours de Ramaḍân non jeûnés (maladie, voyage, règles…) à rattraper avant le Ramaḍân suivant.</p></div>' +
+      '<h3>Les règles du jeûne</h3>' + J.regles.map(function (x) { return '<details class="card"><summary><strong>' + esc(x[0]) + '</strong></summary><p>' + esc(x[1]) + '</p></details>'; }).join("") +
+      '<h3>À la rupture du jeûne</h3>' + formule(J.iftar[0], J.iftar[1], J.iftar[2], J.iftar[3]);
+    var lun = nextHijri(function (x, o) { var wd = new Date(Date.UTC(o.y, o.m - 1, o.d)).getUTCDay(); return wd === 1 || wd === 4; }, 8),
+      bl = nextHijri(function (x) { return x.d >= 13 && x.d <= 15; }, 40), ar = nextHijri(function (x) { return x.m === 12 && x.d === 9; }, 400), ach = nextHijri(function (x) { return x.m === 1 && x.d === 10; }, 400);
+    html += '<h3>Les jeûnes recommandés</h3><div class="card">' + ulist(J.suregatoires) +
+      '<div class="rk"><b>' + dSpan(lun) + '</b><span>Prochain lundi ou jeudi</span></div><div class="rk"><b>' + dSpan(bl) + '</b><span>Prochain jour blanc</span></div>' +
+      '<div class="rk"><b>' + dSpan(ar) + '</b><span>Jour de ʿArafa</span></div><div class="rk"><b>' + dSpan(ach) + '</b><span>ʿÂchoûrâʾ</span></div><p class="muted small">Dates du calendrier Umm al-Qurâ ; elles peuvent différer d\'un jour selon l\'observation locale du croissant.</p></div>' +
+      '<h3>Zakât al-fiṭr</h3><div class="card">' + ulist(J.fitr) + '</div><p><a class="btn alt" href="#/zakat">Calculer la zakât sur les biens</a></p>' + srcList(J.sources);
+    return { title: "Jeûne", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
+      $$("[data-jd]", r).forEach(function (b2) { b2.onclick = function () { var d = b2.dataset.jd; if (R[d]) delete R[d]; else R[d] = 1; save(); render(); }; });
+      $("#qm", r).onclick = function () { S.jeune.qada = Math.max(0, (S.jeune.qada || 0) - 1); save(); render(); };
+      $("#qp", r).onclick = function () { S.jeune.qada = (S.jeune.qada || 0) + 1; save(); render(); };
+    } };
+  });
+
+  /* ---------------------------------------------------------------- zakât sur les biens (calculateur) */
+  var XOF = 655.957;
+  function num(v) { var x = parseFloat(String(v || "").replace(/\s/g, "").replace(",", ".")); return isFinite(x) && x > 0 ? x : 0; }
+  function money(x, cur) { return new Intl.NumberFormat(UIL(), { maximumFractionDigits: 2 }).format(Math.round(x * 100) / 100) + " " + cur; }
+  route(/^\/zakat$/, function () {
+    var Z = NC().zakat; if (!Z) return { title: "Zakât", html: "", back: "#/plus" };
+    S.zakat = S.zakat || { cur: "€", base: "or", pg: "", ps: "", ep: "", met: "", mar: "", cre: "", det: "", hawl: false };
+    var z = S.zakat;
+    function f(id, lab, val, help) { return '<label class="f" for="' + id + '">' + lab + '</label><input id="' + id + '" inputmode="decimal" value="' + esc(val || "") + '">' + (help ? '<small class="muted">' + help + '</small>' : ''); }
+    var html = '<h2>Zakât sur les biens</h2><p>' + esc(Z.intro) + '</p><div class="card">' +
+      '<label class="f" for="zcur">Devise</label><select id="zcur">' + ["€", "FCFA", "$", "£", "DH", "DA", "DT", "KMF", "CHF", "CAD"].map(function (c) { return '<option' + (z.cur === c ? " selected" : "") + '>' + c + '</option>'; }).join("") + '</select>' +
+      '<div class="seg3" style="margin-top:.6rem"><button data-zb="or" aria-pressed="' + (z.base !== "argent") + '">Seuil sur l\'or (85 g)</button><button data-zb="argent" aria-pressed="' + (z.base === "argent") + '">Seuil sur l\'argent (595 g)</button></div>' +
+      (z.base === "argent" ? f("zps", "Prix d'un gramme d'argent métal", z.ps, "Cours du jour, auprès d'une banque ou d'un bijoutier.") : f("zpg", "Prix d'un gramme d'or", z.pg, "Cours du jour, auprès d'une banque ou d'un bijoutier.")) +
+      f("zep", "Épargne et liquidités", z.ep) + f("zmet", "Valeur de l'or et de l'argent possédés", z.met) + f("zmar", "Marchandises destinées à la vente", z.mar) + f("zcre", "Créances que l'on est sûr de recouvrer", z.cre) + f("zdet", "Dettes à payer immédiatement", z.det) +
+      '<label class="tcard"><span><b>Ces biens sont possédés depuis une année lunaire complète</b></span><input type="checkbox" class="sw" id="zhawl"' + (z.hawl ? " checked" : "") + '></label>' +
+      '<div id="zres" class="zres"></div></div>' + '<h3>À savoir</h3><div class="card">' + ulist(Z.regles) + '</div><div class="callout">' + esc(Z.note) + '</div>' + srcList(Z.sources);
+    return { title: "Zakât", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
+      function calc() {
+        ["pg", "ps", "ep", "met", "mar", "cre", "det"].forEach(function (k) { var e = $("#z" + k, r); if (e) z[k] = e.value; });
+        z.cur = $("#zcur", r).value; z.hawl = $("#zhawl", r).checked; save();
+        var tot = num(z.ep) + num(z.met) + num(z.mar) + num(z.cre) - num(z.det), pr = z.base === "argent" ? num(z.ps) : num(z.pg), nis = pr * (z.base === "argent" ? 595 : 85), cur = z.cur, out;
+        var eur = function (x) { return cur === "FCFA" ? ' <span class="muted">(≈ ' + money(x / XOF, "€") + ')</span>' : ''; };
+        if (!pr) out = '<p class="muted">' + tr("Indiquez le prix du gramme pour calculer le seuil.") + '</p>';
+        else {
+          out = '<div class="rk"><b>' + money(Math.max(0, tot), cur) + eur(Math.max(0, tot)) + '</b><span>' + tr("Total soumis") + '</span></div><div class="rk"><b>' + money(nis, cur) + eur(nis) + '</b><span>' + tr("Seuil (niṣâb)") + '</span></div>';
+          if (tot < nis) out += '<p>' + tr("Le total est sous le seuil : la zakât n'est pas due.") + '</p>';
+          else if (!z.hawl) out += '<p>' + tr("Le total atteint le seuil. La zakât sera due quand ces biens auront été possédés une année lunaire complète.") + '</p>';
+          else out += '<div class="rk big"><b>' + money(tot * .025, cur) + eur(tot * .025) + '</b><span>' + tr("Zakât due (2,5 %)") + '</span></div>';
+          if (cur === "FCFA") out += '<p class="muted small">' + tr("Conversion à la parité fixe : 1 € = 655,957 FCFA.") + '</p>';
+        }
+        $("#zres", r).innerHTML = out;
+      }
+      $$("input,select", r).forEach(function (e) { e.addEventListener("input", calc); e.addEventListener("change", calc); });
+      $$("[data-zb]", r).forEach(function (b) { b.onclick = function () { z.base = b.dataset.zb; save(); render(); }; });
+      calc();
+    } };
+  });
+
+  /* ---------------------------------------------------------------- temps d'écran du profil enfant (fixé par l'adulte) */
+  var kidUnlock = 0;
+  function kidUsed() { var t = today(); if (!S.kidDay || S.kidDay.d !== t) S.kidDay = { d: t, s: 0 }; return S.kidDay.s; }
+  function kidLocked() { var mx = S.settings.kidMax || 0; return isChild() && mx > 0 && Date.now() > kidUnlock && kidUsed() >= mx * 60; }
+  function kidLockView() {
+    return { title: "À demain", bare: true, html: '<div class="card center"><h2>Le temps de NÛR est terminé pour aujourd\'hui</h2><p>Bravo pour tes efforts. Tu pourras continuer demain.</p>' +
+      '<p class="row" style="justify-content:center"><button class="btn" id="kunl">Code parental : 15 minutes de plus</button><a class="btn alt" href="#/profils">Changer de profil</a></p></div>', bind: function (r) {
+        $("#kunl", r).onclick = function () { askPin("Code parental").then(function (ok) { if (ok) { kidUnlock = Date.now() + 15 * 60000; render(); } }); };
+      } };
+  }
+
+  /* ---------------------------------------------------------------- réglages des lots (temps d'écran, voix, vendredi) */
+  function lotsSettingsHTML() {
+    var kid = isChild(), mx = S.settings.kidMax || 0;
+    return '<h3>Accessibilité et rappels</h3>' +
+      (kid ? '<div class="card"><strong>Temps d\'écran par jour</strong><p class="muted">Réglage réservé à l\'adulte (code parental).</p><div class="seg3">' + [0, 15, 30, 45, 60].map(function (v) { return '<button data-km="' + v + '" aria-pressed="' + (mx === v) + '">' + (v ? v + " min" : "Sans limite") + '</button>'; }).join("") + '</div><p class="muted small">Utilisé aujourd\'hui : ' + Math.round(kidUsed() / 60) + ' min</p></div>' :
+        '<label class="tcard"><span><b>Lire l\'écran à voix haute</b><small>Ajoute un bouton en haut de l\'écran ; utile pour qui ne lit pas encore facilement.</small></span><input type="checkbox" class="sw" id="voix"' + (S.settings.voix ? " checked" : "") + '></label>') +
+      '<a class="lcardM" href="#/audio"><span>Récitations hors ligne</span>' + ICO.arrow + '</a>';
+  }
+  function bindLotsSettings(r) {
+    $$("[data-km]", r).forEach(function (b) { b.onclick = function () { askPin("Code parental").then(function (ok) { if (!ok) return; S.settings.kidMax = +b.dataset.km; save(); toast("Temps d'écran enregistré."); render(); }); }; });
+    var v = $("#voix", r); if (v) v.onchange = function () { S.settings.voix = v.checked; save(); sayBtn(); };
+  }
+  /* ================================================================ fin v1.6 */
 
   /* ================================================================
      Structure reprise de MAARIFA (version Android 1.55.02, captures du commanditaire du 16 novembre 2026).
@@ -345,6 +765,7 @@
     return STORE.appId;
   }
   var ICO = {
+    speaker: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
     bell: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/></svg>',
     belloff: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 16V11a6 6 0 0 1 9.5-4.9M18 11v5l1.5 2h-15M10 20a2 2 0 0 0 4 0M4 4l16 16"/></svg>',
     gear: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
@@ -373,6 +794,7 @@
     onLeave(function () { closeSheet(true); });
     return w;
   }
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.getElementById("mwrap")) closeSheet(); });
   var sheetDirty = false;
   function closeSheet(silent) { var w = document.getElementById("mwrap"); if (w) w.remove(); if (sheetDirty && silent !== true) { sheetDirty = false; render(); } else if (silent === true) sheetDirty = false; }
 
@@ -395,7 +817,8 @@
         '<a class="muted lieu" href="#/priere/reglages">' + ICO.pin + ' ' + esc(L.name) + '</a></div></div>';
       html += '<div class="hero"><div class="row between"><div><div class="hl">La prochaine prière est</div><div class="hn">' + (np ? np.name : "—") + '</div></div>' +
         '<div class="hr"><div class="hl">dans ' + (np ? countdown(np.ts) : "—") + '</div><div class="ht">' + (np ? fmtT(np.ts, np.tz) : "") + '</div></div></div>' + chips3(T, L) + '</div>';
-      if (!isChild() || st.prayerTrack) {
+      if (fPause() && (!isChild() || st.prayerTrack)) html += '<a class="card plain-link gold" href="#/femme"><strong>Pause en cours</strong><div class="muted">Le suivi des prières est suspendu, sans perte de points.</div></a>';
+      else if (!isChild() || st.prayerTrack) {
         var n5 = 0; ORDER.forEach(function (o) { if (d.pr[o[0]]) n5++; });
         html += '<div class="card"><a class="row between plain-link" href="#/priere"><div><strong>Horaires de prière</strong><div class="muted">Marque tes prières ' + n5 + ' / 5</div></div>' + ICO.arrow + '</a>' +
           '<div class="pchips">' + ORDER.map(function (o) {
@@ -413,9 +836,12 @@
         }).join("") + '</ol>' +
         '<div class="row between"><a class="btn" href="#/jour?e=' + Math.min(fp, A.length + 1) + '">' + (alldone ? "Voir mon bilan" : (fp > 1 ? "Continuer" : "Commencer")) + '</a><a class="btn alt" href="#/routine">Personnaliser</a></div></div>';
       var wd = new Intl.DateTimeFormat("en-US", { timeZone: L.tz, weekday: "short" }).format(new Date());
-      if (wd === "Fri" && opt.quot && opt.quot.vendredi) html += '<div class="callout">' + esc(opt.quot.vendredi) + '</div>';
+      if (wd === "Fri" && NC().djoumoua) { var DJ = NC().djoumoua; html += '<div class="card gold"><strong>Djoumouʿa</strong><p>' + esc(DJ.texte) + ' <span class="muted small">(' + esc(DJ.src) + ')</span></p><p>' + esc(DJ.kahf) + ' <span class="muted small">(' + esc(DJ.kahfSrc) + ')</span></p><a class="btn alt" href="#/reciter/18">Lire la sourate Al-Kahf</a></div>'; }
+      else if (wd === "Fri" && opt.quot && opt.quot.vendredi) html += '<div class="callout">' + esc(opt.quot.vendredi) + '</div>';
+      if (S.settings.converti) html += '<a class="card plain-link" href="#/converti"><strong>Mes 30 premiers jours</strong><div class="muted">Le programme du nouveau musulman</div></a>';
+      var rd0 = revDue().length; if (rd0) html += '<a class="card plain-link" href="#/revision"><strong>Révision du jour</strong><div class="muted">' + rd0 + ' versets à réviser</div></a>';
       var nev = nextEvents(2);
-      html += '<h3>Fil d\'actualités</h3>' + nev.map(function (x) { return '<a class="card plain-link" href="#/evenements"><strong>' + esc(x[1]) + '</strong><div class="muted">' + (x[2] === 0 ? "Aujourd'hui" : "Dans " + x[2] + " jours") + ' · ' + esc(x[3]) + '</div></a>'; }).join("") +
+      html += '<h3>Fil d\'actualités</h3>' + nev.map(function (x) { return '<a class="card plain-link" href="#/evenements"><strong>' + esc(x[1]) + '</strong><div class="muted"><span>' + (x[2] === 0 ? "Aujourd'hui" : "Dans " + x[2] + " jours") + '</span> · <span data-noi18n>' + esc(x[3]) + '</span></div></a>'; }).join("") +
         '<a class="card plain-link" href="#/cartes"><strong>Cartes de vœux</strong><div class="muted">Envoie une carte à tes proches, par WhatsApp ou par lien.</div></a>';
       return { title: "NÛR", html: html, tab: "#/", bind: function (r) {
         $$("[data-pr]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pr); render(); }; });
@@ -508,7 +934,7 @@
       var html = '<h2>Recommandations</h2><p>Après chaque prière, il est recommandé de faire quelques invocations et de lire Âyat al-Koursî.</p><h3>Invocations</h3>' +
         INV.map(function (x, i) {
           var c = aCount[i] || 0, pct = Math.min(100, Math.round(100 * c / x[1]));
-          return '<div class="invrow"><div><b>' + esc(x[0].ph) + '</b> <span class="muted">' + x[1] + ' fois</span><div class="ar small" lang="ar" dir="rtl">' + esc(x[0].ar) + '</div><div class="muted">' + esc(x[0].fr) + '</div></div>' +
+          return '<div class="invrow"><div><b class="ph">' + esc(x[0].ph) + '</b> <span class="muted">' + x[1] + ' fois</span><div class="ar small" lang="ar" dir="rtl">' + esc(x[0].ar) + '</div><div class="muted">' + esc(x[0].fr) + '</div></div>' +
             '<button class="ring" data-inv="' + i + '" style="--p:' + pct + '" aria-label="Compter ' + esc(x[0].ph) + '"><span>' + (c ? c + '/' + x[1] : 'Toucher') + '</span></button></div>';
         }).join("") +
         '<p><button class="btn alt" id="raz">Remettre les compteurs à zéro</button></p>';
@@ -529,6 +955,7 @@
     var st = stt(), L = loc();
     var html = '<div class="card soft"><strong>Tu as un doute sur les horaires ?</strong><p>Les horaires varient souvent d\'une mosquée à l\'autre, même dans une ville : chaque mosquée retient sa méthode de calcul et ses ajustements. NÛR calcule les horaires sur votre appareil, selon la méthode choisie ci-dessous et le ʿAsr malikite.</p><a href="#/reglages">Ajuster les minutes prière par prière ' + ICO.arrow + '</a></div>' +
       '<h3>Calcul des horaires de prière</h3><label class="f" for="meth">Méthode de calcul</label><select id="meth">' + Object.keys(P.METHODS).map(function (k) { return '<option value="' + k + '"' + (st.method === k ? " selected" : "") + '>' + esc(P.METHODS[k].name) + '</option>'; }).join("") + '</select>' +
+      '<label class="tcard"><span><b>Rappel du vendredi</b><small>Une heure avant le Dhouhr : Djoumouʿa, grand lavage, sourate Al-Kahf.</small></span><input type="checkbox" class="sw" id="rvend"' + (st.rappels.vendredi ? " checked" : "") + '></label>' +
       '<h3>Localisation</h3>' + lieuHTML() +
       '<h3>Ma mosquée sur Mawaqit</h3><div class="card"><p style="margin-top:0">Pour prier aux horaires exacts de votre mosquée, enregistrez sa page Mawaqit : NÛR l\'ouvre en un geste. Les ajustements à la minute (« Tous les réglages ») alignent ensuite les horaires calculés sur ceux de la mosquée.</p>' +
       '<label class="f" for="mwq">Adresse de la page de la mosquée</label><input type="url" id="mwq" placeholder="https://mawaqit.net/fr/…" value="' + esc(st.mawaqit || "") + '">' +
@@ -536,6 +963,7 @@
     return { title: "Horaires", html: html, back: "#/priere", tab: "#/priere", bind: function (r) {
       $("#meth", r).onchange = function (e) { st.method = e.target.value; save(); scheduleNotifs(); toast("Méthode enregistrée."); };
       bindLieu(r);
+      $("#rvend", r).onchange = function (e) { st.rappels.vendredi = e.target.checked; save(); if (e.target.checked) { st.notif = true; save(); askNotif(); } scheduleNotifs(); };
       $("#mwqs", r).onclick = function () { var u = $("#mwq", r).value.trim(); if (u && !/^https:\/\/(www\.)?mawaqit\.net\//.test(u)) return toast("Collez l'adresse d'une page mawaqit.net."); st.mawaqit = u || null; save(); toast(u ? "Mosquée enregistrée." : "Mosquée retirée."); render(); };
     } };
   });
@@ -544,7 +972,7 @@
   route(/^\/qibla$/, function () {
     var L = loc(), qb = P.qibla(L.lat, L.lng), b = qb.bearing, sun = sunAzEl(L.lat, L.lng, Date.now()), rel = ((b - sun.az + 540) % 360) - 180;
     var ticks = ""; for (var t = 0; t < 360; t += 30) ticks += '<span class="tk" style="transform:rotate(' + t + 'deg)"><i>' + ({ 0: "N", 90: "E", 180: "S", 270: "O" }[t] || t) + '</i></span>';
-    var html = '<h2>Trouver la qibla</h2><div class="card center"><div class="qdeg">' + b.toFixed(0) + '°</div><p style="margin:.2rem 0">depuis le nord, vers ' + versC(b) + '</p><p class="muted" style="margin:0">' + esc(L.name) + ' · Kaaba à ' + Math.round(qb.distanceKm).toLocaleString("fr-FR") + ' km · <a href="#/priere/reglages">changer de lieu</a></p>' +
+    var html = '<h2>Trouver la qibla</h2><div class="card center"><div class="qdeg">' + b.toFixed(0) + '°</div><p style="margin:.2rem 0">depuis le nord, vers ' + versC(b) + '</p><p class="muted" style="margin:0"><span data-v="1">' + esc(L.name) + '</span> · <span data-v="1">Kaaba à ' + Math.round(qb.distanceKm) + ' km</span> · <a href="#/priere/reglages">changer de lieu</a></p>' +
       '<div class="rose" id="rose" aria-label="Boussole de la qibla">' + ticks + '<div class="qneedle" style="transform:rotate(' + b + 'deg)"><b>Kaaba</b></div><div class="dot"></div></div>' +
       '<p class="row" style="justify-content:center"><button class="btn" id="cb">Activer la boussole</button></p><p class="muted" id="cs">Tenez le téléphone à plat, loin des objets métalliques.</p></div>' +
       '<div class="card"><h3>Sur ordinateur ou sans boussole</h3>' + (sun.el > 0 ? '<p>Le soleil est en ce moment à <b>' + Math.round(sun.az) + '°</b> (' + cardinal(sun.az) + '). Placez-vous face au soleil, puis tournez de <b>' + Math.abs(Math.round(rel)) + '°</b> vers la ' + (rel > 0 ? "droite" : "gauche") + ' : vous faites face à la qibla.</p>' :
@@ -557,11 +985,11 @@
         if (h == null) return; got = true;
         rose.style.transform = "rotate(" + (-h) + "deg)";
         var off = ((b - h + 540) % 360) - 180;
-        $("#cs", r).textContent = Math.abs(off) < 5 ? "Vous faites face à la qibla." : "Tournez de " + Math.abs(Math.round(off)) + "° vers la " + (off > 0 ? "droite" : "gauche") + ".";
+        if (!$("#cs", r)) return; $("#cs", r).textContent = Math.abs(off) < 5 ? "Vous faites face à la qibla." : "Tournez de " + Math.abs(Math.round(off)) + "° vers la " + (off > 0 ? "droite" : "gauche") + ".";
       }
       function start() {
         window.addEventListener("deviceorientationabsolute", onOrient, true); window.addEventListener("deviceorientation", onOrient, true);
-        setTimeout(function () { if (!got) $("#cs", r).textContent = "Aucune boussole détectée sur cet appareil (cas des ordinateurs) : utilisez la méthode du soleil ci-dessous, ou orientez le haut de l'écran vers le nord."; }, 3000);
+        setTimeout(function () { if (!got && $("#cs", r)) $("#cs", r).textContent = "Aucune boussole détectée sur cet appareil (cas des ordinateurs) : utilisez la méthode du soleil ci-dessous, ou orientez le haut de l'écran vers le nord."; }, 3000);
       }
       $("#cb", r).onclick = function () {
         if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().then(function (st) { if (st === "granted") start(); else toast("Accès aux capteurs refusé."); }).catch(function () { toast("Capteur indisponible."); });
@@ -614,7 +1042,7 @@
       else b += '<button class="tcard" id="kraz"><span><b>Réinitialiser la progression du khatm</b></span>' + ICO.arrow + '</button>' +
         '<label class="tcard"><span><b>Arabe</b></span><input type="checkbox" class="sw" id="lar"' + (Lr.ar !== false ? " checked" : "") + '></label>' +
         '<label class="tcard"><span><b>Phonétique</b></span><input type="checkbox" class="sw" id="lph"' + (Lr.phon !== false ? " checked" : "") + '></label>' +
-        '<label class="tcard"><span><b>Traduction</b><small>Français, Muhammad Hamidullah (QuranEnc.com)</small></span><input type="checkbox" class="sw" id="lfr"' + (Lr.fr !== false ? " checked" : "") + '></label>' +
+        '<label class="tcard"><span><b>Traduction</b><small>' + (LK() === "fr" || !(OPT && OPT.fr && OPT.fr.source) ? "Français, Muhammad Hamidullah (QuranEnc.com)" : '<span data-noi18n>' + esc(OPT.fr.source) + '</span>') + '</small></span><input type="checkbox" class="sw" id="lfr"' + (Lr.fr !== false ? " checked" : "") + '></label>' +
         '<div class="tcard"><span><b>Taille de la police</b></span><span class="seg3"><button data-fs="1" aria-pressed="' + ((S.settings.fs || 1) < 1.15) + '">Petit</button><button data-fs="1.3" aria-pressed="' + ((S.settings.fs || 1) >= 1.15) + '">Grand</button></span></div>';
       return b;
     }
@@ -644,7 +1072,7 @@
       var st = stt(), showAr = st.layers.ar !== false, N = s.v.length, rd = kRead(sn), mem = S.hifz[sn] || [];
       var html = '<div class="row between phead"><h2 style="margin:0">' + sn + '. ' + esc(s.fr) + '</h2><button class="iconbtn" id="rset" aria-label="Paramètres de lecture">' + ICO.gear + '</button></div>' +
         '<p class="muted" style="margin:.2rem 0 .4rem">' + esc(nomSens(sn)) + ' · ' + N + ' versets · ' + Math.min(rd.length, N) + ' lus</p>' +
-        '<div class="row between" style="margin:0 0 .4rem">' + arSeulHTML() + '<button class="btn alt small" id="plays">▶ Écouter la sourate</button></div>' + readingLine();
+        '<div class="row between" style="margin:0 0 .4rem">' + arSeulHTML() + '<span class="row" style="margin:0"><button class="btn alt small" id="loopb">Boucle</button><button class="btn alt small" id="plays">▶ Écouter la sourate</button></span></div>' + audRowHTML(sn) + readingLine();
       if (readView === "page") {
         html += '<div class="row" style="justify-content:flex-end;margin:.4rem 0"><button class="btn alt" id="fm" aria-label="Réduire la taille du texte">A−</button><button class="btn alt" id="fp" aria-label="Augmenter la taille du texte">A+</button></div>' + readerHTML(s, q, "lecture", false);
       } else {
@@ -662,11 +1090,12 @@
       }
       html += '<div class="viewtog" role="group" aria-label="Affichage"><button data-view="liste" aria-pressed="' + (readView === "liste") + '" aria-label="Verset par verset">' + ICO.list + '</button><button data-view="page" aria-pressed="' + (readView === "page") + '" aria-label="Page en arabe">' + ICO.book + '</button></div>';
       html += '<div class="row between" style="margin-top:1rem">' + (sn > 1 ? '<a class="btn alt" href="#/reciter/' + (sn - 1) + '">Sourate précédente</a>' : '<span></span>') + (sn < 114 ? '<a class="btn alt" href="#/reciter/' + (sn + 1) + '">Sourate suivante</a>' : '<span></span>') + '</div>' +
-        '<p class="muted">Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. ' + NOTE_PHON + ' ' + noteFr() + ' Récitation : ' + esc(reciter()[1]) + ', riwaya de Warsh, EveryAyah.com.</p>';
+        '<p class="muted"><span>Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ.</span> <span>' + NOTE_PHON + '</span> <span data-noi18n>' + noteFr() + '</span> <span>Récitation : ' + esc(reciter()[1]) + ', riwaya de Warsh, EveryAyah.com.</span></p>';
       return { title: s.fr, html: html, back: "#/reciter", tab: "#/reciter", bind: function (r) {
         bindArSeul(r);
         $$("[data-play]", r).forEach(function (b) { b.onclick = function () { playVerse(sn, +b.dataset.play); }; });
         $("#plays", r).onclick = function () { playFrom(sn, 1); };
+        $("#loopb", r).onclick = function () { loopSheet(sn, N, 0); }; bindAudRow(r, sn);
         onLeave(function () { if (!/^#\/reciter\/\d+/.test(location.hash)) plStop(); });
         if (PL.sn === sn) setTimeout(plMark, 50);
         $("#rset", r).onclick = function () { coranSettings(q, sn); };
@@ -676,13 +1105,17 @@
         if (fp) fp.onclick = function () { S.settings.fs = Math.min(1.8, +((S.settings.fs || 1) + .1).toFixed(1)); save(); applyTheme(); };
         $$("[data-read]", r).forEach(function (b) { b.onclick = function () { var a = +b.dataset.read; kMark(sn, a); S.last = { s: sn, a: a }; save(); creditReading(); render(); }; });
         $$("[data-bm]", r).forEach(function (b) { b.onclick = function () { var k = sn + ":" + b.dataset.bm, i = S.bookmarks.indexOf(k); if (i >= 0) S.bookmarks.splice(i, 1); else S.bookmarks.push(k); save(); toast(i >= 0 ? "Signet retiré." : "Signet posé."); render(); }; });
-        $$("[data-sh]", r).forEach(function (b) { b.onclick = function () { var a = +b.dataset.sh, v = s.v.filter(function (x) { return x[0] === a; })[0]; share("NÛR", "Sourate " + s.fr + " (" + sn + "), verset " + a + "\n" + (v ? v[1] : "") + "\n" + (phonOf(OPT, sn, a, q) || "")); }; });
+        $$("[data-sh]", r).forEach(function (b) { b.onclick = function () { var a = +b.dataset.sh, v = s.v.filter(function (x) { return x[0] === a; })[0]; share("NÛR", tr("Sourate " + s.fr + " (" + sn + "), verset " + a) + "\n" + (v ? v[1] : "") + "\n" + (phonOf(OPT, sn, a, q) || "")); }; });
         $$("[data-more]", r).forEach(function (b) { b.onclick = function () {
           var a = +b.dataset.more, mm = (S.hifz[sn] || []).indexOf(a) >= 0, rep = 0;
           openSheet("Verset " + a, '<button class="tcard" id="mmem"><span><b>' + (mm ? "Retirer de mes versets mémorisés" : "Marquer comme mémorisé") + '</b></span></button>' +
             '<button class="tcard" id="mrep"><span><b>Répéter</b><small>Comptez vos répétitions avant de réciter de mémoire.</small></span><span class="pill" id="rc">0 / 3</span></button>' +
+            '<button class="tcard" id="mloop"><span><b>Écouter en boucle</b><small>Répéter ce verset ou un passage pour le mémoriser.</small></span></button>' +
+            '<button class="tcard" id="mrec"><span><b>M\'enregistrer</b><small>Réciter, puis comparer avec le récitateur.</small></span></button>' +
             '<button class="tcard" id="mlu"><span><b>Marquer lus les versets 1 à ' + a + '</b></span></button>', function (w) {
-            $("#mmem", w).onclick = function () { var L2 = S.hifz[sn] || [], i = L2.indexOf(a); if (i >= 0) L2.splice(i, 1); else L2.push(a); S.hifz[sn] = L2; save(); closeSheet(); render(); };
+            $("#mloop", w).onclick = function () { closeSheet(true); loopSheet(sn, N, a); };
+            $("#mrec", w).onclick = function () { closeSheet(true); recSheet(sn, a); };
+            $("#mmem", w).onclick = function () { var L2 = S.hifz[sn] || [], i = L2.indexOf(a); if (i >= 0) L2.splice(i, 1); else L2.push(a); S.hifz[sn] = L2; revSync(); save(); toast(i >= 0 ? "Verset retiré de la révision." : "Verset mémorisé : il reviendra en révision demain."); closeSheet(); render(); };
             $("#mrep", w).onclick = function () { rep++; $("#rc", w).textContent = rep + " / 3"; if (rep === 3) toast("Trois répétitions : essayez de mémoire."); };
             $("#mlu", w).onclick = function () { s.v.forEach(function (v) { if (v[0] <= a) kMark(sn, v[0], true); }); S.last = { s: sn, a: a }; save(); creditReading(); closeSheet(); render(); };
           });
@@ -703,7 +1136,7 @@
       var cur = null; E.forEach(function (et) { if (!cur && etapeOpen(pal, et.n) && !etapeState(pal.id, et).complete) cur = et; });
       var html = '<div class="row between phead"><h2 style="margin:0">Apprendre</h2><a class="pill gold" href="#/parcours">' + (opt.parcours ? totalPts(opt) : 0) + ' pts</a></div>' +
         '<p class="lead2">Je souhaite étudier…</p><p class="muted" style="margin-top:0">Les thèmes de mon parcours, de l\'Étincelle à l\'Étoile.</p>' +
-        '<div class="chipsH">' + E.map(function (et) { return '<a class="chip" href="#/parcours/initie/' + et.n + '">' + esc(et.titre) + '</a>'; }).join("") + '<a class="chip" href="#/alphabet">Alphabet</a><a class="chip" href="#/tajwid">Tajwid</a></div>';
+        '<div class="chipsH">' + E.map(function (et) { return '<a class="chip" href="#/parcours/initie/' + et.n + '">' + esc(et.titre) + '</a>'; }).join("") + '<a class="chip" href="#/alphabet">Alphabet</a><a class="chip" href="#/tajwid">Tajwid</a><a class="chip" href="#/guide">Ablutions et prière</a><a class="chip" href="#/glossaire">Glossaire</a></div>';
       if (cur) html += '<h3>Pour continuer</h3><a class="ccard cbig" href="#/parcours/initie/' + cur.n + '"><span class="dur">≈ ' + dureeEtape(cur) + ' min</span><b>' + esc(cur.titre) + '</b><span>' + esc(cur.resume || "") + '</span><span class="muted2">Étape ' + cur.n + ' · ' + etapeState(pal.id, cur).lec + ' / 4 leçons ' + ICO.arrow + '</span></a>';
       html += '<div class="row between"><h3>Mon parcours : ' + esc(pal ? pal.nom : "") + '</h3><a href="#/parcours">Tout afficher</a></div><div class="hscroll">' + E.map(function (et) {
         var stt2 = etapeState(pal.id, et), open = etapeOpen(pal, et.n);
@@ -712,7 +1145,17 @@
       html += '<h3>Lire et réciter</h3><div class="hscroll">' +
         '<a class="ccard" href="#/alphabet"><b>Alphabet et lecture</b><span class="muted2">Les lettres, les voyelles, la phonétique</span></a>' +
         '<a class="ccard" href="#/tajwid"><b>Tajwid</b><span class="muted2">Les règles de la récitation</span></a>' +
-        '<a class="ccard" href="#/niveaux"><b>Repères de mémorisation</b><span class="muted2">Sourate par sourate</span></a></div>';
+        '<a class="ccard" href="#/niveaux"><b>Repères de mémorisation</b><span class="muted2">Sourate par sourate</span></a>' +
+        '<a class="ccard" href="#/revision"><b>Révision du jour</b><span class="muted2">' + revDue().length + ' versets à réviser</span></a></div>' +
+        '<h3>Pratiquer</h3><div class="hscroll">' +
+        '<a class="ccard" href="#/guide?t=wudu"><b>Les ablutions</b><span class="muted2">Pas à pas, selon l\'école malikite</span></a>' +
+        '<a class="ccard" href="#/guide?t=salat"><b>La prière</b><span class="muted2">Les gestes et les paroles</span></a>' +
+        '<a class="ccard" href="#/jeune"><b>Le jeûne</b><span class="muted2">Ramaḍân, rattrapage, jeûnes recommandés</span></a>' +
+        '<a class="ccard" href="#/zakat"><b>La zakât</b><span class="muted2">Calcul et règles</span></a>' +
+        (femmeVisible() ? '<a class="ccard" href="#/femme"><b>Espace femme</b><span class="muted2">Règles propres et pause</span></a>' : '') + '</div>' +
+        '<h3>Comprendre</h3><div class="hscroll">' +
+        '<a class="ccard" href="#/converti"><b>Nouveau musulman</b><span class="muted2">Mes 30 premiers jours</span></a>' +
+        '<a class="ccard" href="#/glossaire"><b>Glossaire</b><span class="muted2">Les mots de l\'islam</span></a></div>';
       return { title: "Apprendre", html: html, tab: "#/apprendre" };
     });
   });
@@ -734,6 +1177,14 @@
         fc("#/scanner", "Scanner halal", "Vérifie le label halal déclaré d'un produit par son code-barres.", "bêta") +
         fc("#/evenements", "Événements à venir", "Les prochaines dates du calendrier hégirien.") +
         fc("#/qibla", "Trouver la qibla", "La boussole pour trouver la direction de la Kaaba où que tu sois.") +
+        fc("#/guide", "Ablutions et prière", "Le guide pas à pas, selon l'école malikite.") +
+        fc("#/jeune", "Le jeûne", "Ramaḍân, jours à rattraper, jeûnes recommandés.") +
+        fc("#/zakat", "La zakât", "Calcule la zakât sur tes biens.") +
+        (!kid && femmeVisible() ? fc("#/femme", "Espace femme", "Règles propres à la femme et pause du suivi des prières.") : '') +
+        fc("#/converti", "Nouveau musulman", "Les 30 premiers jours, pas à pas.") +
+        fc("#/glossaire", "Glossaire", "Les mots de l'islam expliqués simplement.") +
+        fc("#/revision", "Révision du jour", "Les versets mémorisés à réviser.") +
+        fc("#/audio", "Récitations hors ligne", "Les sourates téléchargées sur cet appareil.") +
         '<h3>NÛR</h3>' +
         fc("#/parcours", "Mon parcours et mes points", "Paliers, étapes, leçons et quiz.") +
         fc("#/khatm", "Ma lecture complète du Coran", "Khatm et lecture du jour.") +
@@ -758,16 +1209,16 @@
       var html = '<div class="qhead"><span class="avatar big">' + esc(initiale()) + '</span><div><div class="salutM">' + esc(p && p.nom ? p.nom : "Mon profil") + '</div><a class="hchip light" href="#/priere/reglages">' + ICO.pin + ' ' + esc(L.name) + '</a></div></div>' +
         '<div class="card gold"><strong>Le rappel profite au croyant</strong><p>Tu penses que NÛR pourrait aider un proche à se rapprocher de Dieu ? Partage-lui l\'application, gratuite et sans publicité.</p><button class="btn alt" id="shapp">Partager à un proche ' + ICO.arrow + '</button></div>' +
         '<h3>Mes points</h3><a class="card plain-link" href="#/parcours"><div class="row between"><strong>' + (opt.parcours ? totalPts(opt) : 0) + ' points</strong><span class="pill">' + esc(st2 ? st2.pal.nom : "") + '</span></div>' + (st2 && st2.pal.seuil ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(100 * st2.pts / st2.pal.seuil)) + '%"></i></div><div class="muted">' + st2.pts + ' / ' + st2.pal.seuil + ' pour le palier suivant</div>' : '') + '</a>' +
-        '<h3>Paramètres</h3>' + lc("#/priere/reglages", "Horaires de prière") + '<div class="card"><strong>Langue</strong>' + langChips() + '<p class="muted" style="margin:0">' + (LK() === "fr" ? "" : "Les leçons, quiz et hadiths restent en français pour l\'instant ; la traduction du Coran suit la langue choisie.") + '</p></div>' +
-        lc("#/profils", "Profils de l\'appareil") + lc("#/reglages", "Tous les réglages") +
+        '<h3>Paramètres</h3>' + lc("#/priere/reglages", "Horaires de prière") + '<div class="card"><strong>Langue</strong>' + langChips() + '</div>' +
+        lotsSettingsHTML() + lc("#/profils", "Profils de l\'appareil") + lc("#/reglages", "Tous les réglages") +
         '<h3>À propos</h3><a class="lcardM" href="#" id="shapp2"><span>Partager NÛR</span>' + ICO.arrow + '</a>' +
         '<div class="lcardM"><span>Nous contacter</span><span class="muted">en construction</span></div>' +
         lc("#/conditions", "Conditions d\'utilisation") + lc("#/confidentialite", "Politique de confidentialité") + lc("#/apropos", "Sources et licences") +
         '<a class="lcardM danger" href="#/reglages"><span>Supprimer mes données</span>' + ICO.arrow + '</a>' +
         '<p class="muted center">Version : ' + VERSION + '</p><p class="muted center appid">Identifiant d\'installation<br><code id="aid">' + esc(appId()) + '</code> <button class="btn alt" id="cpid">Copier</button></p>';
       return { title: "Profil", html: html, back: "#/", tab: null, bind: function (r) {
-        bindLang(r);
-        function sh(e) { if (e) e.preventDefault(); share("NÛR", "NÛR : apprendre le Coran et les bases de la foi, pas à pas. Gratuit, sans publicité. " + location.origin + location.pathname); }
+        bindLang(r); bindLotsSettings(r);
+        function sh(e) { if (e) e.preventDefault(); share("NÛR", tr("NÛR : apprendre le Coran et les bases de la foi, pas à pas. Gratuit, sans publicité.") + " " + location.origin + location.pathname); }
         $("#shapp", r).onclick = sh; $("#shapp2", r).onclick = sh;
         $("#cpid", r).onclick = function () { var t = appId(); if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { toast("Identifiant copié."); }, function () { toast(t); }); else toast(t); };
       } };
@@ -789,7 +1240,7 @@
       if (!S.dhk || S.dhk.k !== k) S.dhk = { k: k, c: {} };
       var html = '<h2>Les dhikr</h2><p class="muted">Touchez la formule pour compter. Les compteurs repartent à zéro chaque jour.</p>' + D.map(function (x, i) {
         var c = S.dhk.c[i] || 0, pct = Math.min(100, Math.round(100 * c / x.cible));
-        return '<div class="invrow"><div><b>' + esc(x.ph) + '</b> <span class="muted">' + x.cible + ' fois</span><div class="ar small" lang="ar" dir="rtl">' + esc(x.ar) + '</div><div class="muted">' + esc(x.fr) + '</div></div><button class="ring" data-dk="' + i + '" style="--p:' + pct + '" aria-label="Compter"><span>' + c + '/' + x.cible + '</span></button></div>';
+        return '<div class="invrow"><div><b class="ph">' + esc(x.ph) + '</b> <span class="muted">' + x.cible + ' fois</span><div class="ar small" lang="ar" dir="rtl">' + esc(x.ar) + '</div><div class="muted">' + esc(x.fr) + '</div></div><button class="ring" data-dk="' + i + '" style="--p:' + pct + '" aria-label="Compter"><span>' + c + '/' + x.cible + '</span></button></div>';
       }).join("") + NOTE_VALIDATION;
       return { title: "Dhikr", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
         $$("[data-dk]", r).forEach(function (b) { b.onclick = function () { var i = +b.dataset.dk; S.dhk.c[i] = (S.dhk.c[i] || 0) + 1; save(); if (navigator.vibrate) navigator.vibrate(10); render(); }; });
@@ -820,7 +1271,7 @@
     }
     var html = '<h2>Événements à venir</h2>' + (out.length ? '<ul class="list">' + out.map(function (x) {
       var dl = new Intl.DateTimeFormat(UIL(), { timeZone: "UTC", weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(x[0].y, x[0].m - 1, x[0].d, 12)));
-      return '<li><div class="card" style="margin:0"><strong>' + esc(x[1]) + '</strong><div class="muted">' + esc(dl) + ' · ' + esc(hijriOf(x[0])) + (x[2] === 0 ? " · aujourd'hui" : " · dans " + x[2] + " jours") + '</div></div></li>';
+      return '<li><div class="card" style="margin:0"><strong>' + esc(x[1]) + '</strong><div class="muted"><span data-noi18n>' + esc(dl) + ' · ' + esc(hijriOf(x[0])) + '</span> · <span>' + (x[2] === 0 ? "aujourd'hui" : "dans " + x[2] + " jours") + '</span></div></div></li>';
     }).join("") + '</ul>' : '<p>Calendrier hégirien indisponible sur ce navigateur.</p>') +
       '<p class="muted">Dates calculées selon le calendrier Umm al-Qurâ ; elles peuvent varier d\'un jour selon l\'observation de la lune et les annonces de votre mosquée. Le décalage se règle dans les réglages. Les nuits commencent au coucher du soleil de la veille.</p>';
     return { title: "Événements", html: html, back: "#/plus", tab: "#/plus" };
@@ -985,24 +1436,35 @@
     if (!PL.q.length) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement("div"); b.id = "pbar"; b.className = "pbar"; document.body.appendChild(b); }
     var it = PL.q[PL.i] || PL.q[0];
-    b.innerHTML = '<div class="pinfo"><b>' + esc(reciter()[1]) + '</b><span>Sourate ' + PL.sn + (it ? (it[1] ? ', verset ' + it[1] : ', basmala') : '') + '</span></div>' +
+    b.innerHTML = '<div class="pinfo"><b>' + esc(reciter()[1]) + '</b><span>Sourate ' + PL.sn + (it ? (it[1] ? ', verset ' + it[1] : ', basmala') : '') + ((PL.rep || 1) > 1 ? ' · ' + (PL.cnt + 1) + ' / ' + PL.rep : '') + (PL.loops !== 1 && PL.loops != null ? ' · boucle ' + PL.loopN + (PL.loops ? ' / ' + PL.loops : '') : '') + '</span></div>' +
       '<button class="ib" id="pprev" aria-label="Verset précédent">⏮</button><button class="ib big" id="pplay" aria-label="' + (PL.on ? "Pause" : "Lecture") + '">' + (PL.on ? "❚❚" : "▶") + '</button><button class="ib" id="pnext" aria-label="Verset suivant">⏭</button><button class="ib" id="pstop" aria-label="Fermer le lecteur">×</button>';
     $("#pprev", b).onclick = function () { plGo(Math.max(0, PL.i - 1)); };
     $("#pnext", b).onclick = function () { plGo(Math.min(PL.q.length - 1, PL.i + 1)); };
     $("#pplay", b).onclick = function () { if (PL.on) { PL.a.pause(); PL.on = false; plBar(); plMark(); } else plGo(PL.i); };
     $("#pstop", b).onclick = plStop;
+    i18n(b);
   }
   function plGo(i) {
     PL.i = i; var it = PL.q[i]; if (!it) return plStop();
-    if (!PL.a) { PL.a = new Audio(); PL.a.onended = function () { if (PL.i + 1 < PL.q.length) plGo(PL.i + 1); else { PL.on = false; plBar(); plMark(); } }; PL.a.onerror = function () { toast("Récitation indisponible : vérifiez la connexion."); PL.on = false; plBar(); }; }
-    PL.a.src = plUrl(PL.sn, it[0]); PL.a.playbackRate = S.settings.speed || 1;
-    PL.a.play().then(function () { PL.on = true; plBar(); plMark(); }).catch(function () { PL.on = false; plBar(); });
+    if (!PL.a) { PL.a = new Audio(); PL.a.onended = function () {
+      if ((PL.rep || 1) > 1 && ++PL.cnt < PL.rep) return plGo(PL.i);
+      PL.cnt = 0;
+      if (PL.i + 1 < PL.q.length) plGo(PL.i + 1);
+      else if (PL.loops === 0 || (PL.loops > 1 && PL.loopN < PL.loops)) { PL.loopN++; plGo(0); }
+      else { PL.on = false; plBar(); plMark(); }
+    }; PL.a.onerror = function () { toast("Récitation indisponible : vérifiez la connexion ou téléchargez la sourate pour l'écoute hors ligne."); PL.on = false; plBar(); }; }
+    var tok = PL.tok = (PL.tok || 0) + 1;
+    plSrc(plUrl(PL.sn, it[0])).then(function (src) {
+      if (tok !== PL.tok) return;
+      PL.a.src = src; PL.a.playbackRate = S.settings.speed || 1;
+      PL.a.play().then(function () { PL.on = true; plBar(); plMark(); }).catch(function () { PL.on = false; plBar(); });
+    });
   }
   function plStop() { if (PL.a) PL.a.pause(); PL.on = false; PL.q = []; plBar(); plMark(); }
-  function playVerse(sn, w) { return loadHafs().then(function () { PL.sn = sn; PL.q = (w === 0 ? [1] : hafsCover(sn, w)).map(function (h) { return [h, w]; }); plGo(0); }); }
+  function playVerse(sn, w) { return loadHafs().then(function () { PL.rep = 1; PL.cnt = 0; PL.loops = 1; PL.loopN = 1; PL.sn = sn; PL.q = (w === 0 ? [1] : hafsCover(sn, w)).map(function (h) { return [h, w]; }); plGo(0); }); }
   function playFrom(sn, w) {
     return loadHafs().then(function () {
-      var A = HAFS[sn] || []; PL.sn = sn; PL.q = [];
+      var A = HAFS[sn] || []; PL.rep = 1; PL.cnt = 0; PL.loops = 1; PL.loopN = 1; PL.sn = sn; PL.q = [];
       A.forEach(function (fl, i) { if (fl[0] >= w || (fl[1] >= w && fl[0] < w)) PL.q.push([i + 1, Math.max(fl[0], w)]); });
       plGo(0);
     });
@@ -1021,12 +1483,12 @@
 
   /* ---------------------------------------------------------------- lieu : recherche mondiale, GPS précis, mise à jour automatique */
   function geoSearch(qs) {
-    return fetch("https://geocoding-api.open-meteo.com/v1/search?count=8&language=fr&format=json&name=" + encodeURIComponent(qs)).then(function (r) { return r.json(); }).then(function (j) {
+    return fetch("https://geocoding-api.open-meteo.com/v1/search?count=8&language=" + (LK() === "fr" ? "fr" : LK()) + "&format=json&name=" + encodeURIComponent(qs)).then(function (r) { return r.json(); }).then(function (j) {
       return (j.results || []).map(function (x) { return { name: x.name + (x.admin1 && x.admin1 !== x.name ? ", " + x.admin1 : "") + (x.country ? ", " + x.country : ""), lat: +x.latitude.toFixed(4), lng: +x.longitude.toFixed(4), tz: x.timezone || "UTC" }; });
     });
   }
   function revGeo(lat, lng) {
-    return fetch("https://nominatim.openstreetmap.org/reverse?format=json&zoom=12&accept-language=fr&lat=" + lat + "&lon=" + lng).then(function (r) { return r.json(); }).then(function (j) {
+    return fetch("https://nominatim.openstreetmap.org/reverse?format=json&zoom=12&accept-language=" + (LK() === "fr" ? "fr" : LK()) + "&lat=" + lat + "&lon=" + lng).then(function (r) { return r.json(); }).then(function (j) {
       var a = j.address || {}; return [a.city || a.town || a.village || a.municipality || a.suburb || a.county, a.country].filter(Boolean).join(", ");
     }).catch(function () { return ""; });
   }
@@ -1109,7 +1571,9 @@
   function UIL() { var l = LANG(); return l === "fr" ? "fr-FR" : l === "zh" ? "zh-CN" : l === "ar" ? "ar" : l; }
   function TRF() { var k = LK(); return k === "en" ? "traduction-en.json" : k === "zh" ? "traduction-zh.json" : k === "ar" ? "tafsir-ar.json" : "traduction-fr.json"; }
   function noteFr() { var f = OPT && OPT.fr; return f ? (LK() === "ar" ? "التفسير : " : LK() === "fr" ? "Traduction du sens : " : LK() === "zh" ? "译文：" : "Translation: ") + f.source + "." : ""; }
-  function setLang(l) { if (STORE.active) S.settings.lang = l; STORE.lang = l; OPT = null; save(); applyLang(); }
+  /* hors ligne : le dictionnaire et la traduction du Coran de la langue choisie sont chargés une fois, puis gardés par le service worker */
+  function prefetchLang() { if (LK() === "fr") return; try { fetch("i18n-" + LK() + ".json").catch(function () {}); fetch(TRF()).catch(function () {}); } catch (e) {} }
+  function setLang(l) { if (STORE.active) S.settings.lang = l; STORE.lang = l; OPT = null; save(); applyLang(); prefetchLang(); }
   function applyLang() { var k = LK(); document.documentElement.lang = k === "zh" ? "zh-CN" : LANG(); document.documentElement.dir = k === "ar" ? "rtl" : "ltr"; }
   var D = [
     ["Apprendre", "Learn", "学习", "تعلّم"], ["Prière", "Prayer", "礼拜", "الصلاة"], ["Quotidien", "Daily", "每日", "يومي"], ["Coran", "Quran", "古兰经", "القرآن"], ["Plus", "More", "更多", "المزيد"],
@@ -1181,6 +1645,9 @@
     [/^(.+) · (\d+) versets · (\d+) lus$/, ["$1 · $2 verses · $3 read", "$1 · $2 节 · 已读 $3", "$1 · $2 آية · قُرئ $3"]],
     [/^: (\d+) \/ (\d+) versets marqués « lu » aujourd'hui ; à (\d+), \+(\d+) points\.$/, [": $1 / $2 verses marked as read today; at $3, +$4 points.", "：今天已标记 $1 / $2 节；满 $3 节得 +$4 分。", ": $1 / $2 آيات مقروءة اليوم؛ عند $3 تحصل على +$4 نقاط."]],
     [/^: validée aujourd'hui \(\+(\d+) points\)\.$/, [": done today (+$1 points).", "：今日已完成（+$1 分）。", ": أُنجز اليوم (+$1 نقاط)."]],
+    [/^Lieu enregistré : (.+)$/, ["Location saved: $1", "地点已保存：$1", "تم حفظ الموقع: $1"]],
+    [/^Lieu mis à jour : (.+)$/, ["Location updated: $1", "地点已更新：$1", "تم تحديث الموقع: $1"]],
+    [/^Ajouter un à (.+)$/, ["Add one to $1", "为 $1 加一", "إضافة واحد إلى $1"]],
     [/^(.+) \(lieu par défaut\)$/, ["$1 (default location)", "$1（默认地点）", "$1 (الموقع الافتراضي)"]],
     [/^(\d+) points par prière marquée\. Suivi privé, sur cet appareil\.$/, ["$1 points per prayer marked. Private, on this device.", "每记录一次礼拜得 $1 分。仅保存在本设备。", "$1 نقاط لكل صلاة مسجّلة. متابعة خاصة على هذا الجهاز."]],
     [/^C'est l'heure de la prière\.$/, ["It is time for prayer.", "礼拜时间到了。", "حان وقت الصلاة."]],
@@ -1188,20 +1655,102 @@
     [/^Ton verset du jour t'attend\.$/, ["Your verse of the day is waiting.", "今日经文在等你。", "آية اليوم في انتظارك."]],
     [/^(\d+) \/ (\d+) versets$/, ["$1 / $2 verses", "$1 / $2 节", "$1 / $2 آية"]], [/^(\d+) \/ 114 sourates$/, ["$1 / 114 surahs", "$1 / 114 章", "$1 / 114 سورة"]]
   ];
-  function tr(t) {
-    var k = LK(); if (k === "fr" || !t) return t;
-    var s = t.trim(); if (!s) return t;
-    var hit = DI[k][s];
-    if (hit === undefined) for (var i = 0; i < DP.length; i++) { var m = DP[i][0]; if (m.test(s)) { hit = s.replace(m, DP[i][1][k === "en" ? 0 : k === "zh" ? 1 : 2]); break; } }
-    return hit === undefined ? t : t.replace(s, hit);
+  /* ---------------------------------------------------------------- traduction intégrale (v1.6) : dictionnaires i18n-en.json, i18n-zh.json, i18n-ar.json */
+  /* Clé = texte français normalisé ; les nombres deviennent {0}, {1}… ; une clé commençant par « < » est un fragment HTML (texte avec mise en forme). */
+  var DX = {};
+  function loadDict() {
+    var k = LK(); if (k === "fr" || DX[k]) return Promise.resolve();
+    return fetch("i18n-" + k + ".json").then(function (r) { return r && r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (j) { DX[k] = j || {}; });
   }
+  function nk(s) { return String(s).replace(/[\s\u00a0]+/g, " ").trim(); }
+  function tpl(s) { var n = []; return [s.replace(/\d+(?:[.,]\d+)*/g, function (m) { n.push(m); return "{" + (n.length - 1) + "}"; }), n]; }
+  function fill(t, n) { var dot = LK() !== "fr"; return t.replace(/\{(\d+)\}/g, function (m, i) { var v = n[+i]; if (v === undefined) return m; return dot && /^\d+,\d+$/.test(v) ? v.replace(",", ".") : v; }); }
+  var GB = [[/\b([Cc]olo)r(s?)\b/g, "$1ur$2"], [/\b([Ff]avo)r(ites?)\b/g, "$1ur$2"], [/\b([Cc]ent)er(s?)\b/g, "$1re$2"], [/\b([Pp]rogram)(s?)\b/g, "$1me$2"],
+    [/\b([Mm]emori|[Rr]ecogni|[Oo]rgani|[Rr]eali|[Pp]ersonali|[Cc]ustomi|[Aa]pologi|[Pp]rioriti|[Ss]ummari|[Ff]amiliari|[Ss]tandardi|[Ll]ocali|[Aa]uthori)z(e|es|ed|ing|ation|ations)\b/g, "$1s$2"],
+    [/\b([Aa]naly)z(e|es|ed|ing)\b/g, "$1s$2"], [/\b([Bb]ehavi|[Hh]on|[Nn]eighb|[Ff]lav|[Hh]um|[Ll]ab)or(s?|ed|ing)\b/g, "$1our$2"], [/\b([Gg])ray\b/g, "$1rey"],
+    [/\b([Tt]rave|[Cc]ance|[Ll]abe)l(ed|ing|er|ers)\b/g, "$1ll$2"], [/\b([Ff]ulfi)ll\b/g, "$1l"], [/\b([Cc]atalo)g\b/g, "$1gue"], [/\b([Pp]ractic)e(s?)\b(?= (?:the|it|this|your|a|an|daily|regularly|every)\b)/g, "$1se$2"]];
+  function gb(t) { if (LANG() !== "en-GB") return t; GB.forEach(function (r) { t = t.replace(r[0], r[1]); }); return t; }
+  var COL = window.__NUR_COL_ON ? {} : null;
+  function collect(k) { if (COL && k && /[A-Za-zÀ-ÿ]/.test(k)) COL[k] = 1; }
+  function look(s) {
+    var k = LK(), d = DX[k] || {}, hit = d[s];
+    if (hit === undefined && DI[k]) hit = DI[k][s];
+    if (hit === undefined) { var t = tpl(s); if (t[1].length) { var h2 = d[t[0]]; if (h2 !== undefined) hit = fill(h2, t[1]); } }
+    if (hit === undefined) for (var i = 0; i < DP.length; i++) { var m = DP[i][0]; if (m.test(s)) { var T0 = DP[i][1][k === "en" ? 0 : k === "zh" ? 1 : 2]; hit = s.replace(m, function () { var g = Array.prototype.slice.call(arguments, 1); return T0.replace(/\$(\d)/g, function (z, n) { var v = g[+n - 1]; if (typeof v !== "string") return ""; var t = /^[\d\s]+$/.test(v) || !/[A-Za-zÀ-ÿ]/.test(v) ? undefined : look(nk(v)); return t !== undefined ? t : v; }); }); break; } }
+    return hit === undefined ? undefined : gb(hit);
+  }
+  function tr(t) {
+    if (t == null) return t; t = String(t);
+    var s = nk(t); if (!s) return t;
+    if (COL) collect(tpl(s)[0]);
+    if (LK() === "fr") return t;
+    var hit = look(s); if (hit === undefined) { if (window.__NUR_MISS) window.__NUR_MISS[s] = 1; return t; }
+    var a = t.match(/^[\s\u00a0]*/)[0], z = t.match(/[\s\u00a0]*$/)[0];
+    return a + hit + z;
+  }
+  var SKIP = ".mushaf,.ar-line,.trfr,[lang='ar']:not(html),code,script,style,[data-noi18n],.langs,.ph";
+  var INL = { B: 1, STRONG: 1, EM: 1, I: 1, A: 1, SPAN: 1, BR: 1, SMALL: 1, SUP: 1, SUB: 1, Q: 1, ABBR: 1 };
+  function inlineOnly(e) {
+    var hasText = false, ok = true;
+    for (var c = e.firstChild; c; c = c.nextSibling) {
+      if (c.nodeType === 3) { if (/\S/.test(c.nodeValue)) hasText = true; }
+      else if (c.nodeType === 1) {
+        if (!INL[c.tagName] || c.id || c.hasAttribute("onclick") || c.matches(SKIP)) { ok = false; break; }
+        for (var i = 0; i < c.attributes.length; i++) if (/^data-/.test(c.attributes[i].name)) { ok = false; break; }
+        if (!ok || !inlineOnly2(c)) { ok = false; break; }
+      }
+    }
+    if (!ok || !hasText || !e.firstElementChild) return false;
+    var dt = ""; for (var c2 = e.firstChild; c2; c2 = c2.nextSibling) if (c2.nodeType === 3) dt += c2.nodeValue;
+    return /[A-Za-zÀ-ÿ]{2,}.*\s.*[A-Za-zÀ-ÿ]{2,}/.test(dt);
+  }
+  function inlineOnly2(e) { for (var c = e.firstElementChild; c; c = c.nextElementSibling) { if (!INL[c.tagName] || c.id || c.matches(SKIP)) return false; if (!inlineOnly2(c)) return false; } return true; }
   function i18n(root) {
-    if (LK() === "fr" || !root) return;
+    if (!root) return;
+    var k = LK(); if (k === "fr" && !COL) return;
+    var done = [];
+    /* 1. phrases avec mise en forme : traduites d'un bloc */
+    $$("p, li, dd, dt, td, th, h2, h3, h4, label, summary, blockquote, .callout, .sens, div.muted", root).forEach(function (e) {
+      if (!e.isConnected || e.closest(SKIP) || done.some(function (d) { return d.contains(e); })) return;
+      if (!inlineOnly(e)) return;
+      var key = nk(e.innerHTML); if (!key || !/[A-Za-zÀ-ÿ]/.test(e.textContent)) return;
+      var t = tpl(key); if (COL) collect(t[0]);
+      if (k === "fr") { done.push(e); return; }
+      var d = DX[k] || {}, h = d[key] !== undefined ? d[key] : (d[t[0]] !== undefined ? fill(d[t[0]], t[1]) : undefined);
+      if (h !== undefined) { e.innerHTML = gb(h); done.push(e); }
+    });
+    /* 2. textes simples */
     var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, L = [];
     while ((n = w.nextNode())) L.push(n);
-    L.forEach(function (x) { var p = x.parentNode; if (p && (p.closest(".mushaf,.ar-line,.ph,.trfr,.lesson,.hq,.fiche p,.nt") )) return; var v = tr(x.nodeValue); if (v !== x.nodeValue) x.nodeValue = v; });
-    $$("[aria-label],[placeholder]", root).forEach(function (e) { ["aria-label", "placeholder"].forEach(function (a) { var v = e.getAttribute(a); if (v) { var t2 = tr(v); if (t2 !== v) e.setAttribute(a, t2); } }); });
+    L.forEach(function (x) {
+      var p = x.parentNode; if (!p || p.nodeType !== 1) return;
+      if (p.closest(".ph")) { if (k !== "fr") { if (x.__ph == null) x.__ph = x.nodeValue; x.nodeValue = phIntl(x.__ph); } return; }
+      if (p.closest(SKIP) || done.some(function (d) { return d.contains(p); })) return;
+      var v = tr(x.nodeValue); if (v !== x.nodeValue) x.nodeValue = v;
+    });
+    /* 3. attributs */
+    [root].concat($$("[aria-label],[placeholder],[title],[alt]", root)).forEach(function (e) { if (!e.getAttribute) return; ["aria-label", "placeholder", "title", "alt"].forEach(function (a) { var v = e.getAttribute(a); if (v && !/^\d{4}-\d\d-\d\d/.test(v)) { var t2 = tr(v); if (t2 !== v) e.setAttribute(a, t2); } }); });
   }
+  (function () {
+    var oc = window.confirm, op = window.prompt, oa = window.alert;
+    if (oc) window.confirm = function (m) { return oc.call(window, tr(m)); };
+    if (op) window.prompt = function (m, d) { return op.call(window, tr(m), d); };
+    if (oa) window.alert = function (m) { return oa.call(window, tr(m)); };
+  })();
+  /* textes ajoutés après l'affichage (résultats, compteurs, boussole…) : traduits à la volée */
+  var MO = null, MOO = { childList: true, subtree: true, characterData: true };
+  function startMO() {
+    if (MO || !window.MutationObserver) return;
+    MO = new MutationObserver(function (ms) {
+      if (LK() === "fr" && !COL) return;
+      var set = [];
+      ms.forEach(function (m) { var t = m.type === "characterData" ? m.target.parentNode : m.target; if (t && t.nodeType === 1 && set.indexOf(t) < 0) set.push(t); });
+      MO.disconnect();
+      try { set.forEach(function (e) { if (e.isConnected && !e.closest(".mushaf,.ar-line,.trfr")) i18n(e); }); } finally { MO.observe(document.body, MOO); }
+    });
+    MO.observe(document.body, MOO);
+  }
+  window.__NUR_COLLECT = function (on) { COL = on ? (COL || {}) : null; return COL ? Object.keys(COL) : []; };
   function langChips() {
     return '<div class="chipsH langs nt" role="group" aria-label="Langue">' + LANGS.map(function (l) { return '<button class="chip' + (LANG() === l[0] ? " on" : "") + '" data-lang="' + l[0] + '" aria-pressed="' + (LANG() === l[0]) + '">' + l[1] + '</button>'; }).join("") + '</div>';
   }
@@ -1401,7 +1950,7 @@
       if (!kid) {
         html += '<div class="row between" style="margin-top:1rem">' + (sn > 1 ? '<a class="btn alt" href="#/reciter/' + (sn - 1) + '">Sourate précédente</a>' : '<span></span>') +
           (sn < 114 ? '<a class="btn alt" href="#/reciter/' + (sn + 1) + '">Sourate suivante</a>' : '<span></span>') + '</div>';
-        html += '<p class="muted">Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. ' + NOTE_PHON + ' Traduction française et récitations audio : à venir.</p>';
+        html += '<p class="muted"><span>Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ.</span> <span>' + NOTE_PHON + '</span></p>';
       }
       return { title: s.fr, html: html, back: kid ? "#/enfant" : "#/reciter", tab: kid ? null : "#/reciter", kid: kid, bind: function (r) {
         var sel = null; bindArSeul(r);
@@ -1438,7 +1987,7 @@
           };
           $("#aBm", box).onclick = function () { var i = S.bookmarks.indexOf(sn + ":" + a); if (i >= 0) S.bookmarks.splice(i, 1); else S.bookmarks.push(sn + ":" + a); save(); render(); };
           $("#aRd", box).onclick = function () { s.v.forEach(function (v) { if (v[0] <= a) kMark(sn, v[0], true); }); save(); toast("Versets 1 à " + a + " marqués comme lus."); creditReading(); render(); };
-          $("#aSh", box).onclick = function () { share("NÛR", "Sourate " + s.fr + " (" + sn + "), verset " + a + " — à lire dans NÛR."); };
+          $("#aSh", box).onclick = function () { share("NÛR", tr("Sourate " + s.fr + " (" + sn + "), verset " + a) + " — " + tr("à lire dans NÛR.")); };
         }
         $$(".v", r).forEach(function (el) {
           el.addEventListener("click", function () { pick(el); });
@@ -1525,7 +2074,7 @@
       function add(inp, key, ul) { var v = $(inp, r).value.trim(); if (!v) return; S[key].push(v); save(); $(inp, r).value = ""; list(key, ul); }
       $("#ga", r).onclick = function () { add("#gi", "gratitudes", "#gl"); };
       $("#ia", r).onclick = function () { add("#ii", "intentions", "#il"); };
-      $("#sh", r).onclick = function () { share("NÛR", "Je vous invite à découvrir NÛR, une application sans publicité pour lire le Coran et suivre les heures de prière."); };
+      $("#sh", r).onclick = function () { share("NÛR", tr("Je vous invite à découvrir NÛR, une application sans publicité pour lire le Coran et suivre les heures de prière.")); };
       list("gratitudes", "#gl"); list("intentions", "#il");
     } };
   });
@@ -1765,8 +2314,8 @@
   route(/^\/alphabet$/, function () {
     var html = '<h2>Alphabet et lecture</h2>' + NOTE_VALIDATION +
       '<p>L\'arabe s\'écrit de droite à gauche. Il compte 28 lettres, toutes des consonnes ; les voyelles brèves s\'écrivent par de petits signes placés au-dessus ou au-dessous des lettres. Les approximations ci-dessous aident à démarrer, mais <strong>seule l\'écoute d\'un enseignant</strong> permet de bien prononcer.</p>' +
-      '<h3>Les 28 lettres</h3><div class="lgrid">' + LETTERS.map(function (l) {
-        return '<div class="lcard"><div class="lg ar" lang="ar">' + l[0] + '</div><div><strong>' + esc(l[1]) + '</strong> <span class="pill">' + esc(l[2]) + '</span><div class="muted">' + esc(l[3]) + '</div></div></div>';
+      '<h3>Les 28 lettres</h3><p class="muted">Touchez ▶ pour entendre le nom de la lettre avec la voix arabe de l\'appareil.</p><div class="lgrid">' + LETTERS.map(function (l, i) {
+        return '<div class="lcard"><div class="lg ar" lang="ar">' + l[0] + '</div><div><strong>' + esc(l[1]) + '</strong> <span class="pill">' + esc(l[2]) + '</span><div class="muted">' + esc(l[3]) + '</div></div><button class="ib" data-say="' + i + '" aria-label="Écouter la lettre ' + esc(l[1]) + '">▶</button></div>';
       }).join("") + '</div>' +
       '<h3>Les voyelles brèves</h3><div class="card"><ul class="plain"><li><span class="ar big2">بَ</span> fatha : « a » (ba)</li><li><span class="ar big2">بُ</span> damma : « ou » (bou)</li><li><span class="ar big2">بِ</span> kasra : « i » (bi)</li></ul></div>' +
       '<h3>Les voyelles longues</h3><div class="card"><ul class="plain"><li><span class="ar big2">بَا</span> fatha + alif : « â » (bâ)</li><li><span class="ar big2">بُو</span> damma + wâw : « oû » (boû)</li><li><span class="ar big2">بِي</span> kasra + yâʾ : « î » (bî)</li><li><span class="ar big2">بَٰ</span> petit alif suscrit (alif-poignard) : « â », très fréquent en Warsh.</li></ul><p class="muted">Une voyelle longue dure environ deux fois plus longtemps qu\'une brève.</p></div>' +
@@ -1949,7 +2498,7 @@
           if (nx[0].i === 0) html += basmalaHTML(q, s0.n);
           html += '<div class="card">' + nx.map(function (v) {
             return '<div class="vline"><div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v.t) + '</div>' + phonLine(v.s.n, v.a, q) + '</div>';
-          }).join("") + '</div>' + arSeulHTML() + '<p class="muted">Texte : riwaya de Warsh ʿan Nâfiʿ. ' + NOTE_PHON + '</p>' + nav("J'ai lu ces versets");
+          }).join("") + '</div>' + arSeulHTML() + '<p class="muted"><span>Texte : riwaya de Warsh ʿan Nâfiʿ.</span> <span>' + NOTE_PHON + '</span></p>' + nav("J'ai lu ces versets");
         } else if (!done) html += '<div class="callout">Toutes les sourates sont marquées comme lues. Le khatm peut être recommencé depuis « Ma lecture complète du Coran ».</div>' + nav("J'ai fait ma lecture du jour");
         else html += '<p class="row"><a class="btn" href="' + nextHref + '">Suivant</a><a class="btn alt" href="#/reciter">Lire encore</a></p>';
         bind = function (r) { bindArSeul(r); validate(r, function () { nx.forEach(function (v) { kMark(v.s.n, v.a, true); }); if (nx.length) { var l = nx[nx.length - 1]; S.last = { s: l.s.n, a: l.a }; } }); };
@@ -1963,7 +2512,7 @@
         if (dz.k !== today()) dz = { k: today(), n: 0 };
         html += '<h2>Dhikr du jour</h2>' + doneNote;
         if (!it) html += '<div class="callout warn">Contenu indisponible : une connexion est nécessaire au premier chargement.</div>';
-        else html += '<div class="card counter"><div class="flashA ar" lang="ar" dir="rtl">' + esc(it.ar) + '</div><p><strong>' + esc(it.ph) + '</strong><br><span class="muted">translittération : ' + esc(it.tr) + '</span></p><p>' + esc(it.fr) + '</p>' +
+        else html += '<div class="card counter"><div class="flashA ar" lang="ar" dir="rtl">' + esc(it.ar) + '</div><p><strong class="ph">' + esc(it.ph) + '</strong><br><span class="muted">translittération : ' + esc(it.tr) + '</span></p><p>' + esc(it.fr) + '</p>' +
           '<div class="num" id="dn" aria-live="polite">' + dz.n + ' / ' + cible + '</div><div class="bar"><i id="db" style="width:' + Math.min(100, Math.round(100 * dz.n / cible)) + '%"></i></div>' +
           '<p><button class="tap" id="dt">Toucher pour compter</button></p></div>' + NOTE_VALIDATION;
         html += done ? '<p class="row"><a class="btn" href="' + nextHref + '">Suivant</a></p>' :
@@ -2145,15 +2694,15 @@
       if (!etapeOpen(pal, et.n) || (li > 1 && !S.parcours.lecons[pal.id + "." + et.n + "." + (li - 1)])) return lockedView(back);
       var nextHref = li < et.lecons.length ? back + "/" + (li + 1) : back;
       var html = '<p class="muted">Étape ' + et.n + ' · leçon ' + li + ' sur ' + et.lecons.length + '</p><div class="lesson"><h2>' + esc(lc.titre) + '</h2>' + lc.texte.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("");
-      if (lc.lettres) html += '<div class="lgrid">' + LETTERS.slice(lc.lettres[0], lc.lettres[1]).map(function (l) {
-        return '<div class="lcard"><div class="lg ar" lang="ar">' + l[0] + '</div><div><strong>' + esc(l[1]) + '</strong> <span class="pill">' + esc(l[2]) + '</span><div class="muted">' + esc(l[3]) + '</div></div></div>';
+      if (lc.lettres) html += '<div class="lgrid">' + LETTERS.slice(lc.lettres[0], lc.lettres[1]).map(function (l, i) {
+        return '<div class="lcard"><div class="lg ar" lang="ar">' + l[0] + '</div><div><strong>' + esc(l[1]) + '</strong> <span class="pill">' + esc(l[2]) + '</span><div class="muted">' + esc(l[3]) + '</div></div><button class="ib" data-say="' + (lc.lettres[0] + i) + '" aria-label="Écouter la lettre ' + esc(l[1]) + '">▶</button></div>';
       }).join("") + '</div>';
       if (lc.versets) {
         var sv = q.byN[lc.versets.s];
         html += '<div class="card">' + lc.versets.a.map(function (a, k) {
           var v = sv.v.filter(function (z) { return z[0] === a; })[0];
           return '<div class="vline"><div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v ? v[1] : "") + '</div>' + phonLine(sv.n, a, q) + '<div class="trfr">' + esc(lc.versets.sens[k] || "") + '</div></div>';
-        }).join("") + '</div>' + arSeulHTML() + '<p class="muted">Texte : riwaya de Warsh ʿan Nâfiʿ. ' + NOTE_PHON + ' Le sens en français est une formulation approchée, rédigée pour NÛR.</p>';
+        }).join("") + '</div>' + arSeulHTML() + '<p class="muted"><span>Texte : riwaya de Warsh ʿan Nâfiʿ.</span> <span>' + NOTE_PHON + '</span> <span>Le sens en français est une formulation approchée, rédigée pour NÛR.</span></p>';
       }
       html += motsHTML(lc.mots) + (lc.source ? '<p class="muted">Source : ' + esc(lc.source) + '</p>' : '') + '<div class="callout"><strong>À retenir.</strong> ' + esc(lc.retenir || "") + '</div>' +
         (lc.lien ? '<p><a class="btn alt" href="' + esc(lc.lien.href) + '">' + esc(lc.lien.txt) + '</a></p>' : '') + '</div>' + NOTE_VALIDATION +
@@ -2213,12 +2762,13 @@
     if (qi >= 0) raw.slice(qi + 1).split("&").forEach(function (kv) { var p = kv.split("="); params[p[0]] = decodeURIComponent(p[1] || ""); });
     if (!STORE.onboarded && path.indexOf("/bienvenue") !== 0 && path !== "/carte") { try { if (path !== "/") sessionStorage.setItem("nur:next", location.hash); } catch (e) {} location.hash = "#/bienvenue"; return; }
     var found = null;
-    for (var i = 0; i < routes.length; i++) { var m = routes[i][0].exec(path); if (m) { found = [routes[i][1], m]; break; } }
+    if (kidLocked() && path !== "/profils" && path !== "/profils/nouveau") found = [kidLockView, []];
+    else for (var i = 0; i < routes.length; i++) { var m = routes[i][0].exec(path); if (m) { found = [routes[i][1], m]; break; } }
     if (!found) { found = [function () { return { title: "NÛR", html: '<p>Page introuvable. <a href="#/">Retour à l\'accueil</a></p>' }; }, []]; }
-    Promise.resolve().then(function () { return found[0](found[1], params); }).then(function (v) {
+    loadDict().then(function () { return found[0](found[1], params); }).then(function (v) {
       if (token !== rendering) return;
       var main = $("#main"); main.innerHTML = v.html;
-      document.title = (v.title && v.title !== "NÛR" ? v.title + " — " : "") + "NÛR";
+      document.title = (v.title && v.title !== "NÛR" ? tr(v.title) + " — " : "") + "NÛR";
       $("#title").innerHTML = v.title === "NÛR" ? 'NÛR <span class="ar" aria-hidden="true">نور</span>' : esc(v.title);
       var back = $("#back"); back.hidden = !v.back; back.onclick = function () {
         if (v.kid && STORE.pin) { var c = prompt("Code parental"); if (c == null) return; pinHash(c).then(function (h) { if (h === STORE.pin) location.hash = v.back; else toast("Code incorrect."); }); }
@@ -2229,7 +2779,7 @@
       $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild());
       if (v.bind) v.bind(main);
       $("#title").textContent = v.title === "NÛR" ? "NÛR" : tr(v.title || ""); if (v.title === "NÛR") $("#title").innerHTML = 'NÛR <span class="ar" aria-hidden="true">نور</span>';
-      i18n(main); i18n($("#tabs")); setTimeout(function () { i18n($("#top")); }, 60);
+      sayBtn(); i18n(main); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);
       if (keepScroll) window.scrollTo(0, y0); else if (!params.a) window.scrollTo(0, 0);
       main.focus({ preventScroll: true });
     }).catch(function (e) {
@@ -2238,6 +2788,7 @@
     });
   }
   window.addEventListener("hashchange", render);
+  document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-say]"); if (b) sayLetter(+b.dataset.say); });
 
   function applyTheme() { document.documentElement.setAttribute("data-theme", S.settings.theme || "auto"); document.documentElement.style.setProperty("--fs", S.settings.fs || 1); }
   var notifTimers = [];
@@ -2259,6 +2810,11 @@
     }
     if (!S.settings.notif) return;
     var L = loc(), now = Date.now(), t0 = ymd(now, L.tz);
+    if (S.settings.rappels && S.settings.rappels.vendredi) [0, 1, 2, 3, 4, 5, 6].forEach(function (off) {
+      var o = addDays(t0, off); if (new Date(Date.UTC(o.y, o.m - 1, o.d)).getUTCDay() !== 5) return;
+      var dd = timesFor(L, o).dhuhr - 3600e3 - now;
+      if (dd > 0 && dd < 7 * 864e5 && dd < 2147483000) notifTimers.push(setTimeout(function () { notify("NÛR — Djoumouʿa", "Djoumouʿa aujourd'hui : grand lavage recommandé et lecture de la sourate Al-Kahf.", "nur-djoumoua"); }, dd));
+    });
     [0, 1].forEach(function (off) {
       var T = timesFor(L, addDays(t0, off));
       ORDER.forEach(function (p) {
@@ -2273,10 +2829,10 @@
   function netState() { var n = $("#net"); n.textContent = navigator.onLine ? "" : "Hors ligne"; }
   window.addEventListener("online", netState); window.addEventListener("offline", netState);
 
-  applyLang(); applyTheme(); netState(); render(); scheduleNotifs(); setTimeout(autoLocate, 1500);
+  applyLang(); applyTheme(); netState(); startMO(); render(); setTimeout(prefetchLang, 4000); scheduleNotifs(); setTimeout(autoLocate, 1500);
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") { autoLocate(); scheduleNotifs(); } });
   setInterval(function () {
-    if (STORE.active && document.visibilityState !== "hidden") { S.temps = (S.temps || 0) + 60; save(); }
+    if (STORE.active && document.visibilityState !== "hidden") { S.temps = (S.temps || 0) + 60; if (isChild()) { kidUsed(); S.kidDay.s += 60; } save(); if (kidLocked() && location.hash.indexOf("#/profils") !== 0) render(); }
     if (location.hash === "" || location.hash === "#/") render();
   }, 60000);
   if ("serviceWorker" in navigator && location.protocol !== "file:") {

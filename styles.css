@@ -413,3 +413,45 @@ body:has(.pbar) #main { padding-bottom: 5rem; }
 .skip { left: 0; right: auto; transform: translateY(-150%); }
 .skip:focus { transform: none; }
 html, body { overflow-x: hidden; }
+
+/* ---------- v1.6 : guides, hors ligne, révision, jeûne, zakât ---------- */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .8rem; }
+.grid2 > .card { margin: 0; }
+ul.dots { list-style: disc; padding-left: 1.2rem; }
+[dir="rtl"] ul.dots { padding-left: 0; padding-right: 1.2rem; }
+ul.dots li { margin: .25rem 0; }
+.small { font-size: .85rem; }
+.btn.small { padding: .35rem .8rem; font-size: .9rem; min-height: 36px; }
+.pill.st-ob { border-color: var(--gold); color: var(--ink); font-weight: 700; }
+.pill.st-su { border-color: var(--green, #1f6f5b); color: var(--ink); }
+.pill.st-re { border-style: dashed; }
+.pill.big { font-size: 1.2rem; padding: .3rem 1rem; }
+.formule { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .7rem .9rem; margin: .5rem 0; }
+.formule .ar-line { font-size: 1.5rem; line-height: 2.1; }
+.formule .sens { margin-top: .3rem; }
+ol.guide { list-style: none; padding: 0; margin: .5rem 0; }
+ol.guide > li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .7rem .9rem; margin: 0 0 .6rem; }
+ol.guide > li p { margin: .35rem 0; }
+table.rk5 td:nth-child(2) { text-align: center; font-weight: 700; }
+dl.gloss { margin: .6rem 0; }
+dl.gloss .gi { border-bottom: 1px solid var(--line); padding: .55rem 0; }
+dl.gloss dt { margin: 0; }
+dl.gloss dt .ar { font-size: 1.15rem; color: var(--gold); margin-left: .4rem; }
+dl.gloss dd { margin: .2rem 0 0; color: var(--muted); }
+.jgrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: .35rem; margin: .5rem 0; }
+.jd { min-height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; cursor: pointer; }
+.jd.on { background: var(--gold); color: #1b1405; border-color: var(--gold); font-weight: 700; }
+.jd.today { outline: 2px solid var(--gold); outline-offset: 1px; }
+.zres { margin-top: .8rem; }
+.zres .rk, .card .rk { background: var(--soft); }
+.rk.big b { font-size: 1.25rem; }
+.audrow { padding: .55rem .8rem; }
+.audrow small { display: block; }
+.vcard.rev .btn { margin-top: .4rem; }
+.lcard .ib { margin-left: auto; }
+[dir="rtl"] .lcard .ib { margin-left: 0; margin-right: auto; }
+#say { margin-left: auto; }
+[dir="rtl"] #say { margin-left: 0; margin-right: auto; }
+.card input[inputmode], .card input[type="search"], #gq { width: 100%; box-sizing: border-box; }
+.card label.f + input + small { display: block; margin: .2rem 0 .4rem; }
+.rk b { white-space: nowrap; }

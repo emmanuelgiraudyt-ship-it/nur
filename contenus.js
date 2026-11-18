@@ -1,0 +1,189 @@
+/* NÛR — contenus des guides (version 1.6). Rédigés pour NÛR selon l'école malikite, validés par l'imam garant.
+   Sources : Ibn Abî Zayd al-Qayrawânî, ar-Risâla ; ʿAbd ar-Raḥmân al-Akhdarî, al-Mukhtaṣar fî al-ʿibâdât ;
+   Khalîl ibn Isḥâq, al-Mukhtaṣar ; Mâlik, al-Muwaṭṭaʾ ; hadiths vérifiés sur sunnah.com.
+   Chaque texte est en français ; la traduction se fait par les dictionnaires i18n-*.json. */
+(function (root) {
+  "use strict";
+  var SRC_RISALA = "Ibn Abî Zayd al-Qayrawânî, ar-Risâla.";
+  var SRC_AKHDARI = "ʿAbd ar-Raḥmân al-Akhdarî, al-Mukhtaṣar fî al-ʿibâdât.";
+  var SRC_KHALIL = "Khalîl ibn Isḥâq, al-Mukhtaṣar.";
+  root.NUR_C = {
+    /* ------------------------------------------------ ablutions */
+    wudu: {
+      intro: "Les ablutions (al-woudoûʾ) sont obligatoires avant chaque prière, si elles ont été annulées. Elles se font avec une eau pure, dans l'ordre ci-dessous.",
+      etapes: [
+        ["L'intention", "Dans le cœur, décider de faire les ablutions pour la prière. Il n'est pas nécessaire de la prononcer.", "obligatoire"],
+        ["Dire « bismi llâh »", "Au moment de commencer.", "recommandé", "بِسْمِ اللَّهِ", "bismi llâh", "Au nom de Dieu."],
+        ["Laver les mains", "Laver les deux mains jusqu'aux poignets, trois fois.", "sunna"],
+        ["Rincer la bouche", "Prendre de l'eau dans la bouche, la faire tourner, puis la rejeter, trois fois.", "sunna"],
+        ["Rincer le nez", "Aspirer un peu d'eau par le nez, puis la rejeter en soufflant, trois fois.", "sunna"],
+        ["Laver le visage", "Du haut du front jusqu'au menton, et d'une oreille à l'autre, trois fois. La première fois est obligatoire, les deux suivantes sont recommandées.", "obligatoire"],
+        ["Laver les bras", "Le bras droit puis le gauche, du bout des doigts jusqu'aux coudes compris, trois fois.", "obligatoire"],
+        ["Passer les mains sur la tête", "Mains mouillées, passer sur toute la tête, du front jusqu'à la nuque. Revenir ensuite de la nuque vers le front.", "obligatoire", null, null, null, "Le passage sur toute la tête est obligatoire ; le retour vers le front est sunna."],
+        ["Passer l'eau sur les oreilles", "Avec une eau renouvelée, l'intérieur et l'extérieur des oreilles.", "sunna"],
+        ["Laver les pieds", "Le pied droit puis le gauche, chevilles comprises, en passant entre les orteils, trois fois.", "obligatoire"]
+      ],
+      tout: "Pendant toutes les ablutions : frotter chaque membre avec la main (ad-dalk) et enchaîner sans interruption (al-fawr). Ces deux points sont obligatoires dans l'école malikite.",
+      fard: ["L'intention", "Laver le visage", "Laver les bras, coudes compris", "Passer les mains sur toute la tête", "Laver les pieds, chevilles comprises", "Frotter les membres (ad-dalk)", "Enchaîner sans interruption (al-fawr)"],
+      sunan: ["Laver les mains jusqu'aux poignets au début", "Rincer la bouche", "Aspirer l'eau par le nez", "Rejeter l'eau du nez", "Revenir de la nuque vers le front", "Passer l'eau sur les oreilles", "Renouveler l'eau pour les oreilles", "Respecter l'ordre des membres"],
+      annule: ["L'urine, les selles et les gaz", "Le liquide prostatique (madhy) et le liquide qui suit parfois l'urine (wady)", "Le sommeil profond", "La perte de conscience : évanouissement, ivresse", "Le toucher avec désir, et le toucher du sexe avec l'intérieur de la main", "Le doute sur l'état de pureté, quand on était sûr de l'avoir perdue"],
+      apres: ["أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ", "ach-hadou an lâ ilâha illâ llâhou waḥdahou lâ charîka lah, wa ach-hadou anna Mouḥammadan ʿabdouhou wa rasoûlouh", "J'atteste qu'il n'y a de divinité que Dieu, seul, sans associé, et j'atteste que Muhammad est Son serviteur et Son messager.", "Muslim 234"],
+      ghusl: "Le grand lavage (al-ghousl) est obligatoire après les rapports conjugaux, l'émission de sperme, la fin des règles et la fin des lochies. On commence par les ablutions, puis on lave tout le corps en frottant et sans interruption.",
+      tayammum: "Sans eau, ou si l'eau est nuisible pour la santé, on fait les ablutions sèches (at-tayammoum) : poser les mains sur une terre pure, les passer sur le visage, puis sur les mains et les avant-bras.",
+      sources: [SRC_AKHDARI, SRC_RISALA]
+    },
+    /* ------------------------------------------------ prière */
+    salat: {
+      intro: "La prière se fait en état de pureté, avec des vêtements et un lieu propres, le corps couvert comme il convient, face à la qibla, une fois l'heure de la prière arrivée.",
+      etapes: [
+        ["Se tenir debout et formuler l'intention", "Face à la qibla, décider dans le cœur quelle prière on accomplit, par exemple le Soubḥ.", "obligatoire"],
+        ["Dire « Allâhou akbar »", "C'est le takbîr d'entrée, qui ouvre la prière. Lever les mains à hauteur des épaules en le disant est sunna.", "obligatoire", "اللَّهُ أَكْبَرُ", "Allâhou akbar", "Dieu est le plus grand."],
+        ["Laisser les bras le long du corps", "C'est la position la plus répandue dans l'école malikite (as-sadl).", "recommandé"],
+        ["Réciter Al-Fâtiḥa", "Dans chaque rakʿa, puis dire « âmîn ». Dans la prière obligatoire, l'école malikite ne fait pas précéder la Fâtiḥa de la basmala.", "obligatoire"],
+        ["Réciter une sourate", "Dans les deux premières rakʿa, après la Fâtiḥa : une sourate ou quelques versets.", "sunna"],
+        ["S'incliner (ar-roukoûʿ)", "Dire « Allâhou akbar », s'incliner, les mains sur les genoux, le dos droit.", "obligatoire", "سُبْحَانَ رَبِّيَ الْعَظِيمِ", "soubḥâna rabbiya l-ʿaẓîm", "Gloire à mon Seigneur, le Très-Grand."],
+        ["Se redresser", "En disant « samiʿa llâhou li-man ḥamidah », puis « rabbanâ wa laka l-ḥamd ».", "obligatoire", "سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ، رَبَّنَا وَلَكَ الْحَمْدُ", "samiʿa llâhou li-man ḥamidah, rabbanâ wa laka l-ḥamd", "Dieu entend celui qui Le loue. Notre Seigneur, à Toi la louange."],
+        ["Se prosterner (as-soujoûd)", "Dire « Allâhou akbar », poser au sol le front et le nez, les mains, les genoux et les orteils.", "obligatoire", "سُبْحَانَ رَبِّيَ الْأَعْلَى", "soubḥâna rabbiya l-aʿlâ", "Gloire à mon Seigneur, le Très-Haut."],
+        ["S'asseoir, puis se prosterner une seconde fois", "S'asseoir brièvement entre les deux prosternations, puis refaire une prosternation.", "obligatoire"],
+        ["Se relever pour la rakʿa suivante", "En disant « Allâhou akbar », et refaire les mêmes gestes. Au Soubḥ, l'invocation du qounoût se dit à voix basse avant l'inclinaison de la deuxième rakʿa.", "obligatoire"],
+        ["S'asseoir pour le tachahhoud", "Après la deuxième rakʿa, puis à la fin de la prière, réciter le tachahhoud (texte ci-dessous).", "sunna"],
+        ["Prier sur le Prophète", "À la dernière assise, après le tachahhoud (texte ci-dessous).", "recommandé"],
+        ["Saluer pour sortir de la prière", "Dire « as-salâmou ʿalaykoum » une fois, en tournant légèrement la tête vers la droite.", "obligatoire", "السَّلَامُ عَلَيْكُمْ", "as-salâmou ʿalaykoum", "Que la paix soit sur vous."]
+      ],
+      plus: "Pour une prière de trois ou quatre rakʿa : après le premier tachahhoud, se relever en disant « Allâhou akbar ». Dans la troisième et la quatrième rakʿa, on récite seulement la Fâtiḥa, à voix basse. Le tachahhoud final et le salut se font à la dernière rakʿa.",
+      tableau: [["Soubḥ", "2", "À voix haute"], ["Dhouhr", "4", "À voix basse"], ["ʿAsr", "4", "À voix basse"], ["Maghrib", "3", "À voix haute dans les deux premières"], ["ʿIchâʾ", "4", "À voix haute dans les deux premières"]],
+      tachahhoud: ["التَّحِيَّاتُ لِلَّهِ، الزَّاكِيَاتُ لِلَّهِ، الطَّيِّبَاتُ الصَّلَوَاتُ لِلَّهِ، السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ، السَّلَامُ عَلَيْنَا وَعَلَىٰ عِبَادِ اللَّهِ الصَّالِحِينَ، أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ", "at-taḥiyyâtou lillâh, az-zâkiyâtou lillâh, aṭ-ṭayyibâtou ṣ-ṣalawâtou lillâh, as-salâmou ʿalayka ayyouhâ n-nabiyyou wa raḥmatou llâhi wa barakâtouh, as-salâmou ʿalaynâ wa ʿalâ ʿibâdi llâhi ṣ-ṣâliḥîn, ach-hadou an lâ ilâha illâ llâhou waḥdahou lâ charîka lah, wa ach-hadou anna Mouḥammadan ʿabdouhou wa rasoûlouh", "Les salutations sont à Dieu, les œuvres pures sont à Dieu, les bonnes paroles et les prières sont à Dieu. Que la paix soit sur toi, ô Prophète, ainsi que la miséricorde de Dieu et Ses bénédictions. Que la paix soit sur nous et sur les serviteurs vertueux de Dieu. J'atteste qu'il n'y a de divinité que Dieu, seul, sans associé, et j'atteste que Muhammad est Son serviteur et Son messager.", "Texte de la Risâla d'Ibn Abî Zayd ; tachahhoud de ʿOumar rapporté dans le Mouwaṭṭaʾ de Mâlik."],
+      ibrahimiyya: ["اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَعَلَىٰ آلِ مُحَمَّدٍ كَمَا صَلَّيْتَ عَلَىٰ آلِ إِبْرَاهِيمَ، وَبَارِكْ عَلَىٰ مُحَمَّدٍ وَعَلَىٰ آلِ مُحَمَّدٍ كَمَا بَارَكْتَ عَلَىٰ آلِ إِبْرَاهِيمَ، فِي الْعَالَمِينَ إِنَّكَ حَمِيدٌ مَجِيدٌ", "allâhoumma ṣalli ʿalâ Mouḥammadin wa ʿalâ âli Mouḥammad, kamâ ṣallayta ʿalâ âli Ibrâhîm, wa bârik ʿalâ Mouḥammadin wa ʿalâ âli Mouḥammad, kamâ bârakta ʿalâ âli Ibrâhîm, fî l-ʿâlamîna innaka ḥamîdoun madjîd", "Ô Dieu, prie sur Muhammad et sur la famille de Muhammad, comme Tu as prié sur la famille d'Abraham ; et bénis Muhammad et la famille de Muhammad, comme Tu as béni la famille d'Abraham, dans les mondes. Tu es digne de louange et de gloire.", "Muslim 405"],
+      sources: [SRC_RISALA, SRC_AKHDARI, "Mâlik, al-Muwaṭṭaʾ, livre de la prière."]
+    },
+    /* ------------------------------------------------ glossaire */
+    glossaire: [
+      ["Allâh", "الله", "Dieu, en arabe. Le même mot est employé par les chrétiens arabophones."],
+      ["Islam", "الإسلام", "Soumission confiante à Dieu ; nom de la religion."],
+      ["Musulman", "مسلم", "Celui qui se soumet à Dieu et suit l'islam."],
+      ["Coran", "القرآن", "La parole de Dieu révélée au Prophète Muhammad, en arabe."],
+      ["Sourate", "سورة", "Chapitre du Coran. Le Coran en compte 114."],
+      ["Verset (âya)", "آية", "Phrase du Coran ; le mot signifie aussi « signe »."],
+      ["Riwaya", "رواية", "Manière transmise de réciter le Coran. NÛR suit celle de Warsh d'après Nâfiʿ."],
+      ["Warsh", "ورش", "Transmetteur de la lecture de Nâfiʿ de Médine ; lecture répandue en Afrique du Nord et de l'Ouest."],
+      ["Ḥafṣ", "حفص", "Transmetteur de la lecture de ʿÂṣim ; lecture la plus répandue dans le monde."],
+      ["Tajwid", "تجويد", "Règles de prononciation et de récitation du Coran."],
+      ["Ḥifẓ", "حفظ", "Mémorisation du Coran."],
+      ["Khatm", "ختم", "Lecture complète du Coran, du début à la fin."],
+      ["Tafsir", "تفسير", "Explication du sens des versets."],
+      ["Hadith", "حديث", "Parole, acte ou approbation rapportés du Prophète."],
+      ["Sunna", "سنة", "La voie du Prophète ; en fiqh, un acte recommandé avec insistance."],
+      ["Fiqh", "فقه", "Science des règles pratiques de l'islam."],
+      ["École malikite", "المذهب المالكي", "École de fiqh de l'imam Mâlik de Médine, suivie en Afrique du Nord et de l'Ouest."],
+      ["Farḍ (obligatoire)", "فرض", "Acte obligatoire : le délaisser volontairement est un péché."],
+      ["Recommandé (moustaḥabb)", "مستحب", "Acte récompensé, sans péché s'il est délaissé."],
+      ["Ḥalâl", "حلال", "Permis."],
+      ["Ḥarâm", "حرام", "Interdit."],
+      ["Makroûh", "مكروه", "Déconseillé, sans être interdit."],
+      ["Niyya", "نية", "L'intention, dans le cœur."],
+      ["Basmala", "البسملة", "La formule « bismi llâhi r-raḥmâni r-raḥîm », « au nom de Dieu, le Tout Miséricordieux, le Très Miséricordieux »."],
+      ["Shahâda", "الشهادة", "L'attestation de foi : il n'y a de divinité que Dieu, et Muhammad est Son messager."],
+      ["Ṣalât", "الصلاة", "La prière rituelle, cinq fois par jour."],
+      ["Rakʿa", "ركعة", "Unité de la prière : station debout, inclinaison et deux prosternations."],
+      ["Takbîr", "تكبير", "Dire « Allâhou akbar », « Dieu est le plus grand »."],
+      ["Tachahhoud", "التشهد", "Attestation récitée en position assise dans la prière."],
+      ["Taslîm", "التسليم", "Le salut « as-salâmou ʿalaykoum » qui termine la prière."],
+      ["Qounoût", "القنوت", "Invocation dite au Soubḥ, avant l'inclinaison de la deuxième rakʿa, dans l'école malikite."],
+      ["Woudoûʾ", "الوضوء", "Les ablutions avant la prière."],
+      ["Ghousl", "الغسل", "Le grand lavage de tout le corps."],
+      ["Tayammoum", "التيمم", "Les ablutions sèches, avec de la terre pure, quand l'eau manque."],
+      ["Qibla", "القبلة", "La direction de la Kaʿba, vers laquelle on prie."],
+      ["Kaʿba", "الكعبة", "Le sanctuaire cubique de La Mecque."],
+      ["Adhân", "الأذان", "L'appel à la prière."],
+      ["Iqâma", "الإقامة", "Le second appel, juste avant la prière en commun."],
+      ["Imam", "إمام", "Celui qui dirige la prière."],
+      ["Mosquée (masdjid)", "مسجد", "Lieu de prière ; le mot signifie « lieu de prosternation »."],
+      ["Djoumouʿa", "الجمعة", "La prière du vendredi en commun, qui remplace le Dhouhr."],
+      ["Dhikr", "ذكر", "Le rappel de Dieu par des formules répétées."],
+      ["Douʿâʾ", "دعاء", "L'invocation : demander à Dieu."],
+      ["Wird", "ورد", "Ensemble de lectures et de dhikr récités chaque jour."],
+      ["Ramaḍân", "رمضان", "Neuvième mois du calendrier hégirien, mois du jeûne."],
+      ["Ṣawm", "الصوم", "Le jeûne : ni nourriture, ni boisson, ni rapport conjugal, de l'aube au coucher du soleil."],
+      ["Souḥoûr", "السحور", "Le repas pris avant l'aube, les jours de jeûne."],
+      ["Ifṭâr", "الإفطار", "La rupture du jeûne, au coucher du soleil."],
+      ["Zakât", "الزكاة", "L'aumône obligatoire, prélevée sur certains biens."],
+      ["Zakât al-fiṭr", "زكاة الفطر", "L'aumône de la fin du Ramaḍân, due pour chaque personne."],
+      ["Ṣadaqa", "صدقة", "L'aumône volontaire."],
+      ["Ḥadjj", "الحج", "Le grand pèlerinage à La Mecque, une fois dans la vie pour qui en a les moyens."],
+      ["ʿOumra", "العمرة", "Le petit pèlerinage, possible toute l'année."],
+      ["Hégire", "الهجرة", "L'émigration du Prophète vers Médine, point de départ du calendrier musulman."],
+      ["Ḥayḍ", "الحيض", "Les règles."],
+      ["Nifâs", "النفاس", "Les lochies : les saignements qui suivent l'accouchement."],
+      ["Cheikh", "شيخ", "Maître, savant ou guide spirituel."],
+      ["Mouqaddam", "مقدم", "Représentant d'une voie soufie, habilité à transmettre ses litanies."]
+    ],
+    /* ------------------------------------------------ converti */
+    converti: {
+      intro: "Bienvenue. Ce parcours accompagne tes trente premiers jours. Avance à ton rythme : l'essentiel est la prière, le reste viendra avec le temps.",
+      chahada: ["أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا اللَّهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ اللَّهِ", "ach-hadou an lâ ilâha illâ llâh, wa ach-hadou anna Mouḥammadan rasoûlou llâh", "J'atteste qu'il n'y a de divinité que Dieu, et j'atteste que Muhammad est le messager de Dieu."],
+      chahadaNote: "On entre en islam en prononçant la shahâda avec sincérité et en comprenant son sens. Un témoin n'est pas une condition ; le faire devant l'imam de ta mosquée permet d'être accompagné.",
+      ghusl: "Après la shahâda, l'école malikite demande au nouveau musulman de faire le grand lavage (al-ghousl). Le Prophète l'a demandé à Qays ibn ʿÂṣim quand il a embrassé l'islam.",
+      ghuslSrc: "Abû Dâwûd 355 ; Khalîl, al-Mukhtaṣar.",
+      efface: "L'islam efface ce qui le précède : tu commences une page blanche.",
+      effaceSrc: "Muslim 121",
+      semaines: [
+        ["Semaine 1 : les bases", ["Prononcer la shahâda et comprendre son sens", "Faire le grand lavage (al-ghousl)", "Apprendre les ablutions avec le guide", "Apprendre Al-Fâtiḥa en phonétique, verset par verset", "Commencer les cinq prières, même de façon simple"]],
+        ["Semaine 2 : la prière", ["Connaître les cinq prières et leurs heures", "Apprendre les gestes de la prière avec le guide", "Apprendre « soubḥâna rabbiya l-ʿaẓîm » et « soubḥâna rabbiya l-aʿlâ »", "Prier une fois à la mosquée"]],
+        ["Semaine 3 : les sourates courtes", ["Apprendre la sourate Al-Ikhlâṣ (112)", "Apprendre la sourate Al-Falaq (113)", "Apprendre la sourate An-Nâs (114)", "Apprendre le tachahhoud"]],
+        ["Semaine 4 : la vie de musulman", ["Lire le glossaire pour comprendre les mots de l'islam", "Faire le parcours Étincelle (leçons et quiz)", "Apprendre la prière sur le Prophète", "Garder chaque jour un moment de dhikr"]]
+      ],
+      minimale: "Tant que tu ne sais pas encore réciter la Fâtiḥa, ne retarde pas la prière : prie avec l'imam à la mosquée quand tu le peux, et apprends la Fâtiḥa en priorité. Un homme a dit au Prophète qu'il ne pouvait rien retenir du Coran ; le Prophète lui a enseigné de dire, en attendant : « soubḥâna llâh, wa l-ḥamdou lillâh, wa lâ ilâha illâ llâh, wa llâhou akbar, wa lâ ḥawla wa lâ qouwwata illâ bi-llâh ».",
+      minimaleSrc: "Abû Dâwûd 832",
+      sourates: [1, 112, 113, 114],
+      obligatoire: ["Croire en Dieu, en Ses anges, en Ses livres, en Ses messagers, au Jour dernier et au destin", "Accomplir les cinq prières, en état de pureté", "Jeûner le mois de Ramaḍân", "Verser la zakât si l'on remplit ses conditions", "Faire le pèlerinage une fois dans sa vie, si l'on en a les moyens", "S'abstenir de ce qui est interdit : alcool, porc, mensonge, injustice"],
+      recommande: ["Les prières surérogatoires, en particulier les deux rakʿa avant le Soubḥ et le witr", "Lire le Coran chaque jour, même un peu", "Le dhikr matin et soir", "Jeûner le lundi et le jeudi", "L'aumône volontaire"],
+      pasOblige: ["Changer de prénom : ce n'est pas une obligation", "Porter un vêtement d'un pays particulier", "Parler arabe : la prière se récite en arabe, mais on apprend pas à pas", "Tout savoir dès le premier jour"],
+      sources: ["Muslim 121", "Abû Dâwûd 355", "Abû Dâwûd 832", SRC_KHALIL, SRC_RISALA]
+    },
+    /* ------------------------------------------------ femme */
+    femme: {
+      intro: "Les règles propres à la femme, selon l'école malikite, et une pause qui suspend le suivi des prières pendant les règles ou les lochies, sans perte de points.",
+      confid: "La pause et ses dates restent uniquement sur cet appareil. Rien n'est envoyé.",
+      sections: [
+        ["Les règles (al-ḥayḍ)", ["Dans l'école malikite, il n'y a pas de durée minimale pour les actes d'adoration : un seul écoulement de sang suffit pour qu'il s'agisse des règles.", "La durée maximale est de quinze jours. Pour une femme qui a une habitude, on retient sa durée habituelle, prolongée de trois jours au plus, sans dépasser quinze jours.", "La période de pureté entre deux règles est d'au moins quinze jours."]],
+        ["Les lochies (an-nifâs)", ["Ce sont les saignements qui suivent l'accouchement. Leur durée maximale est de soixante jours. Si le sang s'arrête avant, la femme est pure."]],
+        ["Ce qui est suspendu pendant les règles et les lochies", ["La prière : elle n'est pas due et ne se rattrape pas.", "Le jeûne : il n'est pas valable et se rattrape plus tard.", "Les rapports conjugaux.", "Le séjour à la mosquée et la circumambulation autour de la Kaʿba.", "Le toucher du mouṣḥaf. La lecture du Coran, elle, n'est pas interdite : NÛR reste donc utilisable pour lire et écouter."]],
+        ["La fin des règles", ["La pureté se reconnaît à un écoulement blanc (al-qaṣṣa al-bayḍâʾ) ou à la sécheresse complète.", "Le grand lavage (al-ghousl) est alors obligatoire avant de reprendre la prière.", "Si la pureté arrive alors qu'il reste le temps d'une rakʿa avant la fin de l'heure d'une prière, cette prière est due."]],
+        ["Les saignements hors des règles (al-istiḥâḍa)", ["Un saignement qui dépasse la durée maximale, ou qui n'est pas celui des règles, n'empêche ni la prière ni le jeûne.", "Il est recommandé à la femme concernée de refaire les ablutions pour chaque prière."]],
+        ["La prière de la femme", ["Elle prie comme l'homme, avec les mêmes gestes, mais en restant plus ramassée : bras près du corps, cuisses rapprochées.", "Tout le corps est couvert, sauf le visage et les mains."]]
+      ],
+      sources: [SRC_KHALIL, SRC_RISALA, SRC_AKHDARI, "Bukhârî 579 (la rakʿa qui fait atteindre la prière)."]
+    },
+    /* ------------------------------------------------ jeûne */
+    jeune: {
+      intro: "Le jeûne du Ramaḍân est l'un des piliers de l'islam. On s'abstient de manger, de boire et des rapports conjugaux, de l'aube (heure du Fadjr) jusqu'au coucher du soleil (heure du Maghrib).",
+      regles: [
+        ["L'intention", "Elle se fait la nuit, avant l'aube. Dans l'école malikite, une seule intention au début du mois suffit pour tout le Ramaḍân, tant que le jeûne n'est pas interrompu."],
+        ["Ce qui rompt le jeûne", "Manger, boire, les rapports conjugaux, le vomissement provoqué, et tout ce qui parvient à la gorge ou à l'estomac."],
+        ["L'oubli", "Dans l'école malikite, celui qui mange ou boit par oubli pendant le Ramaḍân continue son jeûne, puis rattrape ce jour, sans expiation."],
+        ["Rompre volontairement", "Rompre volontairement un jour du Ramaḍân, en mangeant, en buvant ou par un rapport conjugal, oblige à rattraper ce jour et à l'expiation : nourrir soixante pauvres (choix préféré dans l'école malikite) ou jeûner soixante jours de suite."],
+        ["Qui est dispensé", "Le malade et le voyageur (trajet d'environ 80 km ou plus) peuvent ne pas jeûner et rattrapent plus tard. La femme en règles ou en lochies ne jeûne pas et rattrape. La femme enceinte ou qui allaite, si elle craint pour elle ou pour l'enfant, rattrape ; celle qui allaite ajoute une aumône d'un moudd de nourriture par jour. La personne âgée qui ne peut plus jeûner donne, de façon recommandée, un moudd par jour."]
+      ],
+      iftar: ["ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ", "dhahaba ẓ-ẓamaʾou wa btallati l-ʿouroûqou wa thabata l-adjrou in châʾa llâh", "La soif est partie, les veines sont humectées, et la récompense est acquise, si Dieu le veut.", "Abû Dâwûd 2357"],
+      suregatoires: ["Le lundi et le jeudi", "Les trois jours blancs : 13, 14 et 15 de chaque mois hégirien", "Le jour de ʿArafa (9 dhoû l-ḥidjdja), pour qui n'est pas en pèlerinage", "ʿÂchoûrâʾ (10 mouḥarram), avec le 9", "Six jours du mois de chawwâl"],
+      fitr: ["Elle est due pour chaque personne à charge, à la fin du Ramaḍân.", "Dans l'école malikite, elle se donne en nourriture : un ṣâʿ, soit environ 2,5 kg, de l'aliment de base du pays (riz, mil, blé…).", "On la donne de préférence le matin de l'Aïd, avant la prière, et au plus tôt un ou deux jours avant.", "Le montant pratiqué localement est fixé par les mosquées : renseigne-toi auprès de la tienne."],
+      sources: [SRC_KHALIL, SRC_RISALA, "Abû Dâwûd 2357"]
+    },
+    /* ------------------------------------------------ zakât */
+    zakat: {
+      intro: "La zakât est due sur l'épargne et les biens qui dépassent un seuil minimal (le niṣâb) et que l'on possède depuis une année lunaire complète. Son taux est de 2,5 %.",
+      regles: ["Le seuil se calcule sur l'or (85 g) ou sur l'argent métal (595 g). Choisis la base retenue par ta mosquée ; l'argent métal donne un seuil plus bas, plus favorable aux pauvres.", "On additionne l'épargne, l'or et l'argent possédés, la valeur des marchandises destinées à la vente et les créances que l'on est sûr de recouvrer ; on retire les dettes à payer immédiatement.", "Le bétail et les récoltes ont des règles et des seuils propres : demande à l'imam de ta mosquée.", "La zakât est versée aux catégories citées dans le Coran (sourate At-Tawba, verset 60 dans la numérotation de Ḥafṣ), en premier lieu les pauvres et les nécessiteux."],
+      note: "Ce calcul est une aide. Pour un cas particulier (entreprise, placements, dettes importantes), demande l'avis de l'imam.",
+      sources: [SRC_RISALA, SRC_KHALIL, "Coran, sourate At-Tawba (9), verset 60 (Ḥafṣ)."]
+    },
+    /* ------------------------------------------------ vendredi */
+    djoumoua: {
+      texte: "C'est vendredi. La prière du Djoumouʿa, en commun à la mosquée, remplace le Dhouhr. Il est recommandé de faire le grand lavage avant d'y aller.",
+      src: "Bukhârî 877",
+      kahf: "Celui qui lit la sourate Al-Kahf (18) le vendredi, une lumière l'éclaire d'un vendredi à l'autre.",
+      kahfSrc: "al-Ḥâkim ; al-Bayhaqî ; authentifié par al-Albânî, Ṣaḥîḥ al-Djâmiʿ 6470."
+    },
+    /* ------------------------------------------------ noms des lettres, pour la voix arabe de l'appareil */
+    lettresAr: ["أَلِف", "بَاء", "تَاء", "ثَاء", "جِيم", "حَاء", "خَاء", "دَال", "ذَال", "رَاء", "زَاي", "سِين", "شِين", "صَاد", "ضَاد", "طَاء", "ظَاء", "عَيْن", "غَيْن", "فَاء", "قَاف", "كَاف", "لَام", "مِيم", "نُون", "هَاء", "وَاو", "يَاء"]
+  };
+})(typeof self !== "undefined" ? self : this);
