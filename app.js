@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.4.0";
+  var VERSION = "1.5.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -47,7 +47,7 @@
     try { if (STORE.active) STORE.data[STORE.active] = S; localStorage.setItem(KEY2, JSON.stringify(STORE)); }
     catch (e) { toast("Enregistrement local impossible (stockage plein ou désactivé)."); }
   }
-  function toast(msg) { var t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove("show"); }, 2600); }
+  function toast(msg) { var t = $("#toast"); t.textContent = typeof tr === "function" ? tr(msg) : msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove("show"); }, 2600); }
   var TYPES = { homme: "Homme", femme: "Femme", garcon: "Enfant (garçon)", fille: "Enfant (fille)", adulte: "Adulte" };
   function prof() { for (var i = 0; i < STORE.profiles.length; i++) if (STORE.profiles[i].id === STORE.active) return STORE.profiles[i]; return null; }
   function isChild(p) { p = p || prof(); return !!p && (p.type === "garcon" || p.type === "fille"); }
@@ -60,7 +60,7 @@
   }
   function switchProfile(id) {
     if (STORE.active) STORE.data[STORE.active] = S;
-    STORE.active = id; S = curData(); parentOK = 0; save(); applyTheme(); scheduleNotifs();
+    STORE.active = id; S = curData(); parentOK = 0; OPT = null; save(); applyTheme(); if (typeof applyLang === "function") applyLang(); scheduleNotifs();
   }
   /* Code parental : demandé pour sortir d'un profil enfant, ouvrir ses réglages ou déclarer son palier. */
   var parentOK = 0;
@@ -103,7 +103,7 @@
     var L = loc(), t0 = ymd(Date.now(), L.tz), out = '<div class="week" aria-label="Régularité des sept derniers jours">';
     for (var i = 6; i >= 0; i--) {
       var o = addDays(t0, -i), k = dayKey(o), on = S.days[k] && S.days[k].p > 0;
-      var lab = new Intl.DateTimeFormat("fr-FR", { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(o.y, o.m - 1, o.d))).replace(".", "");
+      var lab = new Intl.DateTimeFormat(UIL(), { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(o.y, o.m - 1, o.d))).replace(".", "");
       out += '<span class="' + (on ? "on" : "") + (i === 0 ? " today" : "") + '" title="' + k + (on ? " : pratique faite" : "") + '">' + esc(lab) + '</span>';
     }
     return out + '</div>';
@@ -217,7 +217,7 @@
   function loadOpt() {
     if (OPT) return Promise.resolve(OPT);
     function get(f) { return fetch(f).then(function (r) { return r && r.ok ? r.json() : null; }).catch(function () { return null; }); }
-    return Promise.all([get("phonetique.json"), get("traduction-fr.json"), get("audio.json"), get("parcours.json"), get("quotidien.json"), get("config.json")]).then(function (a) {
+    return Promise.all([get("phonetique.json"), get(TRF()), get("audio.json"), get("parcours.json"), get("quotidien.json"), get("config.json")]).then(function (a) {
       OPT = { phon: a[0], fr: a[1], audio: a[2], parcours: a[3], quot: a[4], conf: a[5] || {} }; return OPT;
     });
   }
@@ -258,7 +258,7 @@
   }
   function addDays(o, n) { var t = new Date(Date.UTC(o.y, o.m - 1, o.d + n)); return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() }; }
   function dayKey(o) { return o.y + "-" + String(o.m).padStart(2, "0") + "-" + String(o.d).padStart(2, "0"); }
-  function fmtT(ts, tz) { if (!(ts === ts)) return "—"; return new Intl.DateTimeFormat("fr-FR", { timeZone: tz, hour: "2-digit", minute: "2-digit" }).format(new Date(ts)); }
+  function fmtT(ts, tz) { if (!(ts === ts)) return "—"; return new Intl.DateTimeFormat(UIL(), { timeZone: tz, hour: "2-digit", minute: "2-digit" }).format(new Date(ts)); }
   function timesFor(L, o) { return P.compute(o.y, o.m, o.d, L.lat, L.lng, S.settings); }
   var ORDER = [["fajr", "Fajr"], ["dhuhr", "Dhuhr"], ["asr", "ʿAsr"], ["maghrib", "Maghrib"], ["isha", "ʿIshâʾ"]];
   function nextPrayer(now) {
@@ -276,10 +276,10 @@
     try {
       var T = timesFor(L, ymd(now, L.tz));
       if (T.maghrib === T.maghrib && now >= T.maghrib) shift += 1; // le jour hégirien commence au coucher du soleil
-      return new Intl.DateTimeFormat("fr-FR-u-ca-islamic-umalqura", { timeZone: L.tz, day: "numeric", month: "long", year: "numeric" }).format(new Date(now + shift * 864e5));
+      return new Intl.DateTimeFormat(UIL() + "-u-ca-islamic-umalqura", { timeZone: L.tz, day: "numeric", month: "long", year: "numeric" }).format(new Date(now + shift * 864e5));
     } catch (e) { return ""; }
   }
-  function gregStr() { return new Intl.DateTimeFormat("fr-FR", { timeZone: loc().tz, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()); }
+  function gregStr() { return new Intl.DateTimeFormat(UIL(), { timeZone: loc().tz, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()); }
 
   /* ------------------------------------------------------------ outils d'interface */
   var cleanups = [];
@@ -369,6 +369,7 @@
     w.addEventListener("click", function (e) { if (e.target === w) closeSheet(); });
     $("#mclose", w).onclick = function () { closeSheet(); };
     if (bind) bind(w);
+    i18n(w);
     onLeave(function () { closeSheet(true); });
     return w;
   }
@@ -457,11 +458,11 @@
   };
   var dayOffP = 0, prTab = null;
   function hijriOf(o) {
-    try { return new Intl.DateTimeFormat("fr-FR-u-ca-islamic-umalqura", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(o.y, o.m - 1, o.d, 12) + (S.settings.hijriOffset || 0) * 864e5)); } catch (e) { return ""; }
+    try { return new Intl.DateTimeFormat(UIL() + "-u-ca-islamic-umalqura", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(o.y, o.m - 1, o.d, 12) + (S.settings.hijriOffset || 0) * 864e5)); } catch (e) { return ""; }
   }
   route(/^\/priere$/, function () {
     var st = stt(), L = loc(), base = ymd(Date.now(), L.tz), t0 = addDays(base, dayOffP), T = timesFor(L, t0), Tt = timesFor(L, base), np = nextPrayer();
-    var dl = new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(new Date(Date.UTC(t0.y, t0.m - 1, t0.d, 12)));
+    var dl = new Intl.DateTimeFormat(UIL(), { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(new Date(Date.UTC(t0.y, t0.m - 1, t0.d, 12)));
     if (dayOffP === 0) dl = "Aujourd'hui, " + dl.replace(/^\S+\s/, "");
     var html = '<div class="row between phead"><h2 style="margin:0">Prière</h2><div class="row" style="margin:0"><a class="btn alt" href="#/qibla">Trouver la qibla</a><a class="iconbtn" href="#/priere/reglages" aria-label="Réglages des horaires">' + ICO.gear + '</a></div></div>';
     html += '<div class="hero center"><div class="hl">La prochaine prière est</div><div class="hn">' + (np ? np.name : "—") + '</div><div class="hbig">' + (np ? fmtT(np.ts, np.tz) : "") + '</div>' +
@@ -630,7 +631,7 @@
       $$("[data-rec]", w).forEach(function (b) { b.onclick = function () { S.settings.reciter = b.dataset.rec; save(); if (PL.q.length) plBar(); $(".msheet", w).lastChild.remove(); refresh(w); }; });
       $$("[data-fs]", w).forEach(function (b) { b.onclick = function () { S.settings.fs = +b.dataset.fs; save(); applyTheme(); $$("[data-fs]", w).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); }; });
     }
-    function refresh(w) { var d = document.createElement("div"); d.innerHTML = body(); $(".msheet", w).appendChild(d); bind(w); }
+    function refresh(w) { var d = document.createElement("div"); d.innerHTML = body(); $(".msheet", w).appendChild(d); bind(w); i18n(d); }
     var w = openSheet("Paramètres", "", null); refresh(w);
   }
 
@@ -661,7 +662,7 @@
       }
       html += '<div class="viewtog" role="group" aria-label="Affichage"><button data-view="liste" aria-pressed="' + (readView === "liste") + '" aria-label="Verset par verset">' + ICO.list + '</button><button data-view="page" aria-pressed="' + (readView === "page") + '" aria-label="Page en arabe">' + ICO.book + '</button></div>';
       html += '<div class="row between" style="margin-top:1rem">' + (sn > 1 ? '<a class="btn alt" href="#/reciter/' + (sn - 1) + '">Sourate précédente</a>' : '<span></span>') + (sn < 114 ? '<a class="btn alt" href="#/reciter/' + (sn + 1) + '">Sourate suivante</a>' : '<span></span>') + '</div>' +
-        '<p class="muted">Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. ' + NOTE_PHON + ' ' + NOTE_FR + ' Récitation : ' + esc(reciter()[1]) + ', riwaya de Warsh, EveryAyah.com.</p>';
+        '<p class="muted">Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. ' + NOTE_PHON + ' ' + noteFr() + ' Récitation : ' + esc(reciter()[1]) + ', riwaya de Warsh, EveryAyah.com.</p>';
       return { title: s.fr, html: html, back: "#/reciter", tab: "#/reciter", bind: function (r) {
         bindArSeul(r);
         $$("[data-play]", r).forEach(function (b) { b.onclick = function () { playVerse(sn, +b.dataset.play); }; });
@@ -757,7 +758,7 @@
       var html = '<div class="qhead"><span class="avatar big">' + esc(initiale()) + '</span><div><div class="salutM">' + esc(p && p.nom ? p.nom : "Mon profil") + '</div><a class="hchip light" href="#/priere/reglages">' + ICO.pin + ' ' + esc(L.name) + '</a></div></div>' +
         '<div class="card gold"><strong>Le rappel profite au croyant</strong><p>Tu penses que NÛR pourrait aider un proche à se rapprocher de Dieu ? Partage-lui l\'application, gratuite et sans publicité.</p><button class="btn alt" id="shapp">Partager à un proche ' + ICO.arrow + '</button></div>' +
         '<h3>Mes points</h3><a class="card plain-link" href="#/parcours"><div class="row between"><strong>' + (opt.parcours ? totalPts(opt) : 0) + ' points</strong><span class="pill">' + esc(st2 ? st2.pal.nom : "") + '</span></div>' + (st2 && st2.pal.seuil ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(100 * st2.pts / st2.pal.seuil)) + '%"></i></div><div class="muted">' + st2.pts + ' / ' + st2.pal.seuil + ' pour le palier suivant</div>' : '') + '</a>' +
-        '<h3>Paramètres</h3>' + lc("#/priere/reglages", "Horaires de prière") + '<div class="lcardM"><span>Langue</span><span class="muted">Français (autres langues en construction)</span></div>' +
+        '<h3>Paramètres</h3>' + lc("#/priere/reglages", "Horaires de prière") + '<div class="card"><strong>Langue</strong>' + langChips() + '<p class="muted" style="margin:0">' + (LK() === "fr" ? "" : "Les leçons, quiz et hadiths restent en français pour l\'instant ; la traduction du Coran suit la langue choisie.") + '</p></div>' +
         lc("#/profils", "Profils de l\'appareil") + lc("#/reglages", "Tous les réglages") +
         '<h3>À propos</h3><a class="lcardM" href="#" id="shapp2"><span>Partager NÛR</span>' + ICO.arrow + '</a>' +
         '<div class="lcardM"><span>Nous contacter</span><span class="muted">en construction</span></div>' +
@@ -765,6 +766,7 @@
         '<a class="lcardM danger" href="#/reglages"><span>Supprimer mes données</span>' + ICO.arrow + '</a>' +
         '<p class="muted center">Version : ' + VERSION + '</p><p class="muted center appid">Identifiant d\'installation<br><code id="aid">' + esc(appId()) + '</code> <button class="btn alt" id="cpid">Copier</button></p>';
       return { title: "Profil", html: html, back: "#/", tab: null, bind: function (r) {
+        bindLang(r);
         function sh(e) { if (e) e.preventDefault(); share("NÛR", "NÛR : apprendre le Coran et les bases de la foi, pas à pas. Gratuit, sans publicité. " + location.origin + location.pathname); }
         $("#shapp", r).onclick = sh; $("#shapp2", r).onclick = sh;
         $("#cpid", r).onclick = function () { var t = appId(); if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { toast("Identifiant copié."); }, function () { toast(t); }); else toast(t); };
@@ -804,7 +806,7 @@
     for (var i = 0; i < 400 && out.length < n; i++) {
       var d = addDays(base, i), hm = 0, hd = 0;
       fmt.formatToParts(new Date(Date.UTC(d.y, d.m - 1, d.d, 12) + (S.settings.hijriOffset || 0) * 864e5)).forEach(function (p) { if (p.type === "month") hm = +p.value; if (p.type === "day") hd = +p.value; });
-      EVTS.forEach(function (e) { if (e[0] === hm && e[1] === hd && out.length < n) out.push([d, e[2], i, new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(d.y, d.m - 1, d.d, 12)))]); });
+      EVTS.forEach(function (e) { if (e[0] === hm && e[1] === hd && out.length < n) out.push([d, e[2], i, new Intl.DateTimeFormat(UIL(), { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(d.y, d.m - 1, d.d, 12)))]); });
     }
     return out;
   }
@@ -817,7 +819,7 @@
       EVTS.forEach(function (e) { if (e[0] === hm && e[1] === hd) out.push([d, e[2], i]); });
     }
     var html = '<h2>Événements à venir</h2>' + (out.length ? '<ul class="list">' + out.map(function (x) {
-      var dl = new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(x[0].y, x[0].m - 1, x[0].d, 12)));
+      var dl = new Intl.DateTimeFormat(UIL(), { timeZone: "UTC", weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(x[0].y, x[0].m - 1, x[0].d, 12)));
       return '<li><div class="card" style="margin:0"><strong>' + esc(x[1]) + '</strong><div class="muted">' + esc(dl) + ' · ' + esc(hijriOf(x[0])) + (x[2] === 0 ? " · aujourd'hui" : " · dans " + x[2] + " jours") + '</div></div></li>';
     }).join("") + '</ul>' : '<p>Calendrier hégirien indisponible sur ce navigateur.</p>') +
       '<p class="muted">Dates calculées selon le calendrier Umm al-Qurâ ; elles peuvent varier d\'un jour selon l\'observation de la lune et les annonces de votre mosquée. Le décalage se règle dans les réglages. Les nuits commencent au coucher du soleil de la veille.</p>';
@@ -893,7 +895,7 @@
     if (e >= 7 && STORE.profiles.length) e = 10;
     var bar = '<div class="prog"><div class="bar"><i style="width:' + Math.round(e * 100 / N) + '%"></i></div>' + (e > 1 && e < 10 ? '<a class="btn alt small" href="#/bienvenue?e=' + (e === 6 ? 7 : e + 1) + '" id="pass">Passer</a>' : '') + '</div>';
     function slide(t, s, glyph) { return '<div class="obGlyph" aria-hidden="true">' + glyph + '</div><h2>' + t + '</h2><p class="lead">' + s + '</p><p><a class="btn big" href="#/bienvenue?e=' + (e + 1) + '">Suivant</a></p>'; }
-    if (e === 1) html = '<div class="obLogo ar" lang="ar" aria-hidden="true">نور</div><h2>Ton compagnon pour apprendre le Coran</h2><p class="lead">Apprends, prie et progresse dans la foi, pas à pas.</p>' +
+    if (e === 1) html = '<p class="muted" style="margin:0">Choisis ta langue</p>' + langChips() + '<div class="obLogo ar" lang="ar" aria-hidden="true">نور</div><h2>Ton compagnon pour apprendre le Coran</h2><p class="lead">Apprends, prie et progresse dans la foi, pas à pas.</p>' +
       '<p><a class="btn big" href="#/bienvenue?e=2">Commencer</a></p><p><button class="btn alt" id="skip">Plus d\'options : passer l\'introduction</button></p>';
     else if (e === 2) html = slide("Construis ta routine", "Quelques minutes par jour : un verset, un dhikr, un hadith et ta lecture du Coran.", "☾");
     else if (e === 3) html = slide("Suivi des prières", "Les horaires selon ton lieu, la qibla, et tes prières marquées chaque jour.", "◎");
@@ -916,6 +918,7 @@
     } else html = '<h2>Ton lieu</h2><p>Le lieu sert à calculer les heures de prière et la qibla, partout dans le monde. Il reste sur ton appareil.</p><div style="text-align:left">' + lieuHTML() + '</div><p style="margin-top:1rem"><button class="btn alt" id="later">Plus tard</button></p>';
     return { title: "Bienvenue", html: '<div class="ob">' + bar + html + '</div>', bare: true, tab: null, bind: function (r) {
       var sk = $("#skip", r); if (sk) sk.onclick = finishOb;
+      if (typeof bindLang === "function") bindLang(r);
       var ps = $("#pass", r);
       if (ps && e === 9) ps.onclick = function (ev) { ev.preventDefault(); if (pf.type === "garcon" || pf.type === "fille") return toast("Pour un profil enfant, l'âge et l'accord de l'adulte sont nécessaires."); createAndGo(); };
       if (ps && e === 8) ps.onclick = function (ev) { ev.preventDefault(); pf.type = "adulte"; location.hash = "#/bienvenue?e=9"; };
@@ -934,7 +937,7 @@
           pr = pinHash(code).then(function (h) { if (STORE.pin && STORE.pin !== h) { toast("Code parental incorrect."); return null; } STORE.pin = h; return addProfile({ nom: pf.nom, type: pf.type, age: age }); });
         } else pr = Promise.resolve(addProfile({ nom: pf.nom, type: pf.type || "adulte", age: age >= 7 ? age : undefined }));
         pr.then(function (id) {
-          if (!id) return; switchProfile(id); var s2 = stt();
+          if (!id) return; switchProfile(id); var s2 = stt(); s2.lang = STORE.lang || "fr";
           s2.rappels = { prieres: !!obR.prieres, routine: !!obR.routine, verset: !!obR.verset }; s2.notif = !!obR.prieres;
           if (kid) s2.prayerTrack = false; save(); location.hash = "#/bienvenue?e=10";
         });
@@ -1099,6 +1102,109 @@
     return { title: "Carte de vœux", html: html, back: STORE.onboarded ? "#/plus" : null, tab: STORE.onboarded ? "#/plus" : null, bare: !STORE.onboarded, bind: function (r) { drawCard($("#cvs", r), CARTES[f], msg, sg); } };
   });
   /* ================================================================ fin v1.4 */
+  /* ================================================================ v1.5 : langue de l'interface (fr, en-US, en-GB, zh, ar) */
+  var LANGS = [["fr", "Français"], ["en-US", "English (US)"], ["en-GB", "English (UK)"], ["zh", "中文"], ["ar", "العربية"]];
+  function LANG() { return (STORE.active && S.settings.lang) || STORE.lang || "fr"; }
+  function LK() { var l = LANG(); return l.indexOf("en") === 0 ? "en" : l; }
+  function UIL() { var l = LANG(); return l === "fr" ? "fr-FR" : l === "zh" ? "zh-CN" : l === "ar" ? "ar" : l; }
+  function TRF() { var k = LK(); return k === "en" ? "traduction-en.json" : k === "zh" ? "traduction-zh.json" : k === "ar" ? "tafsir-ar.json" : "traduction-fr.json"; }
+  function noteFr() { var f = OPT && OPT.fr; return f ? (LK() === "ar" ? "التفسير : " : LK() === "fr" ? "Traduction du sens : " : LK() === "zh" ? "译文：" : "Translation: ") + f.source + "." : ""; }
+  function setLang(l) { if (STORE.active) S.settings.lang = l; STORE.lang = l; OPT = null; save(); applyLang(); }
+  function applyLang() { var k = LK(); document.documentElement.lang = k === "zh" ? "zh-CN" : LANG(); document.documentElement.dir = k === "ar" ? "rtl" : "ltr"; }
+  var D = [
+    ["Apprendre", "Learn", "学习", "تعلّم"], ["Prière", "Prayer", "礼拜", "الصلاة"], ["Quotidien", "Daily", "每日", "يومي"], ["Coran", "Quran", "古兰经", "القرآن"], ["Plus", "More", "更多", "المزيد"],
+    ["Le Saint Coran", "The Holy Quran", "尊贵的古兰经", "القرآن الكريم"], ["Plus de fonctionnalités", "More features", "更多功能", "مزيد من الميزات"], ["Profil", "Profile", "个人资料", "الملف الشخصي"], ["Bienvenue", "Welcome", "欢迎", "مرحبًا"],
+    ["La prochaine prière est", "The next prayer is", "下一次礼拜是", "الصلاة القادمة هي"], ["Imsak", "Imsak", "斋戒开始", "الإمساك"], ["Chourouq", "Sunrise", "日出", "الشروق"], ["Iftar", "Iftar", "开斋", "الإفطار"],
+    ["Horaires de prière", "Prayer times", "礼拜时间", "مواقيت الصلاة"], ["Explorer NÛR", "Explore NÛR", "探索 NÛR", "استكشف نور"], ["Rapproche-toi de Dieu, pas à pas", "Draw closer to God, step by step", "一步一步接近真主", "تقرّب إلى الله خطوة بخطوة"],
+    ["Cours / Quiz", "Lessons / Quiz", "课程 / 测验", "دروس / اختبار"], ["Tafsir", "Tafsir", "经注", "التفسير"], ["Khatm Coran", "Quran khatm", "通读古兰经", "ختم القرآن"], ["Lancer", "Open", "进入", "افتح"],
+    ["Objectifs du jour", "Today's goals", "今日目标", "أهداف اليوم"], ["Quelques minutes pour te rapprocher de Dieu", "A few minutes to draw closer to God", "几分钟，接近真主", "دقائق قليلة للتقرّب إلى الله"],
+    ["Réfléchis sur ton verset du jour", "Reflect on your verse of the day", "思考今日经文", "تدبّر آية اليوم"], ["Souviens-toi de Dieu avec le dhikr", "Remember God with dhikr", "以记主纪念真主", "اذكر الله بالذكر"],
+    ["Médite sur un hadith", "Meditate on a hadith", "沉思一段圣训", "تأمّل حديثًا"], ["Lis ta dose quotidienne de Coran", "Read your daily portion of the Quran", "诵读每日古兰经", "اقرأ وِردك اليومي من القرآن"],
+    ["Commencer", "Start", "开始", "ابدأ"], ["Continuer", "Continue", "继续", "متابعة"], ["Personnaliser", "Customize", "自定义", "تخصيص"], ["Voir mon bilan", "See my summary", "查看总结", "عرض الحصيلة"],
+    ["Fil d'actualités", "News feed", "动态", "آخر الأخبار"], ["Cartes de vœux", "Greeting cards", "贺卡", "بطاقات التهنئة"], ["Envoie une carte à tes proches, par WhatsApp ou par lien.", "Send a card to your loved ones, by WhatsApp or by link.", "通过 WhatsApp 或链接给亲人发送贺卡。", "أرسل بطاقة إلى أحبّائك عبر واتساب أو برابط."],
+    ["Trouver la qibla", "Find the qibla", "寻找朝向", "تحديد القبلة"], ["Les heures de prière te semblent incorrectes ?", "Do the prayer times seem wrong?", "礼拜时间似乎不对？", "هل تبدو مواقيت الصلاة غير صحيحة؟"], ["Explications", "Explanations", "说明", "توضيحات"],
+    ["En savoir plus sur les prières", "Learn more about the prayers", "了解礼拜", "اعرف المزيد عن الصلوات"], ["Fardh (obligatoire)", "Fard (obligatory)", "主命", "الفرض"], ["Sunna (recommandé)", "Sunna (recommended)", "圣行", "السنة"],
+    ["Pendant la prière", "During the prayer", "礼拜中", "في الصلاة"], ["Avant la prière", "Before the prayer", "礼拜前", "قبل الصلاة"], ["Après la prière", "After the prayer", "礼拜后", "بعد الصلاة"], ["Avant et après la prière", "Before and after the prayer", "礼拜前后", "قبل الصلاة وبعدها"],
+    ["Après le Chafʿ", "After the Shafʿ", "双拜之后", "بعد الشفع"], ["Selon le rite malikite.", "According to the Maliki school.", "依据马立克学派。", "وفق المذهب المالكي."], ["Recommandations à faire après la prière", "Recommended after the prayer", "礼拜后的建议", "ما يُستحب بعد الصلاة"],
+    ["Suivre les recommandations", "Follow the recommendations", "遵循建议", "اتّبع التوصيات"], ["Les 30 prochains jours", "The next 30 days", "未来 30 天", "الأيام الثلاثون القادمة"], ["Recommandations", "Recommendations", "建议", "التوصيات"],
+    ["Invocations", "Invocations", "祈祷词", "الأذكار"], ["Remettre les compteurs à zéro", "Reset the counters", "计数归零", "تصفير العدّادات"], ["Âyat al-Koursî", "Ayat al-Kursi", "宝座经文", "آية الكرسي"], ["▶ Écouter", "▶ Listen", "▶ 收听", "▶ استمع"],
+    ["Ouvrir dans le Coran", "Open in the Quran", "在古兰经中打开", "افتح في المصحف"], ["Toucher", "Tap", "点击", "اضغط"], ["Activer la boussole", "Enable the compass", "启用指南针", "تفعيل البوصلة"], ["Sur ordinateur ou sans boussole", "On a computer or without a compass", "电脑或无指南针时", "على الحاسوب أو بدون بوصلة"],
+    ["changer de lieu", "change location", "更改地点", "غيّر الموقع"], ["Calcul des horaires de prière", "Prayer time calculation", "礼拜时间计算", "حساب مواقيت الصلاة"], ["Méthode de calcul", "Calculation method", "计算方法", "طريقة الحساب"], ["Localisation", "Location", "位置", "الموقع"],
+    ["Localisation automatique", "Automatic location", "自动定位", "تحديد الموقع تلقائيًا"], ["Me localiser maintenant", "Locate me now", "立即定位", "حدّد موقعي الآن"], ["Rechercher une ville, partout dans le monde", "Search for a city anywhere in the world", "搜索世界任何城市", "ابحث عن مدينة في أي مكان من العالم"],
+    ["Rechercher", "Search", "搜索", "بحث"], ["Ma mosquée sur Mawaqit", "My mosque on Mawaqit", "我的清真寺（Mawaqit）", "مسجدي على مواقيت"], ["Enregistrer", "Save", "保存", "حفظ"], ["Ouvrir ma mosquée", "Open my mosque", "打开我的清真寺", "افتح مسجدي"],
+    ["Trouver une mosquée", "Find a mosque", "查找清真寺", "ابحث عن مسجد"], ["Tu as un doute sur les horaires ?", "Unsure about the times?", "对时间有疑问？", "هل لديك شك في المواقيت؟"], ["Continuer la lecture", "Continue reading", "继续阅读", "متابعة القراءة"],
+    ["Mes signets", "My bookmarks", "我的书签", "علاماتي"], ["Signets", "Bookmarks", "书签", "العلامات"], ["Paramètres", "Settings", "设置", "الإعدادات"], ["Récitateur", "Reciter", "诵读者", "القارئ"], ["Khatm", "Khatm", "通读", "الختم"],
+    ["Réinitialiser la progression du khatm", "Reset khatm progress", "重置通读进度", "إعادة ضبط تقدّم الختم"], ["Arabe", "Arabic", "阿拉伯语", "العربية"], ["Phonétique", "Phonetics", "音译", "النطق اللاتيني"], ["Traduction", "Translation", "译文", "التفسير"],
+    ["Taille de la police", "Font size", "字体大小", "حجم الخط"], ["Petit", "Small", "小", "صغير"], ["Grand", "Large", "大", "كبير"], ["Français", "Translation", "译文", "التفسير"], ["▶ Écouter la sourate", "▶ Listen to the surah", "▶ 收听本章", "▶ استمع إلى السورة"],
+    ["Sourate précédente", "Previous surah", "上一章", "السورة السابقة"], ["Sourate suivante", "Next surah", "下一章", "السورة التالية"], ["Lecture du jour", "Daily reading", "每日诵读", "ورد اليوم"],
+    ["Le sens de ce verset est donné avec le verset suivant.", "The meaning of this verse is given with the next verse.", "本节经文的意义与下一节一并给出。", "معنى هذه الآية مذكور مع الآية التالية."],
+    ["Marquer comme mémorisé", "Mark as memorized", "标记为已背诵", "تحديد كمحفوظة"], ["Répéter", "Repeat", "重复", "كرّر"], ["Je souhaite étudier…", "I want to study…", "我想学习……", "أريد أن أتعلّم…"], ["Pour continuer", "To continue", "继续学习", "للمتابعة"],
+    ["Tout afficher", "Show all", "全部显示", "عرض الكل"], ["Lire et réciter", "Read and recite", "阅读与诵读", "القراءة والتلاوة"], ["Alphabet et lecture", "Alphabet and reading", "字母与阅读", "الحروف والقراءة"], ["Tajwid", "Tajwid", "诵读规则", "التجويد"],
+    ["Repères de mémorisation", "Memorization milestones", "背诵进度", "مراحل الحفظ"], ["Les règles de la récitation", "The rules of recitation", "诵读规则", "أحكام التلاوة"], ["Sourate par sourate", "Surah by surah", "逐章", "سورة سورة"],
+    ["Les lettres, les voyelles, la phonétique", "Letters, vowels, phonetics", "字母、元音、音译", "الحروف والحركات والنطق"], ["Tafsir (exégèse du Coran)", "Tafsir (Quran exegesis)", "经注（古兰经注释）", "التفسير"], ["Les dhikr", "Dhikr", "记主词", "الأذكار"],
+    ["Scanner halal", "Halal scanner", "清真扫描", "ماسح الحلال"], ["Événements à venir", "Upcoming events", "即将到来的节日", "المناسبات القادمة"], ["Mon parcours et mes points", "My path and points", "我的学习路径与积分", "مساري ونقاطي"],
+    ["Ma lecture complète du Coran", "My complete Quran reading", "我的古兰经通读", "ختمتي للقرآن"], ["Méditer", "Meditate", "沉思", "تدبّر"], ["Aimer", "Love", "爱", "المحبّة"], ["Espace enfant", "Children's area", "儿童空间", "ركن الأطفال"],
+    ["Profil et paramètres", "Profile and settings", "个人资料与设置", "الملف والإعدادات"], ["Le rappel profite au croyant", "The reminder benefits the believer", "提醒有益于信士", "الذكرى تنفع المؤمنين"], ["Partager à un proche", "Share with a loved one", "分享给亲人", "شاركه مع قريب"],
+    ["Mes points", "My points", "我的积分", "نقاطي"], ["Langue", "Language", "语言", "اللغة"], ["Profils de l'appareil", "Device profiles", "设备上的个人资料", "ملفات الجهاز"], ["Tous les réglages", "All settings", "全部设置", "كل الإعدادات"], ["À propos", "About", "关于", "حول"],
+    ["Partager NÛR", "Share NÛR", "分享 NÛR", "شارك نور"], ["Nous contacter", "Contact us", "联系我们", "اتصل بنا"], ["en construction", "under construction", "建设中", "قيد الإنشاء"], ["Conditions d'utilisation", "Terms of use", "使用条款", "شروط الاستخدام"],
+    ["Politique de confidentialité", "Privacy policy", "隐私政策", "سياسة الخصوصية"], ["Sources et licences", "Sources and licences", "来源与许可", "المصادر والتراخيص"], ["Supprimer mes données", "Delete my data", "删除我的数据", "حذف بياناتي"], ["Copier", "Copy", "复制", "نسخ"],
+    ["Personnalisation de la routine", "Customize the routine", "自定义日常", "تخصيص الروتين"], ["Verset du jour", "Verse of the day", "今日经文", "آية اليوم"], ["Hadith du jour", "Hadith of the day", "今日圣训", "حديث اليوم"], ["Dhikr du jour", "Dhikr of the day", "今日记主", "ذكر اليوم"],
+    ["Lecture du Coran (khatm)", "Quran reading (khatm)", "诵读古兰经（通读）", "قراءة القرآن (الختم)"], ["Versets par jour", "Verses per day", "每日经文数", "آيات في اليوم"], ["Journal religieux", "Religious journal", "宗教日记", "اليوميات الإيمانية"], ["Quiz", "Quiz", "测验", "اختبار"],
+    ["Rappel de la routine", "Routine reminder", "日常提醒", "تذكير الروتين"], ["actif", "active", "已启用", "مفعّل"], ["Ton compagnon pour apprendre le Coran", "Your companion for learning the Quran", "学习古兰经的伙伴", "رفيقك لتعلّم القرآن"],
+    ["Apprends, prie et progresse dans la foi, pas à pas.", "Learn, pray and grow in faith, step by step.", "学习、礼拜，在信仰中一步步成长。", "تعلّم، وصلِّ، وتقدّم في الإيمان خطوة بخطوة."], ["Plus d'options : passer l'introduction", "More options: skip the introduction", "更多选项：跳过介绍", "خيارات أخرى: تخطَّ المقدمة"],
+    ["Passer", "Skip", "跳过", "تخطَّ"], ["Suivant", "Next", "下一步", "التالي"], ["Construis ta routine", "Build your routine", "建立你的日常", "ابنِ روتينك"], ["Suivi des prières", "Prayer tracking", "礼拜记录", "متابعة الصلوات"], ["Apprendre pas à pas", "Learn step by step", "循序渐进地学习", "تعلّم خطوة بخطوة"],
+    ["Quelques minutes par jour : un verset, un dhikr, un hadith et ta lecture du Coran.", "A few minutes a day: a verse, a dhikr, a hadith and your Quran reading.", "每天几分钟：一节经文、一句记主词、一段圣训和你的古兰经诵读。", "دقائق كل يوم: آية وذكر وحديث وورد من القرآن."],
+    ["Les horaires selon ton lieu, la qibla, et tes prières marquées chaque jour.", "Prayer times for your location, the qibla, and your prayers marked every day.", "依据你所在地的礼拜时间、朝向，以及每天的礼拜记录。", "مواقيت مدينتك، والقبلة، وتسجيل صلواتك كل يوم."],
+    ["Des leçons courtes, des quiz et des points, de l'Étincelle à l'Étoile.", "Short lessons, quizzes and points, from Spark to Star.", "简短的课程、测验和积分，从火花到星辰。", "دروس قصيرة واختبارات ونقاط، من الشرارة إلى النجمة."],
+    ["Dans 21 jours, tu auras :", "In 21 days, you will have:", "21 天后，你将：", "بعد 21 يومًا ستكون قد:"], ["C'est parti !", "Let's go!", "出发！", "هيا بنا!"], ["Ne manque aucun rendez-vous avec Dieu", "Never miss a meeting with God", "不错过与真主的每一次约会", "لا تفوّت أي موعد مع الله"],
+    ["Heures des prières", "Prayer times", "礼拜时间", "مواقيت الصلاة"], ["Une alerte pour chaque prière", "An alert for each prayer", "每次礼拜提醒", "تنبيه لكل صلاة"], ["Routine quotidienne", "Daily routine", "日常", "الروتين اليومي"],
+    ["Un rappel pour tes objectifs du jour", "A reminder for today's goals", "今日目标提醒", "تذكير بأهداف اليوم"], ["Un verset chaque jour", "A verse every day", "每日一节经文", "آية كل يوم"], ["Comment devons-nous t'appeler ?", "What should we call you?", "我们该如何称呼你？", "بماذا نناديك؟"],
+    ["Qui utilise ce profil ?", "Who uses this profile?", "谁使用此个人资料？", "من يستخدم هذا الملف؟"], ["Homme", "Man", "男", "رجل"], ["Femme", "Woman", "女", "امرأة"], ["Enfant (garçon)", "Child (boy)", "儿童（男孩）", "طفل (ولد)"], ["Enfant (fille)", "Child (girl)", "儿童（女孩）", "طفلة (بنت)"],
+    ["Un profil enfant reste sous la responsabilité d'un adulte.", "A child profile remains under an adult's responsibility.", "儿童资料由成年人负责。", "يبقى ملف الطفل تحت مسؤولية شخص بالغ."], ["Indique ton âge", "Enter your age", "输入你的年龄", "أدخل عمرك"],
+    ["Cela permet de proposer un contenu adapté.", "This helps us suggest suitable content.", "以便提供合适的内容。", "يساعدنا ذلك على اقتراح محتوى مناسب."], ["Ton lieu", "Your location", "你的位置", "موقعك"], ["Plus tard", "Later", "稍后", "لاحقًا"], ["Choisis ta langue", "Choose your language", "选择语言", "اختر لغتك"],
+    ["Mon parcours", "My path", "我的学习路径", "مساري"], ["Les étapes", "Steps", "步骤", "المراحل"], ["Les paliers", "Levels", "等级", "المستويات"], ["Les leçons", "Lessons", "课程", "الدروس"], ["Le quiz", "The quiz", "测验", "الاختبار"], ["Fiches de révision", "Flashcards", "复习卡片", "بطاقات المراجعة"],
+    ["Bilan du jour", "Today's summary", "今日总结", "حصيلة اليوم"], ["Retour à l'accueil", "Back to home", "返回首页", "العودة إلى الرئيسية"], ["Continuer mon parcours", "Continue my path", "继续我的学习路径", "تابع مساري"], ["Suivant ", "Next", "下一步", "التالي"],
+    ["Créer ma carte", "Create my card", "制作我的贺卡", "أنشئ بطاقتي"], ["Découvrir NÛR", "Discover NÛR", "了解 NÛR", "اكتشف نور"], ["Envoyer par WhatsApp", "Send by WhatsApp", "通过 WhatsApp 发送", "أرسل عبر واتساب"], ["Copier le lien", "Copy link", "复制链接", "انسخ الرابط"],
+    ["Télécharger", "Download", "下载", "تنزيل"], ["Formule", "Greeting", "祝福语", "العبارة"], ["Soutenir NÛR (en construction)", "Support NÛR (under construction)", "支持 NÛR（建设中）", "ادعم نور (قيد الإنشاء)"], ["Une carte pour vous", "A card for you", "给你的贺卡", "بطاقة لك"]
+  ];
+  var DI = { en: {}, zh: {}, ar: {} };
+  D.forEach(function (r) { DI.en[r[0]] = r[1]; DI.zh[r[0]] = r[2]; DI.ar[r[0]] = r[3]; });
+  var DP = [
+    [/^Assalâmou ʿalaykoum(.*)$/, ["As-salamu alaykum$1", "愿你平安$1", "السلام عليكم$1"]],
+    [/^Marque tes prières (\d+) \/ 5$/, ["Mark your prayers $1 / 5", "记录礼拜 $1 / 5", "سجّل صلواتك $1 / 5"]],
+    [/^dans (\d+) h (\d+)$/, ["in $1 h $2", "$1 小时 $2 分后", "بعد $1 س $2 د"]],
+    [/^(\d+) \/ (\d+) pts$/, ["$1 / $2 pts", "$1 / $2 分", "$1 / $2 نقطة"]],
+    [/^(\d+) pts · (.+)$/, ["$1 pts · $2", "$1 分 · $2", "$1 نقطة · $2"]], [/^(\d+) pts$/, ["$1 pts", "$1 分", "$1 نقطة"]],
+    [/^Aujourd'hui, (.+)$/, ["Today, $1", "今天，$1", "اليوم، $1"]],
+    [/^Hadiths sur la prière du (.+)$/, ["Hadiths on the $1 prayer", "关于$1礼拜的圣训", "أحاديث عن صلاة $1"]],
+    [/^Mon parcours : (.+)$/, ["My path: $1", "我的学习路径：$1", "مساري: $1"]],
+    [/^(.+) · (\d+) versets · (\d+) lus$/, ["$1 · $2 verses · $3 read", "$1 · $2 节 · 已读 $3", "$1 · $2 آية · قُرئ $3"]],
+    [/^: (\d+) \/ (\d+) versets marqués « lu » aujourd'hui ; à (\d+), \+(\d+) points\.$/, [": $1 / $2 verses marked as read today; at $3, +$4 points.", "：今天已标记 $1 / $2 节；满 $3 节得 +$4 分。", ": $1 / $2 آيات مقروءة اليوم؛ عند $3 تحصل على +$4 نقاط."]],
+    [/^: validée aujourd'hui \(\+(\d+) points\)\.$/, [": done today (+$1 points).", "：今日已完成（+$1 分）。", ": أُنجز اليوم (+$1 نقاط)."]],
+    [/^(.+) \(lieu par défaut\)$/, ["$1 (default location)", "$1（默认地点）", "$1 (الموقع الافتراضي)"]],
+    [/^(\d+) points par prière marquée\. Suivi privé, sur cet appareil\.$/, ["$1 points per prayer marked. Private, on this device.", "每记录一次礼拜得 $1 分。仅保存在本设备。", "$1 نقاط لكل صلاة مسجّلة. متابعة خاصة على هذا الجهاز."]],
+    [/^(\d+) \/ (\d+) versets$/, ["$1 / $2 verses", "$1 / $2 节", "$1 / $2 آية"]], [/^(\d+) \/ 114 sourates$/, ["$1 / 114 surahs", "$1 / 114 章", "$1 / 114 سورة"]]
+  ];
+  function tr(t) {
+    var k = LK(); if (k === "fr" || !t) return t;
+    var s = t.trim(); if (!s) return t;
+    var hit = DI[k][s];
+    if (hit === undefined) for (var i = 0; i < DP.length; i++) { var m = DP[i][0]; if (m.test(s)) { hit = s.replace(m, DP[i][1][k === "en" ? 0 : k === "zh" ? 1 : 2]); break; } }
+    return hit === undefined ? t : t.replace(s, hit);
+  }
+  function i18n(root) {
+    if (LK() === "fr" || !root) return;
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, L = [];
+    while ((n = w.nextNode())) L.push(n);
+    L.forEach(function (x) { var p = x.parentNode; if (p && (p.closest(".mushaf,.ar-line,.ph,.trfr,.lesson,.hq,.fiche p,.nt") )) return; var v = tr(x.nodeValue); if (v !== x.nodeValue) x.nodeValue = v; });
+    $$("[aria-label],[placeholder]", root).forEach(function (e) { ["aria-label", "placeholder"].forEach(function (a) { var v = e.getAttribute(a); if (v) { var t2 = tr(v); if (t2 !== v) e.setAttribute(a, t2); } }); });
+  }
+  function langChips() {
+    return '<div class="chipsH langs nt" role="group" aria-label="Langue">' + LANGS.map(function (l) { return '<button class="chip' + (LANG() === l[0] ? " on" : "") + '" data-lang="' + l[0] + '" aria-pressed="' + (LANG() === l[0]) + '">' + l[1] + '</button>'; }).join("") + '</div>';
+  }
+  function bindLang(r) { $$("[data-lang]", r).forEach(function (b) { b.onclick = function () { setLang(b.dataset.lang); render(); }; }); }
+  /* ================================================================ fin v1.5 */
+
 
 
 
@@ -1763,6 +1869,7 @@
       '<p style="margin-top:1.2rem"><button class="btn alt" id="later">Plus tard</button></p>';
     return { title: "Bienvenue", html: '<div class="ob">' + bar + html + '</div>', bare: true, tab: null, bind: function (r) {
       var sk = $("#skip", r); if (sk) sk.onclick = finishOb;
+      if (typeof bindLang === "function") bindLang(r);
       if (e === 3) {
         bindProfilForm(r);
         $("#go", r).onclick = function () { submitProfil(r).then(function (id) { if (!id) return; switchProfile(id); location.hash = "#/bienvenue?e=4"; }); };
@@ -2118,6 +2225,8 @@
       drawTabs(v.tab === undefined ? null : v.tab); drawPts(!!v.bare);
       $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild());
       if (v.bind) v.bind(main);
+      $("#title").textContent = v.title === "NÛR" ? "NÛR" : tr(v.title || ""); if (v.title === "NÛR") $("#title").innerHTML = 'NÛR <span class="ar" aria-hidden="true">نور</span>';
+      i18n(main); i18n($("#tabs")); setTimeout(function () { i18n($("#top")); }, 60);
       if (keepScroll) window.scrollTo(0, y0); else if (!params.a) window.scrollTo(0, 0);
       main.focus({ preventScroll: true });
     }).catch(function (e) {
@@ -2154,7 +2263,7 @@
   function netState() { var n = $("#net"); n.textContent = navigator.onLine ? "" : "Hors ligne"; }
   window.addEventListener("online", netState); window.addEventListener("offline", netState);
 
-  applyTheme(); netState(); render(); scheduleNotifs(); setTimeout(autoLocate, 1500);
+  applyLang(); applyTheme(); netState(); render(); scheduleNotifs(); setTimeout(autoLocate, 1500);
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") autoLocate(); });
   setInterval(function () {
     if (STORE.active && document.visibilityState !== "hidden") { S.temps = (S.temps || 0) + 60; save(); }

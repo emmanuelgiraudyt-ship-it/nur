@@ -1,6 +1,11 @@
-# NÛR (نور) — application installable (PWA), version 1.4.0
+# NÛR (نور) — application installable (PWA), version 1.5.0
 
 Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, méditation, compteurs de dhikr. Application gratuite, sans abonnement, sans publicité, sans traceur ; les données restent sur l'appareil. Fonctionne hors ligne après le premier chargement.
+
+## Version 1.5.0
+- Langue de l'interface au choix dès le premier écran et dans le profil : français, anglais (États-Unis ou Royaume-Uni), chinois, arabe (de droite à gauche).
+- La traduction du Coran suit la langue : anglais, Rowwad Translation Center (QuranEnc.com, english_rwwad) ; chinois, Muhammad Makin (QuranEnc.com, chinese_makin v1.0.0) ; arabe, al-Tafsîr al-Muyassar (complexe du Roi Fahd, via tanzil.net).
+- Les leçons, quiz et hadiths restent en français pour l'instant.
 
 ## Version 1.4.0
 - Traduction française cochable sous chaque verset : Muhammad Hamidullah, QuranEnc.com (french_hameedullah v1.0.0), reproduite sans modification ; affichée sous le verset de Warsh qui se termine au même endroit que le verset de Ḥafṣ (`traduction-fr.json`).
@@ -67,7 +72,7 @@ La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4
 - `KFGQPC-Warsh-Uthmanic.ttf`, `LICENCE-KFGQPC.txt` : police KFGQPC Warsh (non modifiée) et sa licence.
 
 ## Modifier les contenus sans toucher au code
-Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.4.0`) pour que les appareils déjà installés reçoivent la mise à jour.
+Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.5.0`) pour que les appareils déjà installés reçoivent la mise à jour.
 
 ## Sources
 - Texte et police : King Fahd Glorious Quran Printing Complex (KFGQPC), via github.com/thetruetruth/quran-data-kfgqpc. Voir `LICENCE-KFGQPC.txt`.

@@ -398,3 +398,18 @@ body:has(.pbar) #main { padding-bottom: 5rem; }
 .rose .qneedle { position: absolute; left: 50%; top: 12%; width: 6px; height: 38%; margin-left: -3px; background: var(--accent); border-radius: 3px; transform-origin: 50% 100%; }
 .rose .qneedle b { position: absolute; top: -1.6rem; left: 50%; transform: translateX(-50%); font-size: .75rem; color: var(--accent); white-space: nowrap; }
 .rose .dot { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px; background: var(--gold); border-radius: 50%; }
+
+/* v1.5 : langues */
+.langs { margin: .3rem 0 .6rem; justify-content: center; }
+.langs .chip { cursor: pointer; font: inherit; font-size: .9rem; }
+.chip.on { border-color: var(--gold); background: var(--soft); font-weight: 700; }
+.ph { direction: ltr; unicode-bidi: isolate; }
+[dir="rtl"] .ph { text-align: left; }
+[dir="rtl"] .trfr { text-align: right; }
+[dir="rtl"] .arr { display: inline-block; transform: scaleX(-1); }
+[dir="rtl"] .stepsM .pt { margin-left: 0; margin-right: auto; }
+:lang(zh-CN) body, [lang="zh-CN"] { font-family: "Source Serif 4", "Noto Serif SC", "Songti SC", "SimSun", serif; }
+/* lien d'évitement sans débordement horizontal (indispensable en arabe, de droite à gauche) */
+.skip { left: 0; right: auto; transform: translateY(-150%); }
+.skip:focus { transform: none; }
+html, body { overflow-x: hidden; }
