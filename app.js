@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.3.0";
+  var VERSION = "1.3.1";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */

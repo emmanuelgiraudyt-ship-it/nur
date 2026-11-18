@@ -378,3 +378,4 @@ a.iconbtn { display: inline-flex; align-items: center; justify-content: center; 
 .ob .prog { align-items: center; }
 .cardprev { width: 100%; height: auto; border-radius: 12px; margin: .8rem 0; border: 1px solid var(--line); }
 .scanv { width: 100%; border-radius: 12px; margin: .6rem 0; background: #000; }
+.row.plain-link { display: flex; }
