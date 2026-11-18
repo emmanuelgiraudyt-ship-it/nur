@@ -1,4 +1,4 @@
-# NÛR (نور) — application installable (PWA), version 1.2.1
+# NÛR (نور) — application installable (PWA), version 1.2.2
 
 Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, méditation, compteurs de dhikr. Application gratuite, sans abonnement, sans publicité, sans traceur ; les données restent sur l'appareil. Fonctionne hors ligne après le premier chargement.
 
@@ -12,12 +12,15 @@ Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, m�
 - **Points** : privés, sans classement ni pénalité. La grille tarifaire de la version précédente (`plans.json`) est supprimée.
 - Les données d'une installation en version 1.1 sont reprises automatiquement dans un premier profil.
 
+## Affichage
+L'application garde la même présentation sur ordinateur et sur téléphone : une colonne de la largeur d'un téléphone, centrée à l'écran. Le compteur de points est visible en permanence en haut de l'écran.
+
 ## Barème des points
 | Action | Points |
 | --- | --- |
 | Leçon terminée | 10 |
 | Quiz réussi (80 % au moins), une fois par étape | 30 |
-| Lecture du jour | 5 |
+| Lecture du jour (objectif du jour, ou 5 versets marqués « lu » dans « Réciter ») | 5 |
 | Verset du jour | 3 |
 | Dhikr du jour | 4 |
 | Hadith du jour | 3 |
@@ -45,7 +48,7 @@ La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4
 - `KFGQPC-Warsh-Uthmanic.ttf`, `LICENCE-KFGQPC.txt` : police KFGQPC Warsh (non modifiée) et sa licence.
 
 ## Modifier les contenus sans toucher au code
-Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.2.1`) pour que les appareils déjà installés reçoivent la mise à jour.
+Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.2.2`) pour que les appareils déjà installés reçoivent la mise à jour.
 
 ## Sources
 - Texte et police : King Fahd Glorious Quran Printing Complex (KFGQPC), via github.com/thetruetruth/quran-data-kfgqpc. Voir `LICENCE-KFGQPC.txt`.
@@ -53,7 +56,7 @@ Les leçons, les questions, les dhikr et les hadiths se corrigent directement da
 - Leçons, quiz et formulations du sens des versets : rédigés pour NÛR ; aucun texte n'est repris d'une autre application.
 
 ## Points en attente
-- Relecture par l'imam garant des leçons, des quiz, des hadiths, des dhikr et de la phonétique automatique (fiches d'export dans « À propos »). La phonétique automatique a été comparée aux 105 versets rédigés à la main dans la version 1.1 : 89 versets identiques ; les écarts restants tiennent à des choix de notation ou corrigent l'ancien brouillon. Les particularités de Warsh (hamza adoucie, imâla) y sont rendues de façon simplifiée.
+- Contenus validés par l'imam garant (leçons, quiz, hadiths, dhikr, phonétique) : d'éventuelles corrections de phonétique s'ajoutent dans `phonetique.json`. La phonétique automatique a été comparée aux 105 versets rédigés à la main dans la version 1.1 : 89 versets identiques ; les écarts restants tiennent à des choix de notation ou corrigent l'ancien brouillon. Les particularités de Warsh (hamza adoucie, imâla) y sont rendues de façon simplifiée.
 - Contenu des paliers Flamme, Lanterne et Étoile.
 - Traduction française.
 - Audio (récitations, lettres, leçons) et accord des ayants droit.

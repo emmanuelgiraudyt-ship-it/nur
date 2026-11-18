@@ -1,7 +1,7 @@
 {
  "statut": "brouillon",
  "date": "2026-11-16",
- "note": "Sélection et formulations rédigées pour NÛR. Elles ne sont PAS encore validées par l'imam garant. Le sens des hadiths est donné dans une formulation simplifiée, non comme une traduction littérale.",
+ "note": "Sélection et formulations rédigées pour NÛR. Validées par l'imam garant. Le sens des hadiths est donné dans une formulation simplifiée, non comme une traduction littérale.",
  "points": { "lecture": 5, "verset": 3, "dhikr": 4, "hadith": 3 },
  "dhikr": [
   { "ar": "سبحان الله", "tr": "subḥāna llāh", "ph": "soubhânallâh", "fr": "Gloire à Dieu", "cible": 33 },

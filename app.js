@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.2.1";
+  var VERSION = "1.2.2";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -115,6 +115,17 @@
     if (on && i < 0) m.push(a);
     if (!on && i >= 0) m.splice(i, 1);
     S.khatm.read[sn] = m; if (!S.khatm.since) S.khatm.since = today();
+    if (on && i < 0) { var d = dayRec(); d.lu = (d.lu || 0) + 1; }
+  }
+  /* Les versets marqués comme lus dans « Réciter » valident la lecture du jour une fois la dose atteinte. */
+  function creditReading() {
+    var d = dayRec(), dose = S.settings.dose || 5;
+    if (d.f.lecture || (d.lu || 0) < dose) return;
+    var p = award("lecture"); toast(p ? "Lecture du jour validée : +" + p + " points" : "Lecture du jour validée.");
+  }
+  function readingLine() {
+    var d = dayRec(), dose = S.settings.dose || 5, n = Math.min(d.lu || 0, dose);
+    return '<div class="card ptsline"><strong>Lecture du jour</strong> : ' + (d.f.lecture ? 'validée aujourd\'hui.' : n + ' / ' + dose + ' versets marqués « lu ». À ' + dose + ', vous gagnez ' + PTS.lecture + ' points.') + ' <a href="#/parcours">Mes points</a></div>';
   }
   function kStats(q) {
     var v = 0, su = 0, tot = 0;
@@ -276,7 +287,7 @@
     if (navigator.clipboard) return navigator.clipboard.writeText(all).then(function () { toast("Texte copié."); }, function () { toast("Copie impossible."); });
     toast("Partage non disponible sur cet appareil.");
   }
-  var NOTE_VALIDATION = '<div class="callout">Contenu rédigé pour NÛR, <strong>soumis à la relecture de l\'imam garant</strong>.</div>';
+  var NOTE_VALIDATION = '<p class="muted">Contenu validé par l\'imam garant.</p>';
 
   /* ------------------------------------------------------------ vues */
   var routes = [];
@@ -443,7 +454,7 @@
     $$("[data-mem]", r).forEach(function (b) { b.onclick = function () {
       var a = +b.dataset.mem, m = S.hifz[s.n] || [], i = m.indexOf(a); if (i >= 0) m.splice(i, 1); else m.push(a); S.hifz[s.n] = m; save(); render();
     }; });
-    $$("[data-read]", r).forEach(function (b) { b.onclick = function () { kMark(s.n, +b.dataset.read); S.last = { s: s.n, a: +b.dataset.read }; save(); render(); }; });
+    $$("[data-read]", r).forEach(function (b) { b.onclick = function () { kMark(s.n, +b.dataset.read); S.last = { s: s.n, a: +b.dataset.read }; save(); creditReading(); render(); }; });
     $$("[data-bm]", r).forEach(function (b) { b.onclick = function () {
       var k = s.n + ":" + b.dataset.bm, i = S.bookmarks.indexOf(k); if (i >= 0) S.bookmarks.splice(i, 1); else S.bookmarks.push(k); save(); render();
     }; });
@@ -458,16 +469,16 @@
       if (!kid) {
         html += '<div class="row" style="margin:.7rem 0"><label class="f" for="mode" style="margin:0">Mode</label><select id="mode" style="max-width:260px">' +
           '<option value="verset"' + (mode === "verset" ? " selected" : "") + '>Verset par verset (débutant)</option>' +
-          '<option value="lecture"' + (mode === "lecture" ? " selected" : "") + '>Lecture continue (arabe seul)</option>' +
+          '<option value="lecture"' + (mode === "lecture" ? " selected" : "") + '>Lecture continue</option>' +
           '<option value="premier"' + (mode === "premier" ? " selected" : "") + '>Récitation : premier mot visible</option>' +
           '<option value="masque"' + (mode === "masque" ? " selected" : "") + '>Récitation : texte masqué</option></select>' +
           '<button class="btn alt" id="fm" aria-label="Réduire la taille du texte">A−</button><button class="btn alt" id="fp" aria-label="Augmenter la taille du texte">A+</button></div>' +
-          (mode === "verset" ? layersHTML(opt) : "") +
+          (mode === "verset" ? layersHTML(opt) : (mode === "lecture" ? arSeulHTML() : "")) +
           '<div class="row between" style="margin-bottom:.4rem"><span class="muted">Lus : ' + Math.min(kRead(sn).length, s.v.length) + ' / ' + s.v.length + '</span><button class="btn alt" id="readAll">' + (kRead(sn).length >= s.v.length ? "Marquer la sourate non lue" : "Marquer toute la sourate comme lue") + '</button></div>' +
-          '<div class="muted">Mémorisés : ' + mem + ' / ' + s.v.length + '</div><div class="bar"><i style="width:' + Math.round(100 * mem / s.v.length) + '%"></i></div>' +
+          readingLine() + '<div class="muted">Mémorisés : ' + mem + ' / ' + s.v.length + '</div><div class="bar"><i style="width:' + Math.round(100 * mem / s.v.length) + '%"></i></div>' +
           '<p class="muted">Touchez un verset pour le marquer, le garder en signet ou le méditer. En mode récitation, touchez pour révéler.</p>';
       } else html += '<p class="muted">Touchez un verset après l\'avoir répété pour gagner une étoile.</p>' + arSeulHTML();
-      html += (mode === "verset" && !kid ? versesHTML(s, q, opt) : readerHTML(s, q, mode, kid && phonOn())) + '<div id="sheetBox"></div>';
+      html += (mode === "verset" && !kid ? versesHTML(s, q, opt) : readerHTML(s, q, mode, phonOn() && (kid || mode === "lecture"))) + '<div id="sheetBox"></div>';
       if (!kid) {
         html += '<div class="row between" style="margin-top:1rem">' + (sn > 1 ? '<a class="btn alt" href="#/reciter/' + (sn - 1) + '">Sourate précédente</a>' : '<span></span>') +
           (sn < 114 ? '<a class="btn alt" href="#/reciter/' + (sn + 1) + '">Sourate suivante</a>' : '<span></span>') + '</div>';
@@ -479,7 +490,7 @@
           $("#mode", r).onchange = function (e) { readMode = e.target.value; render(); };
           $("#fm", r).onclick = function () { S.settings.fs = Math.max(.8, +(S.settings.fs - .1).toFixed(1)); save(); applyTheme(); };
           $("#fp", r).onclick = function () { S.settings.fs = Math.min(1.8, +(S.settings.fs + .1).toFixed(1)); save(); applyTheme(); };
-          $("#readAll", r).onclick = function () { var all = kRead(sn).length >= s.v.length; s.v.forEach(function (v) { kMark(sn, v[0], !all); }); save(); render(); };
+          $("#readAll", r).onclick = function () { var all = kRead(sn).length >= s.v.length; s.v.forEach(function (v) { kMark(sn, v[0], !all); }); save(); creditReading(); render(); };
         }
         if (kid) { document.body.classList.add("kid"); onLeave(function () { document.body.classList.remove("kid"); }); }
         if (mode === "verset" && !kid) bindVerses(r, s, opt);
@@ -507,7 +518,7 @@
             var m = S.hifz[sn] || []; var i = m.indexOf(a); if (i >= 0) m.splice(i, 1); else m.push(a); S.hifz[sn] = m; save(); render();
           };
           $("#aBm", box).onclick = function () { var i = S.bookmarks.indexOf(sn + ":" + a); if (i >= 0) S.bookmarks.splice(i, 1); else S.bookmarks.push(sn + ":" + a); save(); render(); };
-          $("#aRd", box).onclick = function () { s.v.forEach(function (v) { if (v[0] <= a) kMark(sn, v[0], true); }); save(); toast("Versets 1 à " + a + " marqués comme lus."); render(); };
+          $("#aRd", box).onclick = function () { s.v.forEach(function (v) { if (v[0] <= a) kMark(sn, v[0], true); }); save(); toast("Versets 1 à " + a + " marqués comme lus."); creditReading(); render(); };
           $("#aSh", box).onclick = function () { share("NÛR", "Sourate " + s.en + " (" + sn + "), verset " + a + " — à lire dans NÛR."); };
         }
         $$(".v", r).forEach(function (el) {
@@ -762,8 +773,8 @@
     var html = '<h2>À propos</h2><p>NÛR (نور) est une application islamique francophone, sans publicité, sans représentation d\'être vivant, conçue pour les croyants de tous niveaux, avec une attention particulière à la diaspora africaine de rite malikite.</p>' +
       '<div class="card"><h3>Riwaya</h3><p>Le texte est celui de la riwaya de Warsh ʿan Nâfiʿ, selon les données et la police du Complexe du Roi Fahd d\'impression du Noble Coran (KFGQPC), version 0.10 (5 août 2021).</p></div>' +
       '<div class="card"><h3>Sources et licences</h3><ul><li>Données du texte : KFGQPC, relayées par le dépôt public « thetruetruth/quran-data-kfgqpc » (github.com/thetruetruth/quran-data-kfgqpc).</li><li>Police « KFGQPC Warsh Uthmanic Script » : © KFGQPC. Usage, copie et distribution gratuits ; vente, modification et ingénierie inverse interdites. Licence complète : <a href="LICENCE-KFGQPC.txt">LICENCE-KFGQPC.txt</a>.</li><li>Calcul des prières : algorithme astronomique de position solaire, validé à moins d\'une minute contre une bibliothèque indépendante.</li></ul></div>' +
-      '<div class="card"><h3>Points en attente</h3><ul><li>Validation par l\'imam garant de la présente version (texte Warsh, leçons de tajwid, formulations).</li><li>Phonétique : produite automatiquement pour tout le Coran à partir du texte Warsh ; les corrections de l\'imam garant s\'ajoutent dans le fichier phonetique.json (fiche d\'export ci-dessous).</li><li>Traduction française : à intégrer à partir d\'une source dont les droits sont établis (fichier traduction-fr.json).</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Application gratuite, sans abonnement ni publicité.</li><li>Leçons du parcours, hadiths et dhikr du jour : rédigés pour cette version, soumis à la relecture de l\'imam garant (fiche d\'export ci-dessous).</li><li>Enregistrements des lettres et des leçons : à produire.</li><li>Notifications d\'adhan en arrière-plan : nécessitent une application native.</li></ul></div>' +
-      '<p class="row"><button class="btn alt" id="expPh">Exporter la fiche de validation (phonétique, 6 214 versets)</button><button class="btn alt" id="expPc">Exporter la fiche de validation (parcours et quotidien)</button></p><p class="muted">Version ' + VERSION + '. Aucune donnée personnelle n\'est collectée ni transmise.</p>';
+      '<div class="card"><h3>Points en attente</h3><ul><li>Contenus de la présente version (texte Warsh, tajwid, leçons, quiz, dhikr, hadiths, phonétique) : validés par l\'imam garant.</li><li>Phonétique : produite automatiquement pour tout le Coran à partir du texte Warsh ; d\'éventuelles corrections s\'ajoutent dans le fichier phonetique.json (fiche d\'export ci-dessous).</li><li>Traduction française : à intégrer à partir d\'une source dont les droits sont établis (fichier traduction-fr.json).</li><li>Récitations audio : à intégrer après accord des ayants droit.</li><li>Application gratuite, sans abonnement ni publicité.</li><li>Enregistrements des lettres et des leçons : à produire.</li><li>Notifications d\'adhan en arrière-plan : nécessitent une application native.</li></ul></div>' +
+      '<p class="row"><button class="btn alt" id="expPh">Exporter la phonétique (6 214 versets)</button><button class="btn alt" id="expPc">Exporter le parcours et le quotidien</button></p><p class="muted">Version ' + VERSION + '. Aucune donnée personnelle n\'est collectée ni transmise.</p>';
     return { title: "À propos", html: html, back: "#/plus", bind: function (r) {
       $("#expPh", r).onclick = function () {
         Promise.all([loadQ(), loadOpt()]).then(function (res) {
@@ -861,7 +872,7 @@
   }
   route(/^\/niveaux$/, function () {
     return loadQ().then(function (q) {
-      var html = '<h2>Repères de mémorisation</h2><div class="callout">Repères de mémorisation : <strong>proposition à valider</strong> avec l\'imam garant. Ils se calculent à partir des versets marqués comme mémorisés. Les points et les paliers se trouvent dans « Mon parcours ».</div>';
+      var html = '<h2>Repères de mémorisation</h2><div class="callout">Repères de mémorisation validés par l\'imam garant. Ils se calculent à partir des versets marqués comme mémorisés. Les points et les paliers se trouvent dans « Mon parcours ».</div>';
       var current = null;
       LEVELS.forEach(function (l) { var p = levelProgress(l, q); if (!current && (!p || p.pct < 100)) current = l.id; });
       html += LEVELS.map(function (l, i) {
@@ -1257,6 +1268,16 @@
   var deferredPrompt = null;
   window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferredPrompt = e; });
   var TABS = [["#/", "Accueil", "⌂"], ["#/apprendre", "Apprendre", "✎"], ["#/reciter", "Réciter", "❖"], ["#/mediter", "Méditer", "☾"], ["#/aimer", "Aimer", "♡"]];
+  function drawPts(hide) {
+    var el = $("#pts"); if (!el) return;
+    if (hide || !STORE.active) { el.hidden = true; return; }
+    loadOpt().then(function (opt) {
+      var st = opt.parcours ? parcoursNow(opt) : null;
+      el.textContent = totalPts(opt) + " pts" + (st ? " · " + st.pal.nom : "");
+      el.setAttribute("aria-label", "Mes points : " + totalPts(opt) + (st ? ", palier " + st.pal.nom : "") + ". Ouvrir mon parcours.");
+      el.hidden = false;
+    }).catch(function () { el.hidden = true; });
+  }
   function drawTabs(active) {
     $("#tabs").innerHTML = TABS.map(function (t) { return '<a href="' + t[0] + '"' + (t[0] === active ? ' aria-current="page"' : "") + '><span class="g" aria-hidden="true">' + t[2] + '</span>' + t[1] + '</a>'; }).join("");
   }
@@ -1281,7 +1302,7 @@
         else if (v.back === "#/plus" && v.title === "Espace enfant" && STORE.pin) { var c2 = prompt("Code parental"); if (c2 == null) return; pinHash(c2).then(function (h) { if (h === STORE.pin) location.hash = v.back; else toast("Code incorrect."); }); }
         else location.hash = v.back;
       };
-      drawTabs(v.tab === undefined ? null : v.tab);
+      drawTabs(v.tab === undefined ? null : v.tab); drawPts(!!v.bare);
       $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild());
       if (v.bind) v.bind(main);
       if (keepScroll) window.scrollTo(0, y0); else if (!params.a) window.scrollTo(0, 0);
@@ -1317,6 +1338,13 @@
     if (STORE.active && document.visibilityState !== "hidden") { S.temps = (S.temps || 0) + 60; save(); }
     if (location.hash === "" || location.hash === "#/") render();
   }, 60000);
-  if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(function () {});
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    var hadCtrl = !!navigator.serviceWorker.controller, reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function () { if (hadCtrl && !reloaded) { reloaded = true; location.reload(); } });
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(function (reg) {
+      reg.update();
+      document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") reg.update(); });
+    }).catch(function () {});
+  }
   window.__NUR__ = { render: render, state: function () { return S; }, store: function () { return STORE; } };
 })();

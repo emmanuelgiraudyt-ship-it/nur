@@ -1,7 +1,7 @@
 {
  "statut": "brouillon",
  "date": "2026-11-16",
- "note": "Leçons et quiz rédigés pour NÛR dans un langage simple. Ils ne sont PAS encore validés par l'imam garant. Rien n'est repris d'une autre application.",
+ "note": "Leçons et quiz rédigés pour NÛR dans un langage simple. Validés par l'imam garant. Rien n'est repris d'une autre application.",
  "bareme": {
   "lecon": 10,
   "quiz": 30,
