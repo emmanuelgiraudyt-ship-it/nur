@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.3.1";
+  var VERSION = "1.4.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -168,9 +168,12 @@
     return '<div class="basmala">' + esc(q.basmala) + '</div>' + (p ? '<div class="ph basmalaPh" lang="ar-Latn">' + esc(p) + '</div>' : '');
   }
   function phonOn() { return !S.settings.layers || S.settings.layers.phon !== false; }
-  function phonLine(sn, a, q) { if (!phonOn()) return ""; var p = phonOf(OPT, sn, a, q); return p ? '<div class="ph" lang="ar-Latn">' + esc(p) + '</div>' : ""; }
-  function arSeulHTML() { return '<label class="chk"><input type="checkbox" class="ars"' + (phonOn() ? "" : " checked") + '> Lire en arabe seul (masquer la phonétique)</label>'; }
-  function bindArSeul(r) { $$(".ars", r).forEach(function (c) { c.onchange = function () { S.settings.layers = S.settings.layers || {}; S.settings.layers.phon = !c.checked; save(); render(); }; }); }
+  function phonLine(sn, a, q) { var o = ""; if (phonOn()) { var p = phonOf(OPT, sn, a, q); if (p) o = '<div class="ph" lang="ar-Latn">' + esc(p) + '</div>'; } return o + (typeof frLine === "function" ? frLine(sn, a, q) : ""); }
+  function arSeulHTML() { return '<div class="laychk"><label class="chk"><input type="checkbox" class="lyp"' + (phonOn() ? " checked" : "") + '> Phonétique</label><label class="chk"><input type="checkbox" class="lyf"' + (frOn() ? " checked" : "") + '> Français</label></div>'; }
+  function bindArSeul(r) {
+    $$(".lyp", r).forEach(function (c) { c.onchange = function () { S.settings.layers = S.settings.layers || {}; S.settings.layers.phon = c.checked; save(); render(); }; });
+    $$(".lyf", r).forEach(function (c) { c.onchange = function () { S.settings.layers = S.settings.layers || {}; S.settings.layers.fr = c.checked; save(); render(); }; });
+  }
   var NOTE_PHON = 'Phonétique : aide à la lecture produite automatiquement à partir du texte Warsh, avec la forme de pause en fin de verset. Elle ne remplace pas l\'écoute d\'un enseignant.';
 
   /* ------------------------------------------------------------ parcours : paliers, étapes, leçons, quiz */
@@ -410,6 +413,9 @@
         '<div class="row between"><a class="btn" href="#/jour?e=' + Math.min(fp, A.length + 1) + '">' + (alldone ? "Voir mon bilan" : (fp > 1 ? "Continuer" : "Commencer")) + '</a><a class="btn alt" href="#/routine">Personnaliser</a></div></div>';
       var wd = new Intl.DateTimeFormat("en-US", { timeZone: L.tz, weekday: "short" }).format(new Date());
       if (wd === "Fri" && opt.quot && opt.quot.vendredi) html += '<div class="callout">' + esc(opt.quot.vendredi) + '</div>';
+      var nev = nextEvents(2);
+      html += '<h3>Fil d\'actualités</h3>' + nev.map(function (x) { return '<a class="card plain-link" href="#/evenements"><strong>' + esc(x[1]) + '</strong><div class="muted">' + (x[2] === 0 ? "Aujourd'hui" : "Dans " + x[2] + " jours") + ' · ' + esc(x[3]) + '</div></a>'; }).join("") +
+        '<a class="card plain-link" href="#/cartes"><strong>Cartes de vœux</strong><div class="muted">Envoie une carte à tes proches, par WhatsApp ou par lien.</div></a>';
       return { title: "NÛR", html: html, tab: "#/", bind: function (r) {
         $$("[data-pr]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pr); render(); }; });
       } };
@@ -471,7 +477,8 @@
     html += '<h3>En savoir plus sur les prières</h3><div class="seg" role="tablist">' + ORDER.map(function (o) { return '<button role="tab" data-tab="' + o[0] + '" aria-selected="' + (o[0] === k) + '">' + o[1] + '</button>'; }).join("") + '</div>' +
       '<div class="fiche"><p>' + esc(F.d) + '</p><h4>Fardh (obligatoire)</h4><div class="rk"><b>' + F.fard + '</b><span>Pendant la prière</span></div>' +
       '<h4>Sunna (recommandé)</h4>' + F.sun.map(function (x) { return '<div class="rk"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '<p class="muted" style="margin:.5rem 0 0">Selon le rite malikite.</p></div>' +
-      '<div class="card reco"><strong>Recommandations à faire après la prière</strong><p>Une fois la prière du ' + nm + ' terminée, prends le temps de rester à ta place et de te souvenir de Dieu quelques instants.</p><a href="#/priere/apres">Suivre les recommandations ' + ICO.arrow + '</a></div>';
+      '<div class="card reco"><strong>Recommandations à faire après la prière</strong><p>Une fois la prière du ' + nm + ' terminée, prends le temps de rester à ta place et de te souvenir de Dieu quelques instants.</p><a href="#/priere/apres">Suivre les recommandations ' + ICO.arrow + '</a></div>' +
+      '<h3>Hadiths sur la prière du ' + nm + '</h3>' + hadithCard(HADP[k]) + hadithCard(HADP.tous);
     html += '<details class="card" id="md"><summary><strong>Les 30 prochains jours</strong></summary><div class="scroll" id="mt"></div></details>';
     return { title: "Prière", html: html, tab: "#/priere", bind: function (r) {
       $("#dm", r).onclick = function () { dayOffP--; render(); };
@@ -506,10 +513,12 @@
         '<p><button class="btn alt" id="raz">Remettre les compteurs à zéro</button></p>';
       var s2 = q.byN[2], ak = s2.v.filter(function (v) { return v[0] === 253 || v[0] === 254; });
       html += '<h3>Âyat al-Koursî</h3><div class="card">' + ak.map(function (v) { return '<div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v[1]) + '</div>' + phonLine(2, v[0], q); }).join("") +
-        '<p class="muted">Sourate Al-Baqara, versets 253 et 254 dans la numérotation de Warsh (verset 255 dans la numérotation de Ḥafṣ).</p><p><a class="btn alt" href="#/reciter/2?a=253">Ouvrir dans le Coran</a></p></div>';
+        '<p class="muted">Sourate Al-Baqara, versets 253 et 254 dans la numérotation de Warsh (verset 255 dans la numérotation de Ḥafṣ).</p><p class="row"><button class="btn" id="akp">▶ Écouter</button><a class="btn alt" href="#/reciter/2?a=253">Ouvrir dans le Coran</a></p></div>';
       return { title: "Après la prière", html: html, back: "#/priere", tab: "#/priere", bind: function (r) {
         $$("[data-inv]", r).forEach(function (b) { b.onclick = function () { var i = +b.dataset.inv; aCount[i] = (aCount[i] || 0) + 1; if (navigator.vibrate) navigator.vibrate(10); render(); }; });
         $("#raz", r).onclick = function () { aCount = {}; render(); };
+        $("#akp", r).onclick = function () { playVerse(2, 254); };
+        onLeave(function () { if (location.hash !== "#/priere/apres") plStop(); });
       } };
     });
   });
@@ -519,38 +528,45 @@
     var st = stt(), L = loc();
     var html = '<div class="card soft"><strong>Tu as un doute sur les horaires ?</strong><p>Les horaires varient souvent d\'une mosquée à l\'autre, même dans une ville : chaque mosquée retient sa méthode de calcul et ses ajustements. NÛR calcule les horaires sur votre appareil, selon la méthode choisie ci-dessous et le ʿAsr malikite.</p><a href="#/reglages">Ajuster les minutes prière par prière ' + ICO.arrow + '</a></div>' +
       '<h3>Calcul des horaires de prière</h3><label class="f" for="meth">Méthode de calcul</label><select id="meth">' + Object.keys(P.METHODS).map(function (k) { return '<option value="' + k + '"' + (st.method === k ? " selected" : "") + '>' + esc(P.METHODS[k].name) + '</option>'; }).join("") + '</select>' +
-      '<h3>Localisation</h3><div class="card"><p style="margin-top:0"><strong>' + esc(L.name) + '</strong></p><p class="row" style="margin:0"><button class="btn" id="gps">Localisation automatique</button></p>' +
-      '<label class="f" for="city">Ou choisir une ville</label><select id="city"><option value="">—</option>' + CITIES.map(function (c, i) { return '<option value="' + i + '">' + esc(c[0]) + '</option>'; }).join("") + '</select></div>';
+      '<h3>Localisation</h3>' + lieuHTML() +
+      '<h3>Ma mosquée sur Mawaqit</h3><div class="card"><p style="margin-top:0">Pour prier aux horaires exacts de votre mosquée, enregistrez sa page Mawaqit : NÛR l\'ouvre en un geste. Les ajustements à la minute (« Tous les réglages ») alignent ensuite les horaires calculés sur ceux de la mosquée.</p>' +
+      '<label class="f" for="mwq">Adresse de la page de la mosquée</label><input type="url" id="mwq" placeholder="https://mawaqit.net/fr/…" value="' + esc(st.mawaqit || "") + '">' +
+      '<p class="row"><button class="btn alt" id="mwqs">Enregistrer</button>' + (st.mawaqit ? '<a class="btn" href="' + esc(st.mawaqit) + '" target="_blank" rel="noopener">Ouvrir ma mosquée</a>' : '') + '<a class="btn alt" href="https://mawaqit.net/fr" target="_blank" rel="noopener">Trouver une mosquée</a></p></div>';
     return { title: "Horaires", html: html, back: "#/priere", tab: "#/priere", bind: function (r) {
       $("#meth", r).onchange = function (e) { st.method = e.target.value; save(); scheduleNotifs(); toast("Méthode enregistrée."); };
-      $("#gps", r).onclick = function () {
-        if (!navigator.geolocation) return toast("Géolocalisation indisponible.");
-        navigator.geolocation.getCurrentPosition(function (p) { st.loc = { name: "Ma position (GPS)", lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), tz: Intl.DateTimeFormat().resolvedOptions().timeZone }; save(); scheduleNotifs(); toast("Position enregistrée."); render(); },
-          function () { toast("Position refusée ou indisponible."); }, { timeout: 15000, maximumAge: 600000 });
-      };
-      $("#city", r).onchange = function (e) { if (e.target.value === "") return; var c = CITIES[+e.target.value]; st.loc = { name: c[0], lat: c[1], lng: c[2], tz: c[3] }; save(); scheduleNotifs(); toast("Ville enregistrée."); render(); };
+      bindLieu(r);
+      $("#mwqs", r).onclick = function () { var u = $("#mwq", r).value.trim(); if (u && !/^https:\/\/(www\.)?mawaqit\.net\//.test(u)) return toast("Collez l'adresse d'une page mawaqit.net."); st.mawaqit = u || null; save(); toast(u ? "Mosquée enregistrée." : "Mosquée retirée."); render(); };
     } };
   });
 
   /* qibla : boussole */
   route(/^\/qibla$/, function () {
-    var L = loc(), qb = P.qibla(L.lat, L.lng);
-    var html = '<h2>Trouver la qibla</h2><div class="card" style="text-align:center"><p>Direction de la Kaaba : <strong>' + qb.bearing.toFixed(1) + '°</strong> depuis le nord, à ' + Math.round(qb.distanceKm).toLocaleString("fr-FR") + ' km de ' + esc(L.name) + '.</p>' +
-      '<div class="compass" id="cp" aria-label="Boussole de la qibla"><span class="n">N</span><div class="needle" id="nd"></div><div class="dot"></div></div>' +
-      '<p class="row" style="justify-content:center"><button class="btn" id="cb">Activer la boussole</button></p><p class="muted" id="cs">Sans capteur, l\'aiguille indique la qibla lorsque le haut de l\'écran est orienté vers le nord. Éloignez le téléphone des objets métalliques.</p></div>';
+    var L = loc(), qb = P.qibla(L.lat, L.lng), b = qb.bearing, sun = sunAzEl(L.lat, L.lng, Date.now()), rel = ((b - sun.az + 540) % 360) - 180;
+    var ticks = ""; for (var t = 0; t < 360; t += 30) ticks += '<span class="tk" style="transform:rotate(' + t + 'deg)"><i>' + ({ 0: "N", 90: "E", 180: "S", 270: "O" }[t] || t) + '</i></span>';
+    var html = '<h2>Trouver la qibla</h2><div class="card center"><div class="qdeg">' + b.toFixed(0) + '°</div><p style="margin:.2rem 0">depuis le nord, vers ' + versC(b) + '</p><p class="muted" style="margin:0">' + esc(L.name) + ' · Kaaba à ' + Math.round(qb.distanceKm).toLocaleString("fr-FR") + ' km · <a href="#/priere/reglages">changer de lieu</a></p>' +
+      '<div class="rose" id="rose" aria-label="Boussole de la qibla">' + ticks + '<div class="qneedle" style="transform:rotate(' + b + 'deg)"><b>Kaaba</b></div><div class="dot"></div></div>' +
+      '<p class="row" style="justify-content:center"><button class="btn" id="cb">Activer la boussole</button></p><p class="muted" id="cs">Tenez le téléphone à plat, loin des objets métalliques.</p></div>' +
+      '<div class="card"><h3>Sur ordinateur ou sans boussole</h3>' + (sun.el > 0 ? '<p>Le soleil est en ce moment à <b>' + Math.round(sun.az) + '°</b> (' + cardinal(sun.az) + '). Placez-vous face au soleil, puis tournez de <b>' + Math.abs(Math.round(rel)) + '°</b> vers la ' + (rel > 0 ? "droite" : "gauche") + ' : vous faites face à la qibla.</p>' :
+        '<p>Le soleil est couché. Repérez le nord (étoile Polaire, plan ou boussole) : la qibla est à <b>' + b.toFixed(0) + '°</b> dans le sens des aiguilles d\'une montre depuis le nord.</p>') +
+      '<p class="muted">Sur un plan orienté nord en haut, la qibla part de votre position vers ' + versC(b) + '. Elle change selon la ville : environ 119° à Paris, 351° à Dzaoudzi, 74° à Dakar.</p></div>';
     return { title: "Qibla", html: html, back: "#/priere", tab: "#/priere", bind: function (r) {
-      var needle = $("#nd", r), qd = qb.bearing; needle.style.transform = "rotate(" + qd + "deg)";
+      var rose = $("#rose", r), got = false;
       function onOrient(e) {
         var h = e.webkitCompassHeading != null ? e.webkitCompassHeading : (e.absolute && e.alpha != null ? 360 - e.alpha : null);
-        if (h == null) return;
-        needle.style.transform = "rotate(" + ((qd - h + 360) % 360) + "deg)";
-        $("#cs", r).textContent = "Boussole active : tournez-vous jusqu'à ce que l'aiguille pointe vers le haut de l'écran.";
+        if (h == null) return; got = true;
+        rose.style.transform = "rotate(" + (-h) + "deg)";
+        var off = ((b - h + 540) % 360) - 180;
+        $("#cs", r).textContent = Math.abs(off) < 5 ? "Vous faites face à la qibla." : "Tournez de " + Math.abs(Math.round(off)) + "° vers la " + (off > 0 ? "droite" : "gauche") + ".";
+      }
+      function start() {
+        window.addEventListener("deviceorientationabsolute", onOrient, true); window.addEventListener("deviceorientation", onOrient, true);
+        setTimeout(function () { if (!got) $("#cs", r).textContent = "Aucune boussole détectée sur cet appareil (cas des ordinateurs) : utilisez la méthode du soleil ci-dessous, ou orientez le haut de l'écran vers le nord."; }, 3000);
       }
       $("#cb", r).onclick = function () {
-        function start() { window.addEventListener("deviceorientationabsolute", onOrient, true); window.addEventListener("deviceorientation", onOrient, true); }
-        if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().then(function (s) { if (s === "granted") start(); else toast("Accès aux capteurs refusé."); }).catch(function () { toast("Capteur indisponible."); });
-        else if (window.DeviceOrientationEvent) start(); else toast("Capteur d'orientation indisponible sur cet appareil.");
+        if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") DeviceOrientationEvent.requestPermission().then(function (st) { if (st === "granted") start(); else toast("Accès aux capteurs refusé."); }).catch(function () { toast("Capteur indisponible."); });
+        else start();
       };
+      start();
       onLeave(function () { window.removeEventListener("deviceorientationabsolute", onOrient, true); window.removeEventListener("deviceorientation", onOrient, true); });
     } };
   });
@@ -592,11 +608,12 @@
     var st = stt(), Lr = st.layers;
     function body() {
       var b = '<div class="seg2"><button data-st="recit" aria-selected="' + (setTab === "recit") + '">Récitateur</button><button data-st="khatm" aria-selected="' + (setTab === "khatm") + '">Khatm</button></div>';
-      if (setTab === "recit") b += '<div class="callout">Récitations audio en Warsh : en construction. Elles seront ajoutées avec l\'accord des ayants droit ; le choix du récitateur apparaîtra ici.</div>';
+      if (setTab === "recit") b += RECITERS.map(function (x) { var on = reciter()[0] === x[0]; return '<button class="tcard" data-rec="' + x[0] + '" aria-pressed="' + on + '"><span><b>' + esc(x[1]) + '</b><small>Arabe · riwaya de Warsh · lecture guidée verset par verset</small></span>' + (on ? '<span class="pill">choisi</span>' : '') + '</button>'; }).join("") +
+        '<p class="muted">Lecture guidée : le verset récité est mis en évidence et suivi à l\'écran. Récitations : EveryAyah.com.</p>';
       else b += '<button class="tcard" id="kraz"><span><b>Réinitialiser la progression du khatm</b></span>' + ICO.arrow + '</button>' +
         '<label class="tcard"><span><b>Arabe</b></span><input type="checkbox" class="sw" id="lar"' + (Lr.ar !== false ? " checked" : "") + '></label>' +
         '<label class="tcard"><span><b>Phonétique</b></span><input type="checkbox" class="sw" id="lph"' + (Lr.phon !== false ? " checked" : "") + '></label>' +
-        '<label class="tcard soon"><span><b>Traduction</b><small>Traduction française : en construction.</small></span><input type="checkbox" class="sw" disabled></label>' +
+        '<label class="tcard"><span><b>Traduction</b><small>Français, Muhammad Hamidullah (QuranEnc.com)</small></span><input type="checkbox" class="sw" id="lfr"' + (Lr.fr !== false ? " checked" : "") + '></label>' +
         '<div class="tcard"><span><b>Taille de la police</b></span><span class="seg3"><button data-fs="1" aria-pressed="' + ((S.settings.fs || 1) < 1.15) + '">Petit</button><button data-fs="1.3" aria-pressed="' + ((S.settings.fs || 1) >= 1.15) + '">Grand</button></span></div>';
       return b;
     }
@@ -609,6 +626,8 @@
       var la = $("#lar", w), lp = $("#lph", w);
       if (la) la.onchange = function () { if (!la.checked && lp && !lp.checked) { la.checked = true; return toast("Gardez au moins l'arabe ou la phonétique."); } Lr.ar = la.checked; save(); sheetDirty = true; };
       if (lp) lp.onchange = function () { if (!lp.checked && la && !la.checked) { lp.checked = true; return toast("Gardez au moins l'arabe ou la phonétique."); } Lr.phon = lp.checked; save(); sheetDirty = true; };
+      var lf = $("#lfr", w); if (lf) lf.onchange = function () { Lr.fr = lf.checked; save(); sheetDirty = true; };
+      $$("[data-rec]", w).forEach(function (b) { b.onclick = function () { S.settings.reciter = b.dataset.rec; save(); if (PL.q.length) plBar(); $(".msheet", w).lastChild.remove(); refresh(w); }; });
       $$("[data-fs]", w).forEach(function (b) { b.onclick = function () { S.settings.fs = +b.dataset.fs; save(); applyTheme(); $$("[data-fs]", w).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); }; });
     }
     function refresh(w) { var d = document.createElement("div"); d.innerHTML = body(); $(".msheet", w).appendChild(d); bind(w); }
@@ -623,15 +642,17 @@
       var q = res[0], s = q.byN[sn]; if (!s) return { title: "Introuvable", html: '<p>Sourate introuvable.</p>', back: "#/reciter" };
       var st = stt(), showAr = st.layers.ar !== false, N = s.v.length, rd = kRead(sn), mem = S.hifz[sn] || [];
       var html = '<div class="row between phead"><h2 style="margin:0">' + sn + '. ' + esc(s.fr) + '</h2><button class="iconbtn" id="rset" aria-label="Paramètres de lecture">' + ICO.gear + '</button></div>' +
-        '<p class="muted" style="margin:.2rem 0 .6rem">' + esc(nomSens(sn)) + ' · ' + N + ' versets · ' + Math.min(rd.length, N) + ' lus</p>' + readingLine();
+        '<p class="muted" style="margin:.2rem 0 .4rem">' + esc(nomSens(sn)) + ' · ' + N + ' versets · ' + Math.min(rd.length, N) + ' lus</p>' +
+        '<div class="row between" style="margin:0 0 .4rem">' + arSeulHTML() + '<button class="btn alt small" id="plays">▶ Écouter la sourate</button></div>' + readingLine();
       if (readView === "page") {
         html += '<div class="row" style="justify-content:flex-end;margin:.4rem 0"><button class="btn alt" id="fm" aria-label="Réduire la taille du texte">A−</button><button class="btn alt" id="fp" aria-label="Augmenter la taille du texte">A+</button></div>' + readerHTML(s, q, "lecture", false);
       } else {
-        html += (sn !== 9 ? '<article class="vcard bsm">' + (showAr ? '<div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(q.basmala) + '</div>' : '') + (phonOn() && window.NUR_PHON ? '<div class="ph" lang="ar-Latn">' + esc(window.NUR_PHON(q.basmala, 0, 0)) + '</div>' : '') + '</article>' : '');
+        html += (sn !== 9 ? '<article class="vcard bsm">' + (showAr ? '<div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(q.basmala) + '</div>' : '') + (phonOn() && window.NUR_PHON ? '<div class="ph" lang="ar-Latn">' + esc(window.NUR_PHON(q.basmala, 0, 0)) + '</div>' : '') + (frOn() && OPT.fr && OPT.fr.basmala ? '<div class="trfr" lang="fr">' + esc(OPT.fr.basmala) + '</div>' : '') + (sn === 1 ? '<div class="vrow"><span class="sp"></span><button class="ib" data-play="0" aria-label="Écouter la basmala">▶</button></div>' : '') + '</article>' : '');
         html += s.v.map(function (v) {
           var a = v[0], lu = rd.indexOf(a) >= 0, bm = S.bookmarks.indexOf(sn + ":" + a) >= 0, mm = mem.indexOf(a) >= 0;
           return '<article class="vcard' + (lu ? " lu" : "") + '" id="v' + a + '" data-a="' + a + '">' + (showAr ? '<div class="ar-line mushaf" lang="ar" dir="rtl">' + esc(v[1]) + '</div>' : '') + phonLine(sn, a, q) +
             '<div class="vrow"><button class="vpill' + (lu ? " on" : "") + '" data-read="' + a + '" aria-pressed="' + lu + '" aria-label="Verset ' + a + ' sur ' + N + ', marquer comme lu">' + a + '/' + N + ' <span aria-hidden="true">✓</span></button>' + (mm ? '<span class="pill">mémorisé</span>' : '') + '<span class="sp"></span>' +
+            '<button class="ib" data-play="' + a + '" aria-label="Écouter le verset ' + a + '">▶</button>' +
             '<a class="ib" href="#/mediter/' + sn + '/' + a + '" aria-label="Méditer ce verset">' + ICO.note + '</a>' +
             '<button class="ib" data-bm="' + a + '" aria-pressed="' + bm + '" aria-label="' + (bm ? "Retirer le signet" : "Poser un signet") + '">' + (bm ? ICO.bmon : ICO.bm) + '</button>' +
             '<button class="ib" data-sh="' + a + '" aria-label="Partager ce verset">' + ICO.share + '</button>' +
@@ -640,8 +661,13 @@
       }
       html += '<div class="viewtog" role="group" aria-label="Affichage"><button data-view="liste" aria-pressed="' + (readView === "liste") + '" aria-label="Verset par verset">' + ICO.list + '</button><button data-view="page" aria-pressed="' + (readView === "page") + '" aria-label="Page en arabe">' + ICO.book + '</button></div>';
       html += '<div class="row between" style="margin-top:1rem">' + (sn > 1 ? '<a class="btn alt" href="#/reciter/' + (sn - 1) + '">Sourate précédente</a>' : '<span></span>') + (sn < 114 ? '<a class="btn alt" href="#/reciter/' + (sn + 1) + '">Sourate suivante</a>' : '<span></span>') + '</div>' +
-        '<p class="muted">Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. ' + NOTE_PHON + ' Traduction française et récitations audio : en construction.</p>';
+        '<p class="muted">Texte : complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. ' + NOTE_PHON + ' ' + NOTE_FR + ' Récitation : ' + esc(reciter()[1]) + ', riwaya de Warsh, EveryAyah.com.</p>';
       return { title: s.fr, html: html, back: "#/reciter", tab: "#/reciter", bind: function (r) {
+        bindArSeul(r);
+        $$("[data-play]", r).forEach(function (b) { b.onclick = function () { playVerse(sn, +b.dataset.play); }; });
+        $("#plays", r).onclick = function () { playFrom(sn, 1); };
+        onLeave(function () { if (!/^#\/reciter\/\d+/.test(location.hash)) plStop(); });
+        if (PL.sn === sn) setTimeout(plMark, 50);
         $("#rset", r).onclick = function () { coranSettings(q, sn); };
         $$("[data-view]", r).forEach(function (b) { b.onclick = function () { readView = b.dataset.view; render(); }; });
         var fm = $("#fm", r), fp = $("#fp", r);
@@ -772,6 +798,16 @@
   /* ---------------------------------------------------------------- Événements à venir (calendrier Umm al-Qurâ) */
   var EVTS = [[1, 1, "Nouvel an de l'hégire"], [1, 10, "ʿÂchoûrâʾ"], [3, 12, "Mawlid, naissance du Prophète"], [7, 27, "Isrâʾ et Miʿrâj"], [8, 15, "Nuit du milieu de Chaʿbân"], [9, 1, "Début du Ramadân"],
     [9, 27, "Laylat al-Qadr (27e nuit)"], [10, 1, "ʿÎd al-Fitr"], [12, 9, "Jour de ʿArafa"], [12, 10, "ʿÎd al-Adhâ"]];
+  function nextEvents(n) {
+    var L = loc(), base = ymd(Date.now(), L.tz), out = [], fmt;
+    try { fmt = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn", { timeZone: "UTC", day: "numeric", month: "numeric" }); } catch (e) { return out; }
+    for (var i = 0; i < 400 && out.length < n; i++) {
+      var d = addDays(base, i), hm = 0, hd = 0;
+      fmt.formatToParts(new Date(Date.UTC(d.y, d.m - 1, d.d, 12) + (S.settings.hijriOffset || 0) * 864e5)).forEach(function (p) { if (p.type === "month") hm = +p.value; if (p.type === "day") hd = +p.value; });
+      EVTS.forEach(function (e) { if (e[0] === hm && e[1] === hd && out.length < n) out.push([d, e[2], i, new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(d.y, d.m - 1, d.d, 12)))]); });
+    }
+    return out;
+  }
   route(/^\/evenements$/, function () {
     var L = loc(), base = ymd(Date.now(), L.tz), out = [], fmt;
     try { fmt = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn", { timeZone: "UTC", day: "numeric", month: "numeric" }); } catch (e) { fmt = null; }
@@ -800,24 +836,15 @@
     var html = '<h2>Cartes de vœux</h2><label class="f" for="cv">Formule</label><select id="cv">' + CARTES.map(function (c, i) { return '<option value="' + i + '">' + esc(c[0]) + '</option>'; }).join("") + '</select>' +
       '<label class="f" for="cm">Message (facultatif)</label><textarea id="cm" rows="3" maxlength="160" placeholder="Que Dieu accepte nos prières."></textarea>' +
       '<label class="f" for="cs2">Signature (facultatif)</label><input type="text" id="cs2" maxlength="40">' +
-      '<canvas id="cvs" width="1080" height="1080" class="cardprev" aria-label="Aperçu de la carte"></canvas><p class="row"><button class="btn" id="csh">Partager la carte</button><button class="btn alt" id="cdl">Télécharger</button></p>';
+      '<canvas id="cvs" width="1080" height="1080" class="cardprev" aria-label="Aperçu de la carte"></canvas><p class="row"><button class="btn" id="cwa">Envoyer par WhatsApp</button><button class="btn alt" id="csh">Partager l\'image</button><button class="btn alt" id="clk">Copier le lien</button><button class="btn alt" id="cdl">Télécharger</button></p><p class="muted">WhatsApp s\'ouvre sur le téléphone, ou sur l\'ordinateur avec WhatsApp Web : le destinataire reçoit un lien qui affiche la carte.</p>';
     return { title: "Cartes", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
-      var cv = $("#cvs", r), x = cv.getContext("2d");
-      function wrap(t, maxW) { var w = t.split(" "), L = [], cur = ""; w.forEach(function (s) { var tt = cur ? cur + " " + s : s; if (x.measureText(tt).width > maxW && cur) { L.push(cur); cur = s; } else cur = tt; }); if (cur) L.push(cur); return L; }
-      function draw() {
-        var c = CARTES[+$("#cv", r).value], msg = $("#cm", r).value.trim(), sg = $("#cs2", r).value.trim();
-        x.fillStyle = "#0F4C3A"; x.fillRect(0, 0, 1080, 1080);
-        x.strokeStyle = "#C9A24B"; x.lineWidth = 6; x.strokeRect(50, 50, 980, 980); x.lineWidth = 2; x.strokeRect(74, 74, 932, 932);
-        x.save(); x.translate(540, 210); x.rotate(Math.PI / 4); x.strokeStyle = "#C9A24B"; x.lineWidth = 4; x.strokeRect(-40, -40, 80, 80); x.restore();
-        x.save(); x.translate(540, 210); x.strokeStyle = "#C9A24B"; x.lineWidth = 4; x.strokeRect(-40, -40, 80, 80); x.restore();
-        x.fillStyle = "#F5F0E1"; x.textAlign = "center"; x.direction = "rtl"; x.font = "120px 'Amiri', 'Traditional Arabic', serif"; x.fillText(c[1], 540, 470); x.direction = "ltr";
-        x.fillStyle = "#C9A24B"; x.font = "600 64px Georgia, serif"; x.fillText(c[0], 540, 590);
-        x.fillStyle = "#F5F0E1"; x.font = "44px Georgia, serif"; wrap(msg, 820).slice(0, 4).forEach(function (l, i) { x.fillText(l, 540, 700 + i * 60); });
-        if (sg) { x.font = "italic 40px Georgia, serif"; x.fillText(sg, 540, 960); }
-        x.fillStyle = "rgba(245,240,225,.6)"; x.font = "28px Georgia, serif"; x.fillText("NÛR", 540, 1010);
-      }
-      ["#cv", "#cm", "#cs2"].forEach(function (s) { $(s, r).oninput = draw; $(s, r).onchange = draw; });
+      var cv = $("#cvs", r);
+      function cur() { return [+$("#cv", r).value, $("#cm", r).value.trim(), $("#cs2", r).value.trim()]; }
+      function draw() { var c = cur(); drawCard(cv, CARTES[c[0]], c[1], c[2]); }
+      ["#cv", "#cm", "#cs2"].forEach(function (s2) { $(s2, r).oninput = draw; $(s2, r).onchange = draw; });
       draw();
+      $("#cwa", r).onclick = function () { var c = cur(), url = cardLink(c[0], c[1], c[2]); window.open("https://wa.me/?text=" + encodeURIComponent(CARTES[c[0]][0] + (c[1] ? "\n" + c[1] : "") + "\n" + url), "_blank", "noopener"); };
+      $("#clk", r).onclick = function () { var c = cur(), url = cardLink(c[0], c[1], c[2]); if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { toast("Lien de la carte copié."); }, function () { toast(url); }); else toast(url); };
       $("#cdl", r).onclick = function () { var a = document.createElement("a"); a.href = cv.toDataURL("image/png"); a.download = "carte-nur.png"; a.click(); };
       $("#csh", r).onclick = function () {
         cv.toBlob(function (b) {
@@ -886,8 +913,7 @@
         (kid ? '<div class="card" style="text-align:left"><h3>Profil enfant : accord de l\'adulte</h3><p class="muted">Un profil enfant se crée sous la responsabilité d\'un adulte, à partir de 7 ans.</p><label class="chk"><input type="checkbox" id="pok"> Je suis l\'adulte responsable de cet enfant et j\'autorise ce profil.</label>' +
           '<label class="f" for="pc">' + (STORE.pin ? "Code parental" : "Choisir un code parental (4 chiffres)") + '</label><input type="password" id="pc" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="off"><p class="muted">Ce code sera demandé pour quitter le profil enfant, ouvrir ses réglages et valider ses paliers.</p></div>' : '') +
         '<p><button class="btn big" id="go9">Continuer</button></p>';
-    } else html = '<h2>Ton lieu</h2><p>Le lieu sert à calculer les heures de prière et la qibla. Il reste sur ton appareil.</p><p><button class="btn big" id="gps">Localisation automatique</button></p>' +
-      '<div style="text-align:left"><label class="f" for="city">Ou choisir une ville</label><select id="city"><option value="">—</option>' + CITIES.map(function (c, i) { return '<option value="' + i + '">' + esc(c[0]) + '</option>'; }).join("") + '</select></div><p style="margin-top:1.2rem"><button class="btn alt" id="later">Plus tard</button></p>';
+    } else html = '<h2>Ton lieu</h2><p>Le lieu sert à calculer les heures de prière et la qibla, partout dans le monde. Il reste sur ton appareil.</p><div style="text-align:left">' + lieuHTML() + '</div><p style="margin-top:1rem"><button class="btn alt" id="later">Plus tard</button></p>';
     return { title: "Bienvenue", html: '<div class="ob">' + bar + html + '</div>', bare: true, tab: null, bind: function (r) {
       var sk = $("#skip", r); if (sk) sk.onclick = finishOb;
       var ps = $("#pass", r);
@@ -915,18 +941,165 @@
       }
       var g9 = $("#go9", r); if (g9) g9.onclick = createAndGo;
       if (e === 10) {
-        var setL = function (l) { if (!STORE.profiles.length) switchProfile(addProfile({ nom: pf.nom, type: "adulte" })); S.settings.loc = l; save(); finishOb(); };
-        $("#gps", r).onclick = function () {
-          if (!navigator.geolocation) return toast("Géolocalisation indisponible. Choisissez une ville.");
-          navigator.geolocation.getCurrentPosition(function (p) { setL({ name: "Ma position (GPS)", lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); },
-            function () { toast("Position refusée ou indisponible. Choisissez une ville."); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
-        };
-        $("#city", r).onchange = function (ev) { if (ev.target.value === "") return; var c = CITIES[+ev.target.value]; setL({ name: c[0], lat: c[1], lng: c[2], tz: c[3] }); };
+        if (!STORE.profiles.length) switchProfile(addProfile({ nom: pf.nom, type: "adulte" }));
+        bindLieu(r, function () { finishOb(); });
         $("#later", r).onclick = finishOb;
       }
     } };
   });
   /* ================================================================ fin de la structure MAARIFA */
+  /* ================================================================ v1.4 : audio, traduction, qibla, lieu mondial, cartes */
+  function frOn() { var L = S.settings.layers; return !L || L.fr !== false; }
+  function frOf(sn, a, q) {
+    var F = OPT && OPT.fr && OPT.fr.suras && OPT.fr.suras[sn], s = q.byN[sn]; if (!F || !s) return null;
+    for (var i = 0; i < s.v.length; i++) if (s.v[i][0] === a) return F[i] || "";
+    return null;
+  }
+  function frLine(sn, a, q) {
+    if (!frOn()) return "";
+    var t = frOf(sn, a, q); if (t === null) return "";
+    return t ? '<div class="trfr" lang="fr">' + esc(t) + '</div>' : '<div class="trfr muted">Le sens de ce verset est donné avec le verset suivant.</div>';
+  }
+  var NOTE_FR = 'Traduction du sens : Muhammad Hamidullah, QuranEnc.com (french_hameedullah v1.0.0), reproduite sans modification.';
+
+  /* ---------------------------------------------------------------- audio verset par verset (Warsh, EveryAyah.com) */
+  var RECITERS = [["warsh_ibrahim_aldosary_128kbps", "Ibrahim Al-Dosary"], ["warsh_yassin_al_jazaery_64kbps", "Yassin Al-Jazaery"], ["warsh_Abdul_Basit_128kbps", "Abdul Basit Abdul Samad"]];
+  function reciter() { var k = S.settings.reciter, r = RECITERS.filter(function (x) { return x[0] === k; })[0]; return r || RECITERS[0]; }
+  var HAFS = null;
+  function loadHafs() { if (HAFS) return Promise.resolve(HAFS); return fetch("hafs.json").then(function (r) { return r.json(); }).then(function (j) { HAFS = j.suras; return HAFS; }); }
+  function p3(n) { return String(n).padStart(3, "0"); }
+  function hafsCover(sn, w) { var A = HAFS[sn] || [], out = []; A.forEach(function (fl, i) { if (fl[0] <= w && w <= fl[1]) out.push(i + 1); }); return out; }
+  var PL = { a: null, sn: 0, q: [], i: 0, on: false };
+  function plUrl(sn, h) { return "https://everyayah.com/data/warsh/" + reciter()[0] + "/" + p3(sn) + p3(h) + ".mp3"; }
+  function plMark() {
+    $$(".vcard.playing").forEach(function (e) { e.classList.remove("playing"); });
+    var it = PL.q[PL.i]; if (!it || !PL.on) return;
+    var el = it[1] === 0 ? document.querySelector(".vcard.bsm") : document.getElementById("v" + it[1]);
+    if (el) { el.classList.add("playing"); el.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  }
+  function plBar() {
+    var b = document.getElementById("pbar");
+    if (!PL.q.length) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement("div"); b.id = "pbar"; b.className = "pbar"; document.body.appendChild(b); }
+    var it = PL.q[PL.i] || PL.q[0];
+    b.innerHTML = '<div class="pinfo"><b>' + esc(reciter()[1]) + '</b><span>Sourate ' + PL.sn + (it ? (it[1] ? ', verset ' + it[1] : ', basmala') : '') + '</span></div>' +
+      '<button class="ib" id="pprev" aria-label="Verset précédent">⏮</button><button class="ib big" id="pplay" aria-label="' + (PL.on ? "Pause" : "Lecture") + '">' + (PL.on ? "❚❚" : "▶") + '</button><button class="ib" id="pnext" aria-label="Verset suivant">⏭</button><button class="ib" id="pstop" aria-label="Fermer le lecteur">×</button>';
+    $("#pprev", b).onclick = function () { plGo(Math.max(0, PL.i - 1)); };
+    $("#pnext", b).onclick = function () { plGo(Math.min(PL.q.length - 1, PL.i + 1)); };
+    $("#pplay", b).onclick = function () { if (PL.on) { PL.a.pause(); PL.on = false; plBar(); plMark(); } else plGo(PL.i); };
+    $("#pstop", b).onclick = plStop;
+  }
+  function plGo(i) {
+    PL.i = i; var it = PL.q[i]; if (!it) return plStop();
+    if (!PL.a) { PL.a = new Audio(); PL.a.onended = function () { if (PL.i + 1 < PL.q.length) plGo(PL.i + 1); else { PL.on = false; plBar(); plMark(); } }; PL.a.onerror = function () { toast("Récitation indisponible : vérifiez la connexion."); PL.on = false; plBar(); }; }
+    PL.a.src = plUrl(PL.sn, it[0]); PL.a.playbackRate = S.settings.speed || 1;
+    PL.a.play().then(function () { PL.on = true; plBar(); plMark(); }).catch(function () { PL.on = false; plBar(); });
+  }
+  function plStop() { if (PL.a) PL.a.pause(); PL.on = false; PL.q = []; plBar(); plMark(); }
+  function playVerse(sn, w) { return loadHafs().then(function () { PL.sn = sn; PL.q = (w === 0 ? [1] : hafsCover(sn, w)).map(function (h) { return [h, w]; }); plGo(0); }); }
+  function playFrom(sn, w) {
+    return loadHafs().then(function () {
+      var A = HAFS[sn] || []; PL.sn = sn; PL.q = [];
+      A.forEach(function (fl, i) { if (fl[0] >= w || (fl[1] >= w && fl[0] < w)) PL.q.push([i + 1, Math.max(fl[0], w)]); });
+      plGo(0);
+    });
+  }
+
+  /* ---------------------------------------------------------------- hadiths sur la prière (vérifiés sur sunnah.com le 18 novembre 2026) */
+  var HADP = {
+    fajr: ["Les deux rakʿa de l'aube valent mieux que ce monde et tout ce qu'il contient.", "ʿÂʾicha", "Ṣaḥîḥ Muslim, n° 725a"],
+    dhuhr: ["Si les gens savaient la récompense de la prière du Dhuhr accomplie au début de son temps, ils s'y précipiteraient.", "Abû Hurayra", "Ṣaḥîḥ al-Boukhârî, n° 615 (extrait)"],
+    asr: ["Celui qui manque la prière du ʿAsr, c'est comme s'il avait perdu sa famille et ses biens.", "Ibn ʿOmar", "Ṣaḥîḥ al-Boukhârî, n° 552"],
+    maghrib: ["Ma communauté restera dans le bien tant qu'elle ne retardera pas la prière du Maghrib jusqu'à ce que les étoiles apparaissent en nombre.", "Abû Ayyoûb", "Sunan Abî Dâwoud, n° 418, jugé ḥasan ṣaḥîḥ par al-Albânî"],
+    isha: ["Celui qui accomplit la prière du ʿIshâʾ en groupe, c'est comme s'il avait prié la moitié de la nuit ; et celui qui accomplit la prière de l'aube en groupe, c'est comme s'il avait prié toute la nuit.", "ʿOthmân ibn ʿAffân", "Ṣaḥîḥ Muslim, n° 656a"],
+    tous: ["Les cinq prières sont comme une rivière à la porte de l'un de vous, où il se laverait cinq fois par jour : il ne lui resterait aucune saleté. Ainsi Dieu efface par elles les fautes.", "Abû Hurayra", "Ṣaḥîḥ al-Boukhârî, n° 528"]
+  };
+  function hadithCard(h) { return '<div class="card hadp"><blockquote class="hq">' + esc(h[0]) + '</blockquote><p class="muted" style="margin:0">Sens rapporté par ' + esc(h[1]) + '. ' + esc(h[2]) + '.</p></div>'; }
+
+  /* ---------------------------------------------------------------- lieu : recherche mondiale, GPS précis, mise à jour automatique */
+  function geoSearch(qs) {
+    return fetch("https://geocoding-api.open-meteo.com/v1/search?count=8&language=fr&format=json&name=" + encodeURIComponent(qs)).then(function (r) { return r.json(); }).then(function (j) {
+      return (j.results || []).map(function (x) { return { name: x.name + (x.admin1 && x.admin1 !== x.name ? ", " + x.admin1 : "") + (x.country ? ", " + x.country : ""), lat: +x.latitude.toFixed(4), lng: +x.longitude.toFixed(4), tz: x.timezone || "UTC" }; });
+    });
+  }
+  function revGeo(lat, lng) {
+    return fetch("https://nominatim.openstreetmap.org/reverse?format=json&zoom=12&accept-language=fr&lat=" + lat + "&lon=" + lng).then(function (r) { return r.json(); }).then(function (j) {
+      var a = j.address || {}; return [a.city || a.town || a.village || a.municipality || a.suburb || a.county, a.country].filter(Boolean).join(", ");
+    }).catch(function () { return ""; });
+  }
+  function distKm(a, b) { var R = 6371, t = Math.PI / 180, dl = (b.lat - a.lat) * t, dg = (b.lng - a.lng) * t, x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dg / 2) * Math.sin(dg / 2); return 2 * R * Math.asin(Math.sqrt(x)); }
+  function gpsLocate(silent) {
+    return new Promise(function (res) {
+      if (!navigator.geolocation) { if (!silent) toast("Géolocalisation indisponible sur cet appareil."); return res(null); }
+      navigator.geolocation.getCurrentPosition(function (p) {
+        var l = { name: "Ma position", lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), tz: Intl.DateTimeFormat().resolvedOptions().timeZone, gps: true, acc: Math.round(p.coords.accuracy) };
+        revGeo(l.lat, l.lng).then(function (n) { if (n) l.name = n; res(l); });
+      }, function () { if (!silent) toast("Position refusée ou indisponible."); res(null); }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 300000 });
+    });
+  }
+  function autoLocate() {
+    if (!STORE.active || !S.settings.autoLoc || !navigator.geolocation) return;
+    var go = function () { gpsLocate(true).then(function (l) { if (!l) return; var cur = S.settings.loc; if (!cur || distKm(cur, l) > 3) { S.settings.loc = l; save(); scheduleNotifs(); toast("Lieu mis à jour : " + l.name); render(); } }); };
+    if (navigator.permissions && navigator.permissions.query) navigator.permissions.query({ name: "geolocation" }).then(function (st) { if (st.state === "granted") go(); }).catch(function () {});
+  }
+  function lieuHTML() {
+    var L = loc(), st = S.settings;
+    return '<div class="card"><p style="margin-top:0"><strong>' + esc(L.name) + '</strong><br><span class="muted">' + L.lat.toFixed(4) + ', ' + L.lng.toFixed(4) + ' · ' + esc(L.tz) + (L.acc ? ' · précision ' + L.acc + ' m' : '') + '</span></p>' +
+      '<label class="tcard"><span><b>Localisation automatique</b><small>NÛR suit votre position à chaque ouverture, dans n\'importe quelle ville du monde.</small></span><input type="checkbox" class="sw" id="autol"' + (st.autoLoc ? " checked" : "") + '></label>' +
+      '<p class="row" style="margin:0"><button class="btn" id="gps">Me localiser maintenant</button></p>' +
+      '<label class="f" for="gq">Rechercher une ville, partout dans le monde</label><div class="row" style="margin:0"><input type="search" id="gq" placeholder="Ex. Dzaoudzi, Dakar, Lyon" style="flex:1"><button class="btn alt" id="gqb">Rechercher</button></div><ul class="list" id="gres"></ul></div>';
+  }
+  function bindLieu(r, done) {
+    var st = S.settings;
+    function set(l) { st.loc = l; save(); scheduleNotifs(); toast("Lieu enregistré : " + l.name); if (done) done(l); else render(); }
+    $("#autol", r).onchange = function (e) { st.autoLoc = e.target.checked; save(); if (st.autoLoc) gpsLocate(false).then(function (l) { if (l) set(l); }); };
+    $("#gps", r).onclick = function () { gpsLocate(false).then(function (l) { if (l) { st.autoLoc = true; set(l); } }); };
+    function search() {
+      var v = $("#gq", r).value.trim(); if (v.length < 2) return;
+      $("#gres", r).innerHTML = '<li class="muted">Recherche…</li>';
+      geoSearch(v).then(function (L2) {
+        $("#gres", r).innerHTML = L2.length ? L2.map(function (l, i) { return '<li><a href="#" data-gi="' + i + '"><span class="nm">' + esc(l.name) + '<small>' + esc(l.tz) + '</small></span></a></li>'; }).join("") : '<li class="muted">Aucune ville trouvée.</li>';
+        $$("[data-gi]", r).forEach(function (a) { a.onclick = function (ev) { ev.preventDefault(); st.autoLoc = false; set(L2[+a.dataset.gi]); }; });
+      }).catch(function () { $("#gres", r).innerHTML = '<li class="callout warn">Connexion nécessaire pour la recherche.</li>'; });
+    }
+    $("#gqb", r).onclick = search; $("#gq", r).onkeydown = function (e) { if (e.key === "Enter") search(); };
+  }
+
+  /* ---------------------------------------------------------------- qibla : direction, soleil, boussole */
+  function cardinal(b) { var N = ["nord", "nord-nord-est", "nord-est", "est-nord-est", "est", "est-sud-est", "sud-est", "sud-sud-est", "sud", "sud-sud-ouest", "sud-ouest", "ouest-sud-ouest", "ouest", "ouest-nord-ouest", "nord-ouest", "nord-nord-ouest"]; return N[Math.round(((b % 360) + 360) % 360 / 22.5) % 16]; }
+  function versC(b) { var c = cardinal(b); return (/^[eo]/.test(c) ? "l'" : "le ") + c; }
+  function sunAzEl(lat, lng, t) {
+    var jd = t / 864e5 + 2440587.5, sp = P.sunPosition(jd), R = Math.PI / 180;
+    var d = new Date(t), utcMin = d.getUTCHours() * 60 + d.getUTCMinutes() + d.getUTCSeconds() / 60;
+    var H = ((utcMin + sp.eqt * 60 + 4 * lng) / 4 - 180) * R, la = lat * R, de = sp.decl * R;
+    var el = Math.asin(Math.sin(la) * Math.sin(de) + Math.cos(la) * Math.cos(de) * Math.cos(H));
+    var az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(la) - Math.tan(de) * Math.cos(la)) / R + 180;
+    return { az: (az + 360) % 360, el: el / R };
+  }
+
+  /* ---------------------------------------------------------------- cartes de vœux : rendu partagé */
+  function drawCard(cv, c, msg, sg) {
+    var x = cv.getContext("2d");
+    function wrap(t, maxW) { var w = t.split(" "), L = [], cur = ""; w.forEach(function (s) { var tt = cur ? cur + " " + s : s; if (x.measureText(tt).width > maxW && cur) { L.push(cur); cur = s; } else cur = tt; }); if (cur) L.push(cur); return L; }
+    x.fillStyle = "#0F4C3A"; x.fillRect(0, 0, 1080, 1080);
+    x.strokeStyle = "#C9A24B"; x.lineWidth = 6; x.strokeRect(50, 50, 980, 980); x.lineWidth = 2; x.strokeRect(74, 74, 932, 932);
+    x.save(); x.translate(540, 210); x.rotate(Math.PI / 4); x.strokeStyle = "#C9A24B"; x.lineWidth = 4; x.strokeRect(-40, -40, 80, 80); x.restore();
+    x.save(); x.translate(540, 210); x.strokeStyle = "#C9A24B"; x.lineWidth = 4; x.strokeRect(-40, -40, 80, 80); x.restore();
+    x.fillStyle = "#F5F0E1"; x.textAlign = "center"; x.direction = "rtl"; x.font = "120px 'Amiri', 'Traditional Arabic', serif"; x.fillText(c[1], 540, 470); x.direction = "ltr";
+    x.fillStyle = "#C9A24B"; x.font = "600 64px Georgia, serif"; x.fillText(c[0], 540, 590);
+    x.fillStyle = "#F5F0E1"; x.font = "44px Georgia, serif"; wrap(msg || "", 820).slice(0, 4).forEach(function (l, i) { x.fillText(l, 540, 700 + i * 60); });
+    if (sg) { x.font = "italic 40px Georgia, serif"; x.fillText(sg, 540, 960); }
+    x.fillStyle = "rgba(245,240,225,.6)"; x.font = "28px Georgia, serif"; x.fillText("NÛR", 540, 1010);
+  }
+  function cardLink(f, m, s) { return location.origin + location.pathname + "#/carte?f=" + f + "&m=" + encodeURIComponent(m || "") + "&s=" + encodeURIComponent(s || ""); }
+  route(/^\/carte$/, function (m, params) {
+    var f = Math.max(0, Math.min(CARTES.length - 1, +params.f || 0)), msg = (params.m || "").slice(0, 160), sg = (params.s || "").slice(0, 40);
+    var html = '<h2>Une carte pour vous</h2><canvas id="cvs" width="1080" height="1080" class="cardprev" aria-label="' + esc(CARTES[f][0] + (msg ? ". " + msg : "")) + '"></canvas>' +
+      '<p class="row"><a class="btn" href="#/cartes">Créer ma carte</a><a class="btn alt" href="#/">Découvrir NÛR</a></p>';
+    return { title: "Carte de vœux", html: html, back: STORE.onboarded ? "#/plus" : null, tab: STORE.onboarded ? "#/plus" : null, bare: !STORE.onboarded, bind: function (r) { drawCard($("#cvs", r), CARTES[f], msg, sg); } };
+  });
+  /* ================================================================ fin v1.4 */
+
 
 
   // Accueil
@@ -1928,7 +2101,7 @@
     cleanups.splice(0).forEach(function (f) { try { f(); } catch (e) {} });
     var raw = location.hash.replace(/^#/, "") || "/", qi = raw.indexOf("?"), path = qi >= 0 ? raw.slice(0, qi) : raw, params = {};
     if (qi >= 0) raw.slice(qi + 1).split("&").forEach(function (kv) { var p = kv.split("="); params[p[0]] = decodeURIComponent(p[1] || ""); });
-    if (!STORE.onboarded && path.indexOf("/bienvenue") !== 0) { try { if (path !== "/") sessionStorage.setItem("nur:next", location.hash); } catch (e) {} location.hash = "#/bienvenue"; return; }
+    if (!STORE.onboarded && path.indexOf("/bienvenue") !== 0 && path !== "/carte") { try { if (path !== "/") sessionStorage.setItem("nur:next", location.hash); } catch (e) {} location.hash = "#/bienvenue"; return; }
     var found = null;
     for (var i = 0; i < routes.length; i++) { var m = routes[i][0].exec(path); if (m) { found = [routes[i][1], m]; break; } }
     if (!found) { found = [function () { return { title: "NÛR", html: '<p>Page introuvable. <a href="#/">Retour à l\'accueil</a></p>' }; }, []]; }
@@ -1981,7 +2154,8 @@
   function netState() { var n = $("#net"); n.textContent = navigator.onLine ? "" : "Hors ligne"; }
   window.addEventListener("online", netState); window.addEventListener("offline", netState);
 
-  applyTheme(); netState(); render(); scheduleNotifs();
+  applyTheme(); netState(); render(); scheduleNotifs(); setTimeout(autoLocate, 1500);
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") autoLocate(); });
   setInterval(function () {
     if (STORE.active && document.visibilityState !== "hidden") { S.temps = (S.temps || 0) + 60; save(); }
     if (location.hash === "" || location.hash === "#/") render();

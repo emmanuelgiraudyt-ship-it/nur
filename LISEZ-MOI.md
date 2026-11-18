@@ -1,6 +1,14 @@
-# NÛR (نور) — application installable (PWA), version 1.3.1
+# NÛR (نور) — application installable (PWA), version 1.4.0
 
 Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, méditation, compteurs de dhikr. Application gratuite, sans abonnement, sans publicité, sans traceur ; les données restent sur l'appareil. Fonctionne hors ligne après le premier chargement.
+
+## Version 1.4.0
+- Traduction française cochable sous chaque verset : Muhammad Hamidullah, QuranEnc.com (french_hameedullah v1.0.0), reproduite sans modification ; affichée sous le verset de Warsh qui se termine au même endroit que le verset de Ḥafṣ (`traduction-fr.json`).
+- Récitation en Warsh verset par verset, barre de lecture et lecture guidée ; trois récitateurs (EveryAyah.com) ; correspondance Warsh-Ḥafṣ dans `hafs.json`.
+- Hadiths sur chaque prière, vérifiés sur sunnah.com (Muslim 725a, al-Boukhârî 615, 552 et 528, Abû Dâwoud 418, Muslim 656a).
+- Qibla : boussole sur téléphone ; sur ordinateur, direction en degrés et méthode du soleil.
+- Lieu : recherche de ville dans le monde entier (Open-Meteo), position GPS précise nommée par OpenStreetMap, mise à jour automatique à chaque ouverture ; page Mawaqit de sa mosquée enregistrable.
+- Cartes de vœux envoyées par WhatsApp, par lien ou en image.
 
 ## Version 1.3.0 : structure de MAARIFA
 NÛR reprend la structure fonctionnelle de l'application MAARIFA (version Android 1.55.02, captures du 16 novembre 2026), sans le chat de questions ni l'abonnement, et avec des textes, des visuels et un code propres :
@@ -59,7 +67,7 @@ La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4
 - `KFGQPC-Warsh-Uthmanic.ttf`, `LICENCE-KFGQPC.txt` : police KFGQPC Warsh (non modifiée) et sa licence.
 
 ## Modifier les contenus sans toucher au code
-Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.3.1`) pour que les appareils déjà installés reçoivent la mise à jour.
+Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.4.0`) pour que les appareils déjà installés reçoivent la mise à jour.
 
 ## Sources
 - Texte et police : King Fahd Glorious Quran Printing Complex (KFGQPC), via github.com/thetruetruth/quran-data-kfgqpc. Voir `LICENCE-KFGQPC.txt`.

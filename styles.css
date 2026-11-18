@@ -379,3 +379,22 @@ a.iconbtn { display: inline-flex; align-items: center; justify-content: center; 
 .cardprev { width: 100%; height: auto; border-radius: 12px; margin: .8rem 0; border: 1px solid var(--line); }
 .scanv { width: 100%; border-radius: 12px; margin: .6rem 0; background: #000; }
 .row.plain-link { display: flex; }
+
+/* v1.4 : lecteur audio, coches, qibla */
+.laychk { display: flex; gap: .8rem; flex-wrap: wrap; }
+.trfr { margin: .35rem 0 0; font-size: calc(1rem * var(--fs)); line-height: 1.5; }
+.vcard.playing { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold) inset; }
+.pbar { position: fixed; left: 0; right: 0; margin: 0 auto; max-width: 480px; bottom: calc(env(safe-area-inset-bottom, 0px) + 60px); z-index: 25; display: flex; align-items: center; gap: .2rem; background: var(--ink); color: var(--bg); padding: .4rem .6rem; border-radius: 14px 14px 0 0; }
+.pbar .pinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: .85rem; line-height: 1.25; }
+.pbar .pinfo span { opacity: .8; }
+.pbar .ib { color: var(--bg); font-size: 1.05rem; }
+.pbar .ib.big { background: var(--gold); color: var(--ink); border-radius: 50%; }
+body:has(.pbar) #main { padding-bottom: 5rem; }
+.hadp { background: var(--soft); }
+.qdeg { font-size: 3.2rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
+.rose { position: relative; width: 240px; height: 240px; margin: 1rem auto .5rem; border-radius: 50%; border: 2px solid var(--gold); background: var(--panel); transition: transform .15s linear; }
+.rose .tk { position: absolute; inset: 0; display: block; }
+.rose .tk i { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); font-style: normal; font-size: .72rem; color: var(--muted); font-weight: 700; }
+.rose .qneedle { position: absolute; left: 50%; top: 12%; width: 6px; height: 38%; margin-left: -3px; background: var(--accent); border-radius: 3px; transform-origin: 50% 100%; }
+.rose .qneedle b { position: absolute; top: -1.6rem; left: 50%; transform: translateX(-50%); font-size: .75rem; color: var(--accent); white-space: nowrap; }
+.rose .dot { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px; background: var(--gold); border-radius: 50%; }
