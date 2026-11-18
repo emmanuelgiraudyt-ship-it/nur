@@ -1,6 +1,17 @@
-# NÛR (نور) — application installable (PWA), version 1.2.3
+# NÛR (نور) — application installable (PWA), version 1.3.0
 
 Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, mémorisation, tajwid, méditation, compteurs de dhikr. Application gratuite, sans abonnement, sans publicité, sans traceur ; les données restent sur l'appareil. Fonctionne hors ligne après le premier chargement.
+
+## Version 1.3.0 : structure de MAARIFA
+NÛR reprend la structure fonctionnelle de l'application MAARIFA (version Android 1.55.02, captures du 16 novembre 2026), sans le chat de questions ni l'abonnement, et avec des textes, des visuels et un code propres :
+- cinq onglets : Apprendre, Prière, Quotidien, Coran, Plus ;
+- Quotidien : salutation et lieu, prochaine prière et décompte, Imsak, Chourouq et Iftar, prières à marquer, « Explorer NÛR » (Cours / Quiz, Tafsir, Khatm), objectifs du jour dans l'ordre verset, dhikr, hadith, Coran, personnalisation de la routine ;
+- Prière : qibla, horaires du jour avec alerte par prière, navigation par jour, fiche de chaque prière (rite malikite), recommandations et invocations après la prière, Âyat al-Koursî ;
+- Coran : continuer la lecture, progression du khatm, grille des 114 sourates avec leur nom français, recherche, signets ; lecteur verset par verset ou page, paramètres Récitateur et Khatm (arabe, phonétique, taille de police) ;
+- Apprendre : thèmes, cours à poursuivre, rubriques avec durée, quiz et fiches ;
+- Plus : tafsir (en construction), cartes de vœux, dhikr, scanner halal (bêta), événements à venir, qibla ;
+- Profil : prénom et lieu, partage, points, paramètres, conditions, confidentialité, suppression des données, version et identifiant d'installation ;
+- premier lancement : présentation, projection à 21 jours, rappels, prénom, profil, âge, lieu.
 
 ## Nouveautés des versions 1.2.0 et 1.2.1
 - **Accueil au premier lancement** : présentation en quatre écrans, choix du profil, choix du lieu.
@@ -48,7 +59,7 @@ La répartition des quinze points quotidiens entre les quatre objectifs (5, 3, 4
 - `KFGQPC-Warsh-Uthmanic.ttf`, `LICENCE-KFGQPC.txt` : police KFGQPC Warsh (non modifiée) et sa licence.
 
 ## Modifier les contenus sans toucher au code
-Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.2.3`) pour que les appareils déjà installés reçoivent la mise à jour.
+Les leçons, les questions, les dhikr et les hadiths se corrigent directement dans `parcours.json` et `quotidien.json`. Après une modification, augmenter le numéro de version dans `sw.js` (`nur-v1.3.0`) pour que les appareils déjà installés reçoivent la mise à jour.
 
 ## Sources
 - Texte et police : King Fahd Glorious Quran Printing Complex (KFGQPC), via github.com/thetruetruth/quran-data-kfgqpc. Voir `LICENCE-KFGQPC.txt`.
