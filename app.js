@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.6.0";
+  var VERSION = "1.6.1";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -533,6 +533,14 @@
         return '<li><div class="row between" style="margin:0"><b>' + (i + 1) + '. ' + esc(e[0]) + '</b>' + statPill(e[2]) + '</div><p>' + esc(e[1]) + '</p>' + (e[3] ? formule(e[3], e[4], e[5]) : '') + (e[6] ? '<p class="muted small">' + esc(e[6]) + '</p>' : '') + '</li>';
       }).join("") + '</ol>';
     }
+    function steps3(L) {
+      return '<ol class="guide">' + L.map(function (e, i) {
+        return '<li><div class="row between" style="margin:0"><b>' + (i + 1) + '. ' + esc(e[0]) + '</b>' + statPill(e[3]) + '</div>' +
+          '<p><b>Position :</b> ' + esc(e[1]) + '</p>' +
+          '<p><b>Ce que l\'on dit :</b> ' + esc(e[7]) + '</p>' + (e[4] ? formule(e[4], e[5], e[6]) : '') +
+          '<p><b>Gestes et regard :</b> ' + esc(e[2]) + '</p></li>';
+      }).join("") + '</ol>';
+    }
     var html = '<h2>Ablutions et prière, pas à pas</h2><div class="seg2"><button data-gt="wudu" aria-selected="' + (guideTab === "wudu") + '">Ablutions</button><button data-gt="salat" aria-selected="' + (guideTab === "salat") + '">Prière</button></div>';
     if (guideTab === "wudu") {
       html += '<p>' + esc(W.intro) + '</p>' + steps(W.etapes) + '<div class="callout">' + esc(W.tout) + '</div>' +
@@ -544,7 +552,8 @@
     } else {
       html += '<p>' + esc(P2.intro) + '</p><h3>Nombre de rakʿa</h3><table class="month rk5"><thead><tr><th>Prière</th><th>Rakʿa</th><th>Récitation</th></tr></thead><tbody>' +
         P2.tableau.map(function (x) { return '<tr><td>' + esc(x[0]) + '</td><td>' + esc(x[1]) + '</td><td>' + esc(x[2]) + '</td></tr>'; }).join("") + '</tbody></table>' +
-        '<h3>Une prière de deux rakʿa</h3>' + steps(P2.etapes) + '<div class="callout">' + esc(P2.plus) + '</div>' +
+        '<h3>La prière du Soubḥ (Fajr), de A à Z</h3><p class="muted">' + esc(P2.ecole) + '</p>' + steps3(P2.fajr) +
+        '<div class="card"><h3>Pour les autres prières</h3><ol class="plain">' + P2.ajout.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ol></div>' +
         '<h3>Al-Fâtiḥa</h3><p class="row"><button class="btn alt" id="gfat">▶ Écouter Al-Fâtiḥa</button><a class="btn alt" href="#/reciter/1">Lire avec la phonétique</a></p>' +
         '<h3>Le tachahhoud</h3>' + formule(P2.tachahhoud[0], P2.tachahhoud[1], P2.tachahhoud[2], P2.tachahhoud[3]) +
         '<h3>La prière sur le Prophète</h3>' + formule(P2.ibrahimiyya[0], P2.ibrahimiyya[1], P2.ibrahimiyya[2], P2.ibrahimiyya[3]) +
@@ -876,11 +885,11 @@
 
   /* ---------------------------------------------------------------- PRIÈRE */
   var FICHES = {
-    fajr: { d: "La prière du Fajr s'accomplit entre l'apparition de l'aube véritable et le lever du soleil.", fard: "2 rakʿa", sun: [["2 rakʿa (Raghîbat al-fajr)", "Avant la prière"]] },
-    dhuhr: { d: "La prière du Dhuhr s'accomplit après le passage du soleil au zénith, jusqu'à ce que l'ombre d'un objet égale sa hauteur.", fard: "4 rakʿa", sun: [["Nâfila : 2 rakʿa ou plus", "Avant et après la prière"]] },
-    asr: { d: "La prière du ʿAsr commence quand l'ombre d'un objet égale sa hauteur ; elle s'accomplit avant le coucher du soleil, de préférence avant que sa lumière ne jaunisse.", fard: "4 rakʿa", sun: [["Nâfila : 2 rakʿa ou plus", "Avant la prière"]] },
-    maghrib: { d: "La prière du Maghrib s'accomplit juste après le coucher du soleil.", fard: "3 rakʿa", sun: [["Nâfila : 2 rakʿa ou plus", "Après la prière"]] },
-    isha: { d: "La prière du ʿIshâʾ s'accomplit après la disparition complète du crépuscule rougeâtre à l'ouest, au début de la nuit.", fard: "4 rakʿa", sun: [["2 rakʿa (Chafʿ)", "Après la prière"], ["1 rakʿa (Witr)", "Après le Chafʿ"]] }
+    fajr: { d: "La prière du Fajr s'accomplit entre l'apparition de l'aube véritable et le lever du soleil.", rec: "Les 2 rakʿa à voix haute.", fard: "2 rakʿa", sun: [["2 rakʿa (Raghîbat al-fajr)", "Avant la prière"]] },
+    dhuhr: { d: "La prière du Dhuhr s'accomplit après le passage du soleil au zénith, jusqu'à ce que l'ombre d'un objet égale sa hauteur.", rec: "Les 4 rakʿa à voix basse.", fard: "4 rakʿa", sun: [["Nâfila : 2 rakʿa ou plus", "Avant et après la prière"]] },
+    asr: { d: "La prière du ʿAsr commence quand l'ombre d'un objet égale sa hauteur ; elle s'accomplit avant le coucher du soleil, de préférence avant que sa lumière ne jaunisse.", rec: "Les 4 rakʿa à voix basse.", fard: "4 rakʿa", sun: [["Nâfila : 2 rakʿa ou plus", "Avant la prière"]] },
+    maghrib: { d: "La prière du Maghrib s'accomplit juste après le coucher du soleil.", rec: "Les 2 premières rakʿa à voix haute, la 3e à voix basse.", fard: "3 rakʿa", sun: [["Nâfila : 2 rakʿa ou plus", "Après la prière"]] },
+    isha: { d: "La prière du ʿIshâʾ s'accomplit après la disparition complète du crépuscule rougeâtre à l'ouest, au début de la nuit.", rec: "Les 2 premières rakʿa à voix haute, les 2 dernières à voix basse.", fard: "4 rakʿa", sun: [["2 rakʿa (Chafʿ)", "Après la prière"], ["1 rakʿa (Witr)", "Après le Chafʿ"]] }
   };
   var dayOffP = 0, prTab = null;
   function hijriOf(o) {
@@ -903,7 +912,7 @@
     var k = prTab || (np ? np.k : "fajr"), F = FICHES[k], nm = ORDER.filter(function (o) { return o[0] === k; })[0][1];
     html += '<h3>En savoir plus sur les prières</h3><div class="seg" role="tablist">' + ORDER.map(function (o) { return '<button role="tab" data-tab="' + o[0] + '" aria-selected="' + (o[0] === k) + '">' + o[1] + '</button>'; }).join("") + '</div>' +
       '<div class="fiche"><p>' + esc(F.d) + '</p><h4>Fardh (obligatoire)</h4><div class="rk"><b>' + F.fard + '</b><span>Pendant la prière</span></div>' +
-      '<h4>Sunna (recommandé)</h4>' + F.sun.map(function (x) { return '<div class="rk"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '<p class="muted" style="margin:.5rem 0 0">Selon le rite malikite.</p></div>' +
+      '<h4>Récitation</h4><p>' + esc(F.rec) + '</p><h4>Sunna (recommandé)</h4>' + F.sun.map(function (x) { return '<div class="rk"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '<p class="muted" style="margin:.5rem 0 0">Selon le rite malikite.</p></div>' +
       '<div class="card reco"><strong>Recommandations à faire après la prière</strong><p>Une fois la prière du ' + nm + ' terminée, prends le temps de rester à ta place et de te souvenir de Dieu quelques instants.</p><a href="#/priere/apres">Suivre les recommandations ' + ICO.arrow + '</a></div>' +
       '<h3>Hadiths sur la prière du ' + nm + '</h3>' + hadithCard(HADP[k]) + hadithCard(HADP.tous);
     html += '<details class="card" id="md"><summary><strong>Les 30 prochains jours</strong></summary><div class="scroll" id="mt"></div></details>';
