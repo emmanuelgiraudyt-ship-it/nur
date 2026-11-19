@@ -194,6 +194,24 @@
       kahf: "Celui qui lit la sourate Al-Kahf (18) le vendredi, une lumière l'éclaire d'un vendredi à l'autre.",
       kahfSrc: "al-Ḥâkim ; al-Bayhaqî ; authentifié par al-Albânî, Ṣaḥîḥ al-Djâmiʿ 6470."
     },
+    /* ------------------------------------------------ explications des événements (clé : mois.jour hégirien) */
+    evts: {
+      "1.1": ["Le premier jour de l'année hégirienne. Le calendrier musulman compte les années à partir de l'émigration du Prophète de La Mecque à Médine, en 622.", "Aucune prière ni aucun jeûne particuliers ne sont prescrits ce jour-là : c'est un moment pour se souvenir de l'hégire et faire le point sur sa pratique.", "Bukhârî 3934"],
+      "1.10": ["Le dixième jour de mouḥarram. Le Prophète a jeûné ce jour où Dieu a sauvé Moïse et son peuple, et il a recommandé de le jeûner.", "Il est recommandé de jeûner aussi le neuvième jour. Le jeûne de ʿÂchoûrâʾ efface les fautes de l'année précédente.", "Bukhârî 2004 ; Muslim 1134a ; Muslim 1162b"],
+      "3.12": ["La date retenue, dans la tradition, pour la naissance du Prophète Muhammad à La Mecque.", "Les savants divergent sur la célébration de ce jour. Il reste une occasion de lire sa vie (la sîra) et de multiplier la prière sur lui, que Dieu a ordonnée.", "Coran, sourate Al-Aḥzâb (33), verset 56 (Ḥafṣ)"],
+      "7.27": ["La date retenue, dans la tradition, pour le voyage nocturne du Prophète de La Mecque à Jérusalem (al-isrâʾ), puis son ascension (al-miʿrâj).", "C'est au cours de cette nuit que les cinq prières quotidiennes ont été prescrites.", "Coran, sourate Al-Isrâʾ (17), verset 1 ; Bukhârî 349"],
+      "8.15": ["Le milieu du mois de chaʿbân, qui précède le Ramaḍân.", "Le Prophète jeûnait beaucoup pendant chaʿbân. Les récits sur une adoration propre à cette nuit sont discutés par les savants : on s'en tient à la prière et à l'invocation habituelles.", "Bukhârî 1969"],
+      "9.1": ["Le début du mois de Ramaḍân, dont le jeûne est obligatoire pour tout musulman pubère et capable.", "Le mois commence à la vue du croissant ; suivez l'annonce de votre mosquée.", "Coran, sourate Al-Baqara (2), verset 183 (Ḥafṣ) ; Bukhârî 1909"],
+      "9.27": ["Laylat al-Qadr, la Nuit du destin, meilleure que mille mois. Elle se cherche dans les nuits impaires des dix dernières nuits du Ramaḍân ; la vingt-septième est la plus souvent retenue.", "On la passe en prière, en lecture du Coran et en invocation.", "Coran, sourate Al-Qadr (97), verset 3 ; Bukhârî 2017"],
+      "10.1": ["La fête de la rupture du jeûne, le premier jour de chawwâl.", "La zakât al-fiṭr se donne avant la prière de l'Aïd, sunna confirmée dans l'école malikite. Il est interdit de jeûner ce jour-là.", "Bukhârî 1990"],
+      "12.9": ["Le jour où les pèlerins se tiennent sur le mont ʿArafa, sommet du pèlerinage.", "Pour celui qui n'est pas en pèlerinage, le jeûne de ce jour efface les fautes de l'année passée et de l'année à venir.", "Muslim 1162b"],
+      "12.10": ["La fête du sacrifice, en souvenir d'Abraham qui fut prêt à sacrifier son fils, racheté par Dieu.", "Le sacrifice d'une bête est une sunna confirmée dans l'école malikite pour qui en a les moyens ; il se fait après la prière de l'Aïd. Il est interdit de jeûner ce jour-là.", "Coran, sourate Aṣ-Ṣâffât (37), verset 107 ; Bukhârî 1990"]
+    },
+    /* ------------------------------------------------ la prière expliquée à un enfant de 7 ans */
+    enfantPriere: ["Je fais mes ablutions.", "Je me mets debout, tourné vers La Mecque.", "Je lève les mains et je dis : « Allâhou akbar ».", "Je récite Al-Fâtiḥa, puis une petite sourate.", "Je me penche, les mains sur les genoux.", "Je me relève.", "Je pose mon front par terre : c'est la prosternation. Je le fais deux fois.", "Je recommence pour la deuxième rakʿa.", "Je m'assois et je récite le tachahhoud.", "Je tourne la tête à droite et je dis : « as-salâmou ʿalaykoum ». C'est fini !"],
+    enfantWudu: ["Je pense : je me lave pour prier.", "Je dis : « bismi llâh ».", "Je lave mes mains.", "Je rince ma bouche, puis mon nez.", "Je lave mon visage.", "Je lave mes bras jusqu'aux coudes.", "Je passe mes mains mouillées sur ma tête et mes oreilles.", "Je lave mes pieds jusqu'aux chevilles. Je suis prêt pour prier !"],
+    /* ------------------------------------------------ qibla de quelques villes (calcul NÛR, vérifié par la formule du grand cercle) */
+    qiblaVilles: [["Paris", 119], ["Londres", 119], ["New York", 59], ["Dakar", 74], ["Abidjan", 65], ["Pékin", 279], ["Le Caire", 136], ["Beyrouth", 162], ["Casablanca", 94], ["Alger", 105]],
     /* ------------------------------------------------ noms des lettres, pour la voix arabe de l'appareil */
     lettresAr: ["أَلِف", "بَاء", "تَاء", "ثَاء", "جِيم", "حَاء", "خَاء", "دَال", "ذَال", "رَاء", "زَاي", "سِين", "شِين", "صَاد", "ضَاد", "طَاء", "ظَاء", "عَيْن", "غَيْن", "فَاء", "قَاف", "كَاف", "لَام", "مِيم", "نُون", "هَاء", "وَاو", "يَاء"]
   };

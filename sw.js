@@ -1,9 +1,9 @@
 /* NÛR — service worker : fonctionnement hors ligne (cache de l'application, du texte et de la police). */
-const VERSION = "nur-v1.6.1";
+const VERSION = "nur-v1.7.0";
 const SHELL = [
   "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./translit.js", "./contenus.js", "./manifest.webmanifest",
   "./quran.json", "./phonetique.json", "./parcours.json", "./quotidien.json", "./config.json", "./traduction-fr.json", "./hafs.json", "./i18n-en.json", "./i18n-zh.json", "./i18n-ar.json", "./KFGQPC-Warsh-Uthmanic.ttf", "./LICENCE-KFGQPC.txt",
-  "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"
+  "./icon-192.png", "./logo.svg", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

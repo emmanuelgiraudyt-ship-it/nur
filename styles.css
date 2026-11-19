@@ -4,16 +4,10 @@
   font-display: swap;
 }
 :root {
-  --bg: #F5F0E1; --panel: #FFFFFF; --ink: #12302A; --muted: #55655D; --line: #D9D0B6;
-  --accent: #0F4C3A; --gold: #8A6A12; --onaccent: #F5F0E1; --soft: #EDE6CE; --danger: #9B2C2C;
+  --bg: #FBF8F1; --panel: #FFFFFF; --ink: #1F3B36; --muted: #5C6F69; --line: #E7E0CC;
+  --accent: #17806A; --gold: #9A6F12; --onaccent: #FFFFFF; --soft: #E4F4EF; --danger: #A83232;
   --fs: 1;
   color-scheme: light dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-theme="auto"] {
-    --bg: #0B241D; --panel: #12372C; --ink: #F3EBD3; --muted: #A9B8AE; --line: #2B5A4A;
-    --accent: #C9A24B; --gold: #C9A24B; --onaccent: #0B241D; --soft: #18443A; --danger: #F0A0A0;
-  }
 }
 :root[data-theme="dark"] {
   --bg: #0B241D; --panel: #12372C; --ink: #F3EBD3; --muted: #A9B8AE; --line: #2B5A4A;
@@ -455,3 +449,20 @@ dl.gloss dd { margin: .2rem 0 0; color: var(--muted); }
 .card input[inputmode], .card input[type="search"], #gq { width: 100%; box-sizing: border-box; }
 .card label.f + input + small { display: block; margin: .2rem 0 .4rem; }
 .rk b { white-space: nowrap; }
+
+/* ---------- v1.7 : palette claire, logo, mémorisé, enfants ---------- */
+.hero { background: linear-gradient(135deg, #1A8A73 0%, #2BB39A 100%); color: #FFFFFF; }
+.top { background: #FFFFFF; border-bottom: 1px solid var(--line); }
+.tabs { background: #FFFFFF; }
+.btn:not(.alt) { background: #17806A; color: #FFFFFF; }
+.pill.gold, .pts { border-color: #E2B84B; background: #FFF6DD; color: #6B4E0E; }
+.pill.mem { cursor: pointer; font: inherit; font-size: .75rem; background: transparent; color: var(--muted); }
+.pill.mem.on { background: #E4F4EF; border-color: #17806A; color: #145F50; font-weight: 700; }
+.kidbox { background: #FFF8E6; border-color: #F0D79A; }
+ol.kid { padding-left: 1.4rem; font-size: 1.05rem; }
+[dir="rtl"] ol.kid { padding-left: 0; padding-right: 1.4rem; }
+ol.kid li { margin: .3rem 0; }
+details.evt summary { cursor: pointer; list-style: none; }
+details.evt[open] { border-color: #17806A; }
+ul.qv { columns: 2; margin: .2rem 0 0; }
+.brand { height: 28px; width: auto; vertical-align: middle; }
