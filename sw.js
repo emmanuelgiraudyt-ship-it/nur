@@ -1,9 +1,9 @@
 /* NÛR — service worker : fonctionnement hors ligne (cache de l'application, du texte et de la police). */
-const VERSION = "nur-v1.7.0";
+const VERSION = "nur-v1.8.0";
 const SHELL = [
   "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./translit.js", "./contenus.js", "./manifest.webmanifest",
   "./quran.json", "./phonetique.json", "./parcours.json", "./quotidien.json", "./config.json", "./traduction-fr.json", "./hafs.json", "./i18n-en.json", "./i18n-zh.json", "./i18n-ar.json", "./KFGQPC-Warsh-Uthmanic.ttf", "./LICENCE-KFGQPC.txt",
-  "./icon-192.png", "./logo.svg", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"
+  "./icon-192.png", "./logo.svg", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./img/icon-a.svg", "./img/icon-b.svg", "./img/icon-c.svg", "./img/ill-calendrier.svg", "./img/ill-cartes.svg", "./img/ill-dhikr.svg", "./img/ill-enfant.svg", "./img/ill-femme.svg", "./img/ill-jeune.svg", "./img/ill-kaaba.svg", "./img/ill-lanterne.svg", "./img/ill-mediter.svg", "./img/ill-nouveau.svg", "./img/ill-parcours.svg", "./img/ill-quran.svg", "./img/ill-tafsir.svg", "./img/ill-tidjaniya.svg", "./img/ill-wudu.svg", "./img/ill-zakat.svg", "./img/logo-light.svg", "./img/pattern-dark.svg", "./img/pattern-gold.svg", "./img/pattern-light.svg", "./img/scene-day.svg", "./img/scene-fajr.svg", "./img/scene-isha.svg", "./img/scene-maghrib.svg"
 ];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

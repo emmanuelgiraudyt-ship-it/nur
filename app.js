@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.7.0";
+  var VERSION = "1.8.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -271,12 +271,27 @@
     return null;
   }
   function countdown(ts) { var m = Math.max(0, Math.round((ts - Date.now()) / 60000)); return Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"); }
+  var HMOIS = {
+    fr: ["Mouharram", "Safar", "Rabîʿ al-awwal", "Rabîʿ ath-thânî", "Joumâdâ al-oûlâ", "Joumâdâ al-âkhira", "Rajab", "Chaʿbân", "Ramadân", "Chawwâl", "Dhoû al-qaʿda", "Dhoû al-hijja"],
+    en: ["Muharram", "Safar", "Rabiʿ al-Awwal", "Rabiʿ al-Thani", "Jumada al-Ula", "Jumada al-Akhirah", "Rajab", "Shaʿban", "Ramadan", "Shawwal", "Dhu al-Qaʿdah", "Dhu al-Hijjah"],
+    zh: ["穆哈兰姆月", "色法尔月", "赖比尔·敖外鲁月", "赖比尔·阿色尼月", "主马达·敖外鲁月", "主马达·阿色尼月", "赖哲卜月", "舍尔邦月", "莱麦丹月", "闪瓦鲁月", "都尔喀尔德月", "都尔黑哲月"],
+    ar: ["مُحَرَّم", "صَفَر", "رَبِيع الأَوَّل", "رَبِيع الآخِر", "جُمَادَى الأُولَى", "جُمَادَى الآخِرَة", "رَجَب", "شَعْبَان", "رَمَضَان", "شَوَّال", "ذُو القَعْدَة", "ذُو الحِجَّة"]
+  };
+  function hFmt(t) {
+    var p = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn", { timeZone: "UTC", day: "numeric", month: "numeric", year: "numeric" }).formatToParts(t);
+    var g = function (k) { var x = p.filter(function (z) { return z.type === k; })[0]; return x ? parseInt(x.value, 10) : 0; };
+    var d = g("day"), m = g("month"), y = g("year"), lg = (UIL() || "fr").slice(0, 2), N = (HMOIS[lg] || HMOIS.fr)[m - 1];
+    if (!d || !m || !y || !N) return "";
+    if (lg === "ar") return d + " " + N + " " + y + " هـ";
+    if (lg === "zh") return "伊斯兰历 " + y + " 年 " + N + " " + d + " 日";
+    return d + " " + N + " " + y + (lg === "en" ? " AH" : " H");
+  }
   function hijriStr() {
     var L = loc(), now = Date.now(), shift = S.settings.hijriOffset || 0;
     try {
       var T = timesFor(L, ymd(now, L.tz));
       if (T.maghrib === T.maghrib && now >= T.maghrib) shift += 1; // le jour hégirien commence au coucher du soleil
-      return new Intl.DateTimeFormat(UIL() + "-u-ca-islamic-umalqura", { timeZone: L.tz, day: "numeric", month: "long", year: "numeric" }).format(new Date(now + shift * 864e5));
+      var o = ymd(now + shift * 864e5, L.tz); return hFmt(new Date(Date.UTC(o.y, o.m - 1, o.d, 12)));
     } catch (e) { return ""; }
   }
   function gregStr() { return new Intl.DateTimeFormat(UIL(), { timeZone: loc().tz, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()); }
@@ -527,7 +542,7 @@
   route(/^\/guide$/, function (m, params) {
     if (params.t) guideTab = params.t === "salat" ? "salat" : "wudu";
     var c = NC(), W = c.wudu, P2 = c.salat;
-    if (!W || !P2) return { title: "Guide", html: '<div class="callout warn">Contenu indisponible. Rechargez l\'application.</div>', back: "#/apprendre" };
+    if (!W || !P2) return { title: "Guide", html: '<div class="callout warn">Contenu indisponible. Recharge l\'application.</div>', back: "#/apprendre" };
     function steps(L) {
       return '<ol class="guide">' + L.map(function (e, i) {
         return '<li><div class="row between" style="margin:0"><b>' + (i + 1) + '. ' + esc(e[0]) + '</b>' + statPill(e[2]) + '</div><p>' + esc(e[1]) + '</p>' + (e[3] ? formule(e[3], e[4], e[5]) : '') + (e[6] ? '<p class="muted small">' + esc(e[6]) + '</p>' : '') + '</li>';
@@ -541,7 +556,7 @@
           '<p><b>Gestes et regard :</b> ' + esc(e[2]) + '</p></li>';
       }).join("") + '</ol>';
     }
-    var html = '<h2>Ablutions et prière, pas à pas</h2><div class="seg2"><button data-gt="wudu" aria-selected="' + (guideTab === "wudu") + '">Ablutions</button><button data-gt="salat" aria-selected="' + (guideTab === "salat") + '">Prière</button></div>';
+    var html = '<h2>Ablutions et prière, pas à pas</h2>' + ECOLE() + '<div class="seg2"><button data-gt="wudu" aria-selected="' + (guideTab === "wudu") + '">Ablutions</button><button data-gt="salat" aria-selected="' + (guideTab === "salat") + '">Prière</button></div>';
     if (guideTab === "wudu") {
       html += kidList(NC().enfantWudu, "Les ablutions expliquées simplement") + '<p>' + esc(W.intro) + '</p>' + steps(W.etapes) + '<div class="callout">' + esc(W.tout) + '</div>' +
         '<h3>Après les ablutions</h3>' + formule(W.apres[0], W.apres[1], W.apres[2], W.apres[3]) +
@@ -616,7 +631,7 @@
     var F = NC().femme; if (!F) return { title: "Femme", html: "", back: "#/plus" };
     S.femme = S.femme || { pause: false, type: "hayd", debut: null, hist: [] };
     var f = S.femme, t = today(), jours = f.pause && f.debut ? daysBetween(f.debut, t) + 1 : 0, max = f.type === "nifas" ? 60 : 15;
-    var html = '<h2>Espace femme</h2><p>' + esc(F.intro) + '</p>' +
+    var html = '<h2>Espace femme</h2>' + ECOLE() + '<p>' + esc(F.intro) + '</p>' +
       '<div class="card' + (f.pause ? ' gold' : '') + '"><h3>Pause : règles ou lochies</h3>' +
       (f.pause ? '<p><b>Pause en cours</b> · ' + (f.type === "nifas" ? "lochies" : "règles") + ' · jour ' + jours + '</p><p class="muted">Le suivi des prières est suspendu, sans perte de points ni de régularité. La lecture et l\'écoute du Coran restent disponibles.</p>' +
         (jours > max ? '<div class="callout warn">La durée maximale (' + max + ' jours) est dépassée : le sang qui continue n\'est plus celui des ' + (f.type === "nifas" ? "lochies" : "règles") + ' ; la prière et le jeûne reprennent (voir « saignements hors des règles »).</div>' : '') +
@@ -656,10 +671,10 @@
     S.jeune = S.jeune || { r: {}, qada: 0 };
     var L = loc(), b = ymd(Date.now(), L.tz), T = timesFor(L, b), h = hNum(b), ram = h.m === 9, yk = String(h.y), R = S.jeune.r[yk] = S.jeune.r[yk] || {};
     var nR = 0; Object.keys(R).forEach(function (k) { if (R[k]) nR++; });
-    var html = '<h2>Le jeûne</h2><p>' + esc(J.intro) + '</p>' +
+    var html = '<h2>Le jeûne</h2>' + ECOLE() + '<p>' + esc(J.intro) + '</p>' +
       '<div class="card"><h3>Aujourd\'hui</h3><div class="rk"><b>' + fmtT(T.fajr, L.tz) + '</b><span>Fin du souḥoûr (heure du Fadjr)</span></div><div class="rk"><b>' + fmtT(T.maghrib, L.tz) + '</b><span>Ifṭâr (heure du Maghrib)</span></div><p class="muted small">' + esc(L.name) + '</p></div>';
     if (ram) html += '<div class="card"><div class="row between"><h3>Ramaḍân ' + h.y + '</h3><span class="pill">' + nR + ' jours jeûnés</span></div><div class="jgrid">' +
-      (function () { var o = ""; for (var d = 1; d <= 30; d++) o += '<button class="jd' + (R[d] ? " on" : "") + (d === h.d ? " today" : "") + '" data-jd="' + d + '" aria-pressed="' + !!R[d] + '">' + d + '</button>'; return o; })() + '</div><p class="muted small">Touchez un jour pour le marquer comme jeûné.</p></div>';
+      (function () { var o = ""; for (var d = 1; d <= 30; d++) o += '<button class="jd' + (R[d] ? " on" : "") + (d === h.d ? " today" : "") + '" data-jd="' + d + '" aria-pressed="' + !!R[d] + '">' + d + '</button>'; return o; })() + '</div><p class="muted small">Touche un jour pour le marquer comme jeûné.</p></div>';
     else { var nx = nextHijri(function (x) { return x.m === 9 && x.d === 1; }, 400); html += '<div class="callout"><span>Prochain Ramaḍân :</span> <span data-noi18n>' + esc(dLabel(nx)) + '</span>' + (nx ? ' <span>(dans ' + nx.i + ' jours).</span>' : '') + '</div>'; }
     html += '<div class="card"><h3>Jours à rattraper</h3><div class="row"><button class="btn alt" id="qm" aria-label="Retirer un jour">−</button><span class="pill big">' + (S.jeune.qada || 0) + '</span><button class="btn alt" id="qp" aria-label="Ajouter un jour">+</button></div><p class="muted small">Jours de Ramaḍân non jeûnés (maladie, voyage, règles…) à rattraper avant le Ramaḍân suivant.</p></div>' +
       '<h3>Les règles du jeûne</h3>' + J.regles.map(function (x) { return '<details class="card"><summary><strong>' + esc(x[0]) + '</strong></summary><p>' + esc(x[1]) + '</p></details>'; }).join("") +
@@ -699,7 +714,7 @@
         z.cur = $("#zcur", r).value; z.hawl = $("#zhawl", r).checked; save();
         var tot = num(z.ep) + num(z.met) + num(z.mar) + num(z.cre) - num(z.det), pr = z.base === "argent" ? num(z.ps) : num(z.pg), nis = pr * (z.base === "argent" ? 595 : 85), cur = z.cur, out;
         var eur = function (x) { return cur === "FCFA" ? ' <span class="muted">(≈ ' + money(x / XOF, "€") + ')</span>' : ''; };
-        if (!pr) out = '<p class="muted">' + tr("Indiquez le prix du gramme pour calculer le seuil.") + '</p>';
+        if (!pr) out = '<p class="muted">' + tr("Indique le prix du gramme pour calculer le seuil.") + '</p>';
         else {
           out = '<div class="rk"><b>' + money(Math.max(0, tot), cur) + eur(Math.max(0, tot)) + '</b><span>' + tr("Total soumis") + '</span></div><div class="rk"><b>' + money(nis, cur) + eur(nis) + '</b><span>' + tr("Seuil (niṣâb)") + '</span></div>';
           if (tot < nis) out += '<p>' + tr("Le total est sous le seuil : la zakât n'est pas due.") + '</p>';
@@ -774,6 +789,35 @@
     }
     return STORE.appId;
   }
+  /* jeu d'icônes cohérent (traits 1,8 px, 24 × 24) */
+  var IP = {
+    book: "M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2zM4 21a2 2 0 0 1 2-2h12v2H6",
+    mosque: "M3 21h18M5 21v-8h14v8M12 3c-2.5 2-4 3.5-4 6h8c0-2.5-1.5-4-4-6zM10 21v-4a2 2 0 0 1 4 0v4M2 21V10M22 21V10",
+    moon: "M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z",
+    quran: "M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M12 7.5l1 2 2 .3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2L9 9.8l2-.3z",
+    grid: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
+    coin: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM14.8 9a3 3 0 0 0-2.8-1.5c-1.7 0-2.8.9-2.8 2.1 0 2.8 5.8 1.4 5.8 4.3 0 1.2-1.2 2.1-3 2.1A3.2 3.2 0 0 1 9 14.5M12 6v1.5M12 16.5V18",
+    beads: "M12 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 7a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM18 7a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 13a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 13a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM12 17v4",
+    compass: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z",
+    pen: "M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4",
+    doc: "M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h7",
+    lantern: "M12 2v2M9 6h6l1 2H8zM8 8h8l-1 10H9zM10 18h4v3h-4zM12 11v4",
+    refresh: "M20 11A8 8 0 0 0 5.6 6.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.4 4.5L20 16M20 20v-4h-4",
+    mail: "M3 6h18v12H3zM3 7l9 6 9-6",
+    heart: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z",
+    layers: "M12 3l9 5-9 5-9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5",
+    cal: "M4 5h16v16H4zM4 10h16M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2",
+    star: "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z",
+    glossary: "M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 9h6M9 13h4",
+    audio: "M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v6H4zM17 14h3v6h-3z",
+    path: "M5 20c0-5 4-5 7-8s2-8 7-8M5 20h.01M19 4h.01M10 15h.01",
+    drop: "M12 3c3.5 4.5 6 7.8 6 11a6 6 0 0 1-12 0c0-3.2 2.5-6.5 6-11z",
+    flower: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 9V4M12 15v5M9 12H4M15 12h5M9.9 9.9L6.3 6.3M14.1 14.1l3.6 3.6M9.9 14.1l-3.6 3.6M14.1 9.9l3.6-3.6",
+    user: "M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21a8 8 0 0 1 16 0",
+    school: "M3 9l9-5 9 5-9 5zM7 11v5c3 2 7 2 10 0v-5M21 9v6",
+    download: "M12 4v11M7 10l5 5 5-5M4 20h16"
+  };
+  function ic(n, sz) { return '<svg class="ic" viewBox="0 0 24 24" width="' + (sz || 24) + '" height="' + (sz || 24) + '" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="' + IP[n] + '"/></svg>'; }
   var ICO = {
     speaker: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
     bell: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/></svg>',
@@ -815,46 +859,47 @@
   function posOf(k) { var A = activeSteps(); for (var i = 0; i < A.length; i++) if (A[i][0] === k) return i + 1; return 1; }
 
   function chips3(T, L) {
-    return '<div class="chips3"><div><span>Imsak</span><b>' + fmtT(T.fajr, L.tz) + '</b></div><div><span>Chourouq</span><b>' + fmtT(T.sunrise, L.tz) + '</b></div><div><span>Iftar</span><b>' + fmtT(T.maghrib, L.tz) + '</b></div></div>';
+    var b = ymd(Date.now(), L.tz); T = timesFor(L, b);
+    if (T.maghrib === T.maghrib && Date.now() >= T.maghrib) T = timesFor(L, addDays(b, 1)); // après le Maghrib : horaires du lendemain
+    return '<div class="chips3"><div><span>Imsak</span><b>' + fmtT(T.fajr - 6e5, L.tz) + '</b></div><div><span>Chourouq</span><b>' + fmtT(T.sunrise, L.tz) + '</b></div><div><span>Iftar</span><b>' + fmtT(T.maghrib, L.tz) + '</b></div></div>';
   }
-  function initiale() { var p = prof(); return p && p.nom ? p.nom.charAt(0).toUpperCase() : "N"; }
+  function initiale() { var p = prof(); return p && p.nom ? p.nom.charAt(0).toUpperCase() : ""; }
+  function ECOLE() { return '<div class="ecole">' + ic("school", 18) + '<span>Présenté selon l\'école malikite ; les écoles hanafite, chafiite et hanbalite peuvent différer. <a href="#/ecoles">Les 4 écoles</a></span></div>'; }
+  function avat() { var i = initiale(); return i ? esc(i) : ic("user", 20); }
 
   /* ---------------------------------------------------------------- QUOTIDIEN (accueil) */
   route(/^\/?$/, function () {
     return loadOpt().then(function (opt) {
       var st = stt(), p = prof(), L = loc(), np = nextPrayer(), d = dayRec(), T = timesFor(L, ymd(Date.now(), L.tz));
-      var html = '<div class="qhead"><a class="avatar" href="#/profil" aria-label="Mon profil">' + esc(initiale()) + '</a><div><div class="salutM">Assalâmou ʿalaykoum' + (p && p.nom ? ', ' + esc(p.nom) : '') + '</div>' +
+      var html = '<div class="qhead"><a class="avatar" href="#/profil" aria-label="Mon profil">' + avat() + '</a><div><div class="salutM">Assalâmou ʿalaykoum' + (p && p.nom ? ', ' + esc(p.nom) : '') + '</div>' +
         '<a class="muted lieu" href="#/priere/reglages">' + ICO.pin + ' ' + esc(L.name) + '</a></div></div>';
-      html += '<div class="hero"><div class="row between"><div><div class="hl">La prochaine prière est</div><div class="hn">' + (np ? np.name : "—") + '</div></div>' +
-        '<div class="hr"><div class="hl">dans ' + (np ? countdown(np.ts) : "—") + '</div><div class="ht">' + (np ? fmtT(np.ts, np.tz) : "") + '</div></div></div>' + chips3(T, L) + '</div>';
+      var track = !fPause() && (isChild() ? !!st.prayerTrack : !st.prayerOff), n5 = 0; ORDER.forEach(function (o) { if (d.pr[o[0]]) n5++; });
+      var sc = np && np.k === "fajr" ? "scene-fajr" : np && (np.k === "maghrib") ? "scene-maghrib" : np && np.k === "isha" ? "scene-isha" : "scene-day";
+      html += '<div class="hero heroQ"><div class="hqx"><div><div class="hl">Prochaine prière</div><div class="hn">' + (np ? np.name : "—") + '</div>' +
+        '<div class="ht">' + (np ? fmtT(np.ts, np.tz) : "") + ' <small>dans ' + (np ? countdown(np.ts) : "—") + '</small></div></div><img class="hscene" src="img/' + sc + '.svg" alt=""></div>' +
+        '<div class="hl" style="margin-top:.6rem">Mes prières du jour' + (track ? ' · ' + n5 + ' / 5 <button class="hhelp" id="phelp" aria-label="Aide">?</button>' : '') + '</div>' +
+        '<div class="pchipsQ">' + ORDER.map(function (o) {
+          var tm = '<span>' + o[1] + '</span><b>' + fmtT(T[o[0]], L.tz) + '</b>';
+          return track ? '<button class="pq' + (d.pr[o[0]] ? " on" : "") + '" data-pr="' + o[0] + '" aria-pressed="' + !!d.pr[o[0]] + '" aria-label="' + o[1] + ', accomplie">' + tm + '<i aria-hidden="true"></i></button>' : '<div class="pq">' + tm + '</div>';
+        }).join("") + '</div></div>';
       if (fPause() && (!isChild() || st.prayerTrack)) html += '<a class="card plain-link gold" href="#/femme"><strong>Pause en cours</strong><div class="muted">Le suivi des prières est suspendu, sans perte de points.</div></a>';
-      else if (!isChild() || st.prayerTrack) {
-        var n5 = 0; ORDER.forEach(function (o) { if (d.pr[o[0]]) n5++; });
-        html += '<div class="card"><a class="row between plain-link" href="#/priere"><div><strong>Horaires de prière</strong><div class="muted">Marque tes prières ' + n5 + ' / 5</div></div>' + ICO.arrow + '</a>' +
-          '<div class="pchips">' + ORDER.map(function (o) {
-            return '<button class="pchip' + (d.pr[o[0]] ? " on" : "") + '" data-pr="' + o[0] + '" aria-pressed="' + !!d.pr[o[0]] + '"><span>' + o[1] + '</span><i aria-hidden="true"></i></button>';
-          }).join("") + '</div><p class="muted" style="margin:.4rem 0 0">' + PRI + ' points par prière marquée. Suivi privé, sur cet appareil.</p></div>';
-      }
-      html += '<div class="card"><strong>Explorer NÛR</strong><div class="muted">Rapproche-toi de Dieu, pas à pas</div><div class="tiles3">' +
-        '<a class="t3" href="#/apprendre"><b>Cours / Quiz</b><span>Lancer ' + ICO.arrow + '</span></a>' +
-        '<a class="t3" href="#/tafsir"><b>Tafsir</b><span>Lancer ' + ICO.arrow + '</span></a>' +
-        '<a class="t3" href="#/khatm"><b>Khatm Coran</b><span>Lancer ' + ICO.arrow + '</span></a></div></div>';
-      var A = activeSteps(), fp = firstPos(d), alldone = fp > A.length;
-      html += '<div class="card objM"><div class="row between"><div><strong>Objectifs du jour</strong><div class="muted">Quelques minutes pour te rapprocher de Dieu</div></div><span class="pill">' + d.p + ' / ' + CAP + ' pts</span></div>' +
-        '<ol class="stepsM">' + A.map(function (s, i) {
-          return '<li class="' + (d.f[s[0]] ? "done" : "") + '"><a href="#/jour?e=' + (i + 1) + '"><span class="nb">' + (d.f[s[0]] ? "✓" : (i + 1)) + '</span><span>' + s[1] + '</span><span class="pt">+' + PTS[s[0]] + '</span></a></li>';
-        }).join("") + '</ol>' +
-        '<div class="row between"><a class="btn" href="#/jour?e=' + Math.min(fp, A.length + 1) + '">' + (alldone ? "Voir mon bilan" : (fp > 1 ? "Continuer" : "Commencer")) + '</a><a class="btn alt" href="#/routine">Personnaliser</a></div></div>';
+      var A = activeSteps(), fp = firstPos(d), alldone = fp > A.length, SI = { verset: "doc", dhikr: "beads", hadith: "glossary", lecture: "quran" };
+      html += '<div class="card objM"><div class="row between"><strong>Objectifs du jour</strong><span class="pill">' + d.p + ' / ' + CAP + ' pts</span></div>' +
+        '<div class="bar"><i style="width:' + Math.min(100, Math.round(d.p * 100 / CAP)) + '%"></i></div><div class="ogrid">' + A.map(function (s, i) {
+          return '<a class="ocell' + (d.f[s[0]] ? " done" : "") + '" href="#/jour?e=' + (i + 1) + '"><span class="oi">' + (d.f[s[0]] ? ic("star", 18) : ic(SI[s[0]] || "doc", 18)) + '</span><span>' + s[1] + '</span></a>';
+        }).join("") + '</div><div class="row between" style="margin-top:.5rem"><a class="btn" href="#/jour?e=' + Math.min(fp, A.length + 1) + '">' + (alldone ? "Voir mon bilan" : (fp > 1 ? "Continuer" : "Commencer")) + '</a><a class="lnk" href="#/routine">Personnaliser</a></div></div>';
+      var nev = nextEvents(2);
+      html += '<a class="card plain-link hcard" href="#/evenements"><span class="oi">' + ic("cal", 22) + '</span><div><strong data-noi18n>' + esc(hijriStr()) + '</strong>' + (nev[0] ? '<div class="muted dots"><span>' + esc(nev[0][1]) + '</span><span>' + (nev[0][2] === 0 ? "aujourd'hui" : "dans " + nev[0][2] + " jours") + '</span></div>' : '') + '</div></a>';
+      html += '<div class="tiles2"><a class="t2" href="#/apprendre"><img src="img/ill-parcours.svg" alt=""><b>Cours et quiz</b></a><a class="t2" href="#/khatm"><img src="img/ill-quran.svg" alt=""><b>Khatm</b></a></div>';
       var wd = new Intl.DateTimeFormat("en-US", { timeZone: L.tz, weekday: "short" }).format(new Date());
       if (wd === "Fri" && NC().djoumoua) { var DJ = NC().djoumoua; html += '<div class="card gold"><strong>Djoumouʿa</strong><p>' + esc(DJ.texte) + ' <span class="muted small">(' + esc(DJ.src) + ')</span></p><p>' + esc(DJ.kahf) + ' <span class="muted small">(' + esc(DJ.kahfSrc) + ')</span></p><a class="btn alt" href="#/reciter/18">Lire la sourate Al-Kahf</a></div>'; }
       else if (wd === "Fri" && opt.quot && opt.quot.vendredi) html += '<div class="callout">' + esc(opt.quot.vendredi) + '</div>';
       if (S.settings.converti) html += '<a class="card plain-link" href="#/converti"><strong>Mes 30 premiers jours</strong><div class="muted">Le programme du nouveau musulman</div></a>';
       var rd0 = revDue().length; if (rd0) html += '<a class="card plain-link" href="#/revision"><strong>Révision du jour</strong><div class="muted">' + rd0 + ' versets à réviser</div></a>';
-      var nev = nextEvents(2);
-      html += '<h3>Fil d\'actualités</h3>' + nev.map(function (x) { return '<a class="card plain-link" href="#/evenements"><strong>' + esc(x[1]) + '</strong><div class="muted"><span>' + (x[2] === 0 ? "Aujourd'hui" : "Dans " + x[2] + " jours") + '</span> · <span data-noi18n>' + esc(x[3]) + '</span></div></a>'; }).join("") +
-        '<a class="card plain-link" href="#/cartes"><strong>Cartes de vœux</strong><div class="muted">Envoie une carte à tes proches, par WhatsApp ou par lien.</div></a>';
+
       return { title: "NÛR", html: html, tab: "#/", bind: function (r) {
-        $$("[data-pr]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pr); render(); }; });
+        $$("[data-pr]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pr); b.classList.add("pop"); setTimeout(render, 260); }; });
+        var ph = $("#phelp", r); if (ph) ph.onclick = function () { toast("Touche une prière pour la cocher quand tu l'as accomplie. Suivi privé, sur cet appareil."); };
       } };
     });
   });
@@ -894,28 +939,28 @@
   };
   var dayOffP = 0, prTab = null;
   function hijriOf(o) {
-    try { return new Intl.DateTimeFormat(UIL() + "-u-ca-islamic-umalqura", { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" }).format(new Date(Date.UTC(o.y, o.m - 1, o.d, 12) + (S.settings.hijriOffset || 0) * 864e5)); } catch (e) { return ""; }
+    try { return hFmt(new Date(Date.UTC(o.y, o.m - 1, o.d, 12) + (S.settings.hijriOffset || 0) * 864e5)); } catch (e) { return ""; }
   }
   route(/^\/priere$/, function () {
     var st = stt(), L = loc(), base = ymd(Date.now(), L.tz), t0 = addDays(base, dayOffP), T = timesFor(L, t0), Tt = timesFor(L, base), np = nextPrayer();
     var dl = new Intl.DateTimeFormat(UIL(), { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(new Date(Date.UTC(t0.y, t0.m - 1, t0.d, 12)));
     if (dayOffP === 0) dl = "Aujourd'hui, " + dl.replace(/^\S+\s/, "");
-    var html = '<div class="row between phead"><h2 style="margin:0">Prière</h2><div class="row" style="margin:0"><a class="btn alt" href="#/qibla">Trouver la qibla</a><a class="iconbtn" href="#/priere/reglages" aria-label="Réglages des horaires">' + ICO.gear + '</a></div></div>';
+    var html = '<div class="row between phead"><span></span><div class="row" style="margin:0"><a class="btn alt" href="#/qibla">Trouver la qibla</a><a class="iconbtn" href="#/priere/reglages" aria-label="Réglages des horaires">' + ICO.gear + '</a></div></div>';
     html += '<div class="hero center"><div class="hl">La prochaine prière est</div><div class="hn">' + (np ? np.name : "—") + '</div><div class="hbig">' + (np ? fmtT(np.ts, np.tz) : "") + '</div>' +
-      '<div class="row" style="justify-content:center;margin:.5rem 0 0"><span class="hchip">dans ' + (np ? countdown(np.ts) : "—") + '</span><a class="hchip" href="#/priere/reglages">' + ICO.pin + ' ' + esc(L.name) + '</a></div></div>' + chips3(Tt, L);
-    if (L.def) html += '<div class="callout warn">Lieu par défaut. Pour des horaires exacts, indiquez votre position ou votre ville.</div>';
+      '<div class="row" style="justify-content:center;margin:.5rem 0 0"><span class="hchip">dans ' + (np ? countdown(np.ts) : "—") + '</span></div></div>' + chips3(Tt, L);
+    if (L.def) html += '<div class="callout warn">Lieu par défaut. Pour des horaires exacts, indique ta position ou ta ville.</div>';
     html += '<div class="datenav"><button class="iconbtn" id="dm" aria-label="Jour précédent">‹</button><div><strong>' + esc(dl) + '</strong><div class="muted">' + esc(hijriOf(t0)) + '</div></div><button class="iconbtn" id="dp" aria-label="Jour suivant">›</button></div>';
     html += '<div class="plist">' + ORDER.map(function (p) {
       var on = st.alerts[p[0]] !== false, nx = dayOffP === 0 && np && np.k === p[0] && np.ts === T[p[0]];
-      return '<div class="prow' + (nx ? " next" : "") + '"><button class="bell' + (on ? " on" : "") + '" data-al="' + p[0] + '" aria-pressed="' + on + '" aria-label="Alerte pour ' + p[1] + '">' + (on ? ICO.bell : ICO.belloff) + '</button><span class="pn">' + p[1] + '</span><span class="t">' + fmtT(T[p[0]], L.tz) + '</span></div>';
+      return '<div class="prow' + (nx ? " next" : "") + '"><button class="bell' + (on ? " on" : "") + '" data-al="' + p[0] + '" aria-pressed="' + on + '" aria-label="Alerte pour ' + p[1] + (on ? ' : activée' : ' : désactivée') + '">' + (on ? ICO.bell : ICO.belloff) + '</button><span class="pn">' + p[1] + '<small class="bst">' + (on ? "alerte activée" : "alerte désactivée") + '</small></span><span class="t">' + fmtT(T[p[0]], L.tz) + '</span></div>';
     }).join("") + '</div>';
     html += '<a class="card linkcard" href="#/priere/reglages"><span>Les heures de prière te semblent incorrectes ?</span><b>Explications ' + ICO.arrow + '</b></a>';
     var k = prTab || (np ? np.k : "fajr"), F = FICHES[k], nm = ORDER.filter(function (o) { return o[0] === k; })[0][1];
-    html += '<h3>En savoir plus sur les prières</h3><div class="seg" role="tablist">' + ORDER.map(function (o) { return '<button role="tab" data-tab="' + o[0] + '" aria-selected="' + (o[0] === k) + '">' + o[1] + '</button>'; }).join("") + '</div>' +
+    html += '<details class="card fold"' + (prTab ? ' open' : '') + '><summary><strong>En savoir plus sur les prières</strong></summary><div class="seg" role="tablist">' + ORDER.map(function (o) { return '<button role="tab" data-tab="' + o[0] + '" aria-selected="' + (o[0] === k) + '">' + o[1] + '</button>'; }).join("") + '</div>' +
       '<div class="fiche"><p>' + esc(F.d) + '</p><h4>Fardh (obligatoire)</h4><div class="rk"><b>' + F.fard + '</b><span>Pendant la prière</span></div>' +
-      '<h4>Récitation</h4><p>' + esc(F.rec) + '</p><h4>Sunna (recommandé)</h4>' + F.sun.map(function (x) { return '<div class="rk"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '<p class="muted" style="margin:.5rem 0 0">Selon le rite malikite.</p></div>' +
+      '<h4>Récitation</h4><p>' + esc(F.rec) + '</p><h4>Sunna (recommandé)</h4>' + F.sun.map(function (x) { return '<div class="rk"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '</div>' + ECOLE() + '</details>' +
       '<div class="card reco"><strong>Recommandations à faire après la prière</strong><p>Une fois la prière du ' + nm + ' terminée, prends le temps de rester à ta place et de te souvenir de Dieu quelques instants.</p><a href="#/priere/apres">Suivre les recommandations ' + ICO.arrow + '</a></div>' +
-      '<h3>Hadiths sur la prière du ' + nm + '</h3>' + hadithCard(HADP[k]) + hadithCard(HADP.tous);
+      '<details class="card fold"><summary><strong>Hadiths sur la prière du ' + nm + '</strong></summary>' + hadithCard(HADP[k]) + hadithCard(HADP.tous) + '</details>';
     html += '<details class="card" id="md"><summary><strong>Les 30 prochains jours</strong></summary><div class="scroll" id="mt"></div></details>';
     return { title: "Prière", html: html, tab: "#/priere", bind: function (r) {
       $("#dm", r).onclick = function () { dayOffP--; render(); };
@@ -963,18 +1008,18 @@
   /* réglages des horaires (doute, calcul, localisation) */
   route(/^\/priere\/reglages$/, function () {
     var st = stt(), L = loc();
-    var html = '<div class="card soft"><strong>Tu as un doute sur les horaires ?</strong><p>Les horaires varient souvent d\'une mosquée à l\'autre, même dans une ville : chaque mosquée retient sa méthode de calcul et ses ajustements. NÛR calcule les horaires sur votre appareil, selon la méthode choisie ci-dessous et le ʿAsr malikite.</p><a href="#/reglages">Ajuster les minutes prière par prière ' + ICO.arrow + '</a></div>' +
+    var html = '<div class="card soft"><strong>Tu as un doute sur les horaires ?</strong><p>Les horaires varient souvent d\'une mosquée à l\'autre, même dans une ville : chaque mosquée retient sa méthode de calcul et ses ajustements. NÛR calcule les horaires sur ton appareil, selon la méthode choisie ci-dessous et le ʿAsr malikite.</p><a href="#/reglages">Ajuster les minutes prière par prière ' + ICO.arrow + '</a></div>' +
       '<h3>Calcul des horaires de prière</h3><label class="f" for="meth">Méthode de calcul</label><select id="meth">' + Object.keys(P.METHODS).map(function (k) { return '<option value="' + k + '"' + (st.method === k ? " selected" : "") + '>' + esc(P.METHODS[k].name) + '</option>'; }).join("") + '</select>' +
       '<label class="tcard"><span><b>Rappel du vendredi</b><small>Une heure avant le Dhouhr : Djoumouʿa, grand lavage, sourate Al-Kahf.</small></span><input type="checkbox" class="sw" id="rvend"' + (st.rappels.vendredi ? " checked" : "") + '></label>' +
       '<h3>Localisation</h3>' + lieuHTML() +
-      '<h3>Ma mosquée sur Mawaqit</h3><div class="card"><p style="margin-top:0">Pour prier aux horaires exacts de votre mosquée, enregistrez sa page Mawaqit : NÛR l\'ouvre en un geste. Les ajustements à la minute (« Tous les réglages ») alignent ensuite les horaires calculés sur ceux de la mosquée.</p>' +
+      '<h3>Ma mosquée sur Mawaqit</h3><div class="card"><p style="margin-top:0">Pour prier aux horaires exacts de ta mosquée, enregistre sa page Mawaqit : NÛR l\'ouvre en un geste. Les ajustements à la minute (« Tous les réglages ») alignent ensuite les horaires calculés sur ceux de la mosquée.</p>' +
       '<label class="f" for="mwq">Adresse de la page de la mosquée</label><input type="url" id="mwq" placeholder="https://mawaqit.net/fr/…" value="' + esc(st.mawaqit || "https://mawaqit.net/fr/") + '">' +
       '<p class="row"><button class="btn alt" id="mwqs">Enregistrer</button>' + '<a class="btn" href="' + esc(st.mawaqit || "https://mawaqit.net/fr/") + '" target="_blank" rel="noopener">Ouvrir ma mosquée</a>' + '<a class="btn alt" href="https://mawaqit.net/fr" target="_blank" rel="noopener">Trouver une mosquée</a></p></div>';
     return { title: "Horaires", html: html, back: "#/priere", tab: "#/priere", bind: function (r) {
       $("#meth", r).onchange = function (e) { st.method = e.target.value; save(); scheduleNotifs(); toast("Méthode enregistrée."); };
       bindLieu(r);
       $("#rvend", r).onchange = function (e) { st.rappels.vendredi = e.target.checked; save(); if (e.target.checked) { st.notif = true; save(); askNotif(); } scheduleNotifs(); };
-      $("#mwqs", r).onclick = function () { var u = $("#mwq", r).value.trim(); if (u && !/^https?:\/\/\S+\.\S+/.test(u)) return toast("Saisissez une adresse internet complète (https://…)."); st.mawaqit = u || null; save(); toast(u ? "Mosquée enregistrée." : "Mosquée retirée."); render(); };
+      $("#mwqs", r).onclick = function () { var u = $("#mwq", r).value.trim(); if (u && !/^https?:\/\/\S+\.\S+/.test(u)) return toast("Saisis une adresse internet complète (https://…)."); st.mawaqit = u || null; save(); toast(u ? "Mosquée enregistrée." : "Mosquée retirée."); render(); };
     } };
   });
 
@@ -991,9 +1036,9 @@
     var html = '<h2>Trouver la qibla</h2><div class="card center"><div class="qdeg">' + b.toFixed(0) + '°</div><p style="margin:.2rem 0">depuis le nord, vers ' + versC(b) + '</p><p class="muted" style="margin:0"><span data-v="1">' + esc(L.name) + '</span> · <span data-v="1">Kaaba à ' + Math.round(qb.distanceKm) + ' km</span> · <a href="#/priere/reglages">changer de lieu</a></p>' +
       '<div class="rose" id="rose" aria-label="Boussole de la qibla">' + ticks + '<div class="qneedle" style="transform:rotate(' + b + 'deg)"><b>Kaaba</b></div><div class="dot"></div></div>' +
       '<p class="row" style="justify-content:center"><button class="btn" id="cb">Activer la boussole</button></p><p class="muted" id="cs">Tenez le téléphone à plat, loin des objets métalliques.</p></div>' +
-      '<div class="card"><h3>Sur ordinateur ou sans boussole</h3>' + (sun.el > 0 ? '<p>Le soleil est en ce moment à <b>' + Math.round(sun.az) + '°</b> (' + cardinal(sun.az) + '). Placez-vous face au soleil, puis tournez de <b>' + Math.abs(Math.round(rel)) + '°</b> vers la ' + (rel > 0 ? "droite" : "gauche") + ' : vous faites face à la qibla.</p>' :
-        '<p>Le soleil est couché. Repérez le nord (étoile Polaire, plan ou boussole) : la qibla est à <b>' + b.toFixed(0) + '°</b> dans le sens des aiguilles d\'une montre depuis le nord.</p>') +
-      '<p class="muted">Sur un plan orienté nord en haut, la qibla part de votre position vers ' + versC(b) + '.</p>' + qVilles() + '</div>';
+      '<div class="card"><h3>Sur ordinateur ou sans boussole</h3>' + (sun.el > 0 ? '<p>Le soleil est en ce moment à <b>' + Math.round(sun.az) + '°</b> (' + cardinal(sun.az) + '). Place-toi face au soleil, puis tourne de <b>' + Math.abs(Math.round(rel)) + '°</b> vers la ' + (rel > 0 ? "droite" : "gauche") + ' : tu fais face à la qibla.</p>' :
+        '<p>Le soleil est couché. Repère le nord (étoile Polaire, plan ou boussole) : la qibla est à <b>' + b.toFixed(0) + '°</b> dans le sens des aiguilles d\'une montre depuis le nord.</p>') +
+      '<p class="muted">Sur un plan orienté nord en haut, la qibla part de ta position vers ' + versC(b) + '.</p>' + qVilles() + '</div>';
     return { title: "Qibla", html: html, back: "#/priere", tab: "#/priere", bind: function (r) {
       var rose = $("#rose", r), got = false;
       function onOrient(e) {
@@ -1001,7 +1046,7 @@
         if (h == null) return; got = true;
         rose.style.transform = "rotate(" + (-h) + "deg)";
         var off = ((b - h + 540) % 360) - 180;
-        if (!$("#cs", r)) return; $("#cs", r).textContent = Math.abs(off) < 5 ? "Vous faites face à la qibla." : "Tournez de " + Math.abs(Math.round(off)) + "° vers la " + (off > 0 ? "droite" : "gauche") + ".";
+        if (!$("#cs", r)) return; $("#cs", r).textContent = Math.abs(off) < 5 ? "Tu fais face à la qibla." : "Tournez de " + Math.abs(Math.round(off)) + "° vers la " + (off > 0 ? "droite" : "gauche") + ".";
       }
       function start() {
         window.addEventListener("deviceorientationabsolute", onOrient, true); window.addEventListener("deviceorientation", onOrient, true);
@@ -1025,17 +1070,20 @@
       var html = '<div class="row between phead"><h2 style="margin:0">Le Saint Coran</h2><div class="row" style="margin:0"><button class="iconbtn" id="srch" aria-label="Rechercher une sourate" aria-pressed="' + coranSearch + '">' + ICO.search + '</button><a class="iconbtn" href="#/signets" aria-label="Mes signets">' + ICO.bm + '</a><button class="iconbtn" id="cset" aria-label="Paramètres de lecture">' + ICO.gear + '</button></div></div>';
       if (coranSearch) html += '<input type="search" id="q" placeholder="Nom ou numéro de sourate" value="' + esc(coranQ) + '" aria-label="Rechercher une sourate" style="margin:.5rem 0">';
       html += '<a class="hero cont" href="#/reciter/' + s0.n + '?a=' + last.a + '"><div class="row between"><b>' + esc(s0.fr) + '</b><span class="ar">' + esc(s0.ar) + '</span></div><div class="hl">Continuer la lecture ' + ICO.arrow + '</div>' +
-        '<div class="two"><div><b>' + nr + '</b> / ' + s0.v.length + ' versets<div class="bar"><i style="width:' + Math.round(100 * nr / s0.v.length) + '%"></i></div></div><div><b>' + String(st.s).padStart(2, "0") + '</b> / 114 sourates<div class="bar"><i style="width:' + Math.round(100 * st.s / 114) + '%"></i></div></div></div></a>';
-      var ordre = [q.byN[1]].concat(q.suras.filter(function (x) { return x.n !== 1; }).sort(function (x, y) { return sLen(x) - sLen(y); }));
-      html += '<div class="sgrid" id="sg">' + ordre.map(function (s) {
+        '<div class="two"><div><b>' + nr + '</b> / ' + s0.v.length + ' versets<div class="bar"><i style="width:' + Math.round(100 * nr / s0.v.length) + '%"></i></div></div><div><b>' + st.s + '</b> / 114 sourates<div class="bar"><i style="width:' + Math.round(100 * st.s / 114) + '%"></i></div></div></div></a>';
+      var so = S.settings.sOrd || "len";
+      var ordre = so === "n" ? q.suras.slice() : [q.byN[1]].concat(q.suras.filter(function (x) { return x.n !== 1; }).sort(function (x, y) { return sLen(x) - sLen(y); }));
+      html += '<div class="seg2 sord" role="group" aria-label="Ordre des sourates"><button data-so="len" aria-pressed="' + (so === "len") + '">Plus courtes d\'abord</button><button data-so="n" aria-pressed="' + (so === "n") + '">Ordre du Coran</button></div>';
+      html += '<ul class="slist" id="sg">' + ordre.map(function (s) {
         var n = Math.min(kRead(s.n).length, s.v.length), full = n >= s.v.length;
-        return '<a class="scard' + (full ? " done" : "") + '" href="#/reciter/' + s.n + '" data-k="' + esc((s.n + " " + s.en + " " + s.fr + " " + nomSens(s.n) + " " + s.ar).toLowerCase()) + '"><span class="ck" aria-hidden="true">' + (full ? "✓" : "") + '</span><b>' + s.n + '. ' + esc(s.fr) + '</b><small>' + esc(nomSens(s.n)) + '</small><span class="nv">' + s.v.length + (n && !full ? ' · ' + n + ' lus' : '') + '</span></a>';
-      }).join("") + '</div>';
+        return '<li><a class="srow' + (full ? " done" : "") + '" href="#/reciter/' + s.n + '" data-k="' + esc((s.n + " " + s.en + " " + s.fr + " " + nomSens(s.n) + " " + s.ar).toLowerCase()) + '"><span class="badge">' + s.n + '</span><span class="nm"><b>' + esc(s.fr) + '</b><small class="dots"><span>' + esc(nomSens(s.n)) + '</span><span>' + s.v.length + (s.v.length > 1 ? ' versets' : ' verset') + '</span>' + (n && !full ? '<span>' + n + ' lus</span>' : '') + '</small></span><span class="ar" lang="ar" dir="rtl">' + esc(s.ar) + '</span><span class="ck" aria-label="' + (full ? "lue" : "") + '">' + (full ? ic("star", 16) : "") + '</span></a></li>';
+      }).join("") + '</ul>';
       return { title: "Coran", html: html, tab: "#/reciter", bind: function (r) {
         $("#srch", r).onclick = function () { coranSearch = !coranSearch; render(); setTimeout(function () { var i = $("#q"); if (i) i.focus(); }, 50); };
         $("#cset", r).onclick = function () { coranSettings(q, null); };
+        $$("[data-so]", r).forEach(function (b) { b.onclick = function () { S.settings.sOrd = b.dataset.so; save(); render(); }; });
         var inp = $("#q", r);
-        function filt() { var v = inp.value.trim().toLowerCase(); coranQ = inp.value; $$(".scard", r).forEach(function (a) { a.hidden = v && a.dataset.k.indexOf(v) < 0; }); }
+        function filt() { var v = inp.value.trim().toLowerCase(); coranQ = inp.value; $$(".srow", r).forEach(function (a) { a.parentNode.hidden = v && a.dataset.k.indexOf(v) < 0; }); }
         if (inp) { inp.oninput = filt; filt(); }
       } };
     });
@@ -1127,7 +1175,7 @@
         $$("[data-more]", r).forEach(function (b) { b.onclick = function () {
           var a = +b.dataset.more, mm = (S.hifz[sn] || []).indexOf(a) >= 0, rep = 0;
           openSheet("Verset " + a, '<button class="tcard" id="mmem"><span><b>' + (mm ? "Retirer de mes versets mémorisés" : "Marquer comme mémorisé") + '</b></span></button>' +
-            '<button class="tcard" id="mrep"><span><b>Répéter</b><small>Comptez vos répétitions avant de réciter de mémoire.</small></span><span class="pill" id="rc">0 / 3</span></button>' +
+            '<button class="tcard" id="mrep"><span><b>Répéter</b><small>Compte tes répétitions avant de réciter de mémoire.</small></span><span class="pill" id="rc">0 / 3</span></button>' +
             '<button class="tcard" id="mloop"><span><b>Écouter en boucle</b><small>Répéter ce verset ou un passage pour le mémoriser.</small></span></button>' +
             '<button class="tcard" id="mrec"><span><b>M\'enregistrer</b><small>Réciter, puis comparer avec le récitateur.</small></span></button>' +
             '<button class="tcard" id="mlu"><span><b>Marquer lus les versets 1 à ' + a + '</b></span></button>', function (w) {
@@ -1152,28 +1200,15 @@
     return loadOpt().then(function (opt) {
       var pal = opt.parcours ? palById(opt, "initie") : null, E = pal ? pal.etapes : [];
       var cur = null; E.forEach(function (et) { if (!cur && etapeOpen(pal, et.n) && !etapeState(pal.id, et).complete) cur = et; });
-      var html = '<div class="row between phead"><h2 style="margin:0">Apprendre</h2><a class="pill gold" href="#/parcours">' + (opt.parcours ? totalPts(opt) : 0) + ' pts</a></div>' +
-        '<p class="lead2">Je souhaite étudier…</p><p class="muted" style="margin-top:0">Les thèmes de mon parcours, de l\'Étincelle à l\'Étoile.</p>' +
-        '<div class="chipsH">' + E.map(function (et) { return '<a class="chip" href="#/parcours/initie/' + et.n + '">' + esc(et.titre) + '</a>'; }).join("") + '<a class="chip" href="#/alphabet">Alphabet</a><a class="chip" href="#/tajwid">Tajwid</a><a class="chip" href="#/guide">Ablutions et prière</a><a class="chip" href="#/glossaire">Glossaire</a></div>';
-      if (cur) html += '<h3>Pour continuer</h3><a class="ccard cbig" href="#/parcours/initie/' + cur.n + '"><span class="dur">≈ ' + dureeEtape(cur) + ' min</span><b>' + esc(cur.titre) + '</b><span>' + esc(cur.resume || "") + '</span><span class="muted2">Étape ' + cur.n + ' · ' + etapeState(pal.id, cur).lec + ' / 4 leçons ' + ICO.arrow + '</span></a>';
-      html += '<div class="row between"><h3>Mon parcours : ' + esc(pal ? pal.nom : "") + '</h3><a href="#/parcours">Tout afficher</a></div><div class="hscroll">' + E.map(function (et) {
+      var html = '<div class="lhead"><img src="img/ill-parcours.svg" alt=""><div><strong>Mon parcours : ' + esc(pal ? pal.nom : "") + '</strong><div class="muted">De l\'Étincelle à l\'Étoile, une étape après l\'autre.</div></div><a class="pill gold" href="#/parcours">' + (opt.parcours ? totalPts(opt) : 0) + ' pts</a></div>';
+      if (cur) html += '<a class="ccard cbig" href="#/parcours/initie/' + cur.n + '"><span class="dur">≈ ' + dureeEtape(cur) + ' min</span><b>' + esc(cur.titre) + '</b><span>' + esc(cur.resume || "") + '</span><span class="muted2">Étape ' + cur.n + ' · ' + etapeState(pal.id, cur).lec + ' / 4 leçons ' + ICO.arrow + '</span></a>';
+      html += '<ol class="etl">' + E.map(function (et) {
         var stt2 = etapeState(pal.id, et), open = etapeOpen(pal, et.n);
-        return '<a class="ccard' + (open ? "" : " locked") + (stt2.complete ? " done" : "") + '" href="#/parcours/initie/' + et.n + '"><span class="dur">≈ ' + dureeEtape(et) + ' min</span><b>' + esc(et.titre) + '</b><span class="muted2">' + (stt2.complete ? "Terminé ✓" : (open ? stt2.lec + " / 4 leçons" : "S'ouvre après l'étape " + (et.n - 1))) + '</span></a>';
-      }).join("") + '</div>';
-      html += '<h3>Lire et réciter</h3><div class="hscroll">' +
-        '<a class="ccard" href="#/alphabet"><b>Alphabet et lecture</b><span class="muted2">Les lettres, les voyelles, la phonétique</span></a>' +
-        '<a class="ccard" href="#/tajwid"><b>Tajwid</b><span class="muted2">Les règles de la récitation</span></a>' +
-        '<a class="ccard" href="#/niveaux"><b>Repères de mémorisation</b><span class="muted2">Sourate par sourate</span></a>' +
-        '<a class="ccard" href="#/revision"><b>Révision du jour</b><span class="muted2">' + revDue().length + ' versets à réviser</span></a></div>' +
-        '<h3>Pratiquer</h3><div class="hscroll">' +
-        '<a class="ccard" href="#/guide?t=wudu"><b>Les ablutions</b><span class="muted2">Pas à pas, selon l\'école malikite</span></a>' +
-        '<a class="ccard" href="#/guide?t=salat"><b>La prière</b><span class="muted2">Les gestes et les paroles</span></a>' +
-        '<a class="ccard" href="#/jeune"><b>Le jeûne</b><span class="muted2">Ramaḍân, rattrapage, jeûnes recommandés</span></a>' +
-        '<a class="ccard" href="#/zakat"><b>La zakât</b><span class="muted2">Calcul et règles</span></a>' +
-        (femmeVisible() ? '<a class="ccard" href="#/femme"><b>Espace femme</b><span class="muted2">Règles propres et pause</span></a>' : '') + '</div>' +
-        '<h3>Comprendre</h3><div class="hscroll">' +
-        '<a class="ccard" href="#/converti"><b>Nouveau musulman</b><span class="muted2">Mes 30 premiers jours</span></a>' +
-        '<a class="ccard" href="#/glossaire"><b>Glossaire</b><span class="muted2">Les mots de l\'islam</span></a></div>';
+        return '<li><a class="' + (open ? "" : "locked") + (stt2.complete ? " done" : "") + '" href="#/parcours/initie/' + et.n + '"><span class="badge">' + (stt2.complete ? "✓" : et.n) + '</span><span class="nm"><b>' + esc(et.titre) + '</b><small>' + (stt2.complete ? "Terminé" : (open ? stt2.lec + " / 4 leçons · ≈ " + dureeEtape(et) + " min" : "S'ouvre après l'étape " + (et.n - 1))) + '</small></span></a></li>';
+      }).join("") + '</ol><a class="lnk" href="#/parcours">Voir tous les paliers</a>';
+      function gi(href, n, t) { return '<a class="gico" href="' + href + '"><span>' + ic(n, 26) + '</span><b>' + t + '</b></a>'; }
+      html += '<h3>Bibliothèque</h3><div class="ggrid">' + gi("#/alphabet", "glossary", "Alphabet et lecture") + gi("#/tajwid", "audio", "Tajwid") + gi("#/niveaux", "path", "Repères de mémorisation") + gi("#/revision", "refresh", "Révision du jour") +
+        gi("#/guide", "drop", "Ablutions et prière") + gi("#/jeune", "moon", "Jeûne") + gi("#/zakat", "coin", "Zakât") + gi("#/glossaire", "book", "Glossaire") + gi("#/converti", "lantern", "Nouveau musulman") + '</div>';
       return { title: "Apprendre", html: html, tab: "#/apprendre" };
     });
   });
@@ -1186,32 +1221,15 @@
   route(/^\/plus$/, function () {
     return loadOpt().then(function (opt) {
       var kid = isChild(), don = opt.conf && opt.conf.don_url;
-      function fc(href, t, d, tag) { return '<a class="fcard" href="' + href + '"><div class="row between"><b>' + t + (tag ? ' <span class="pill">' + tag + '</span>' : '') + '</b>' + ICO.arrow + '</div><span>' + d + '</span></a>'; }
-      var html = '<h2>Plus de fonctionnalités</h2>' +
-        fc("#/tafsir", "Tafsir (exégèse du Coran)", "Le contexte et le sens des versets, expliqués simplement.", "en construction") +
-        fc("#/cartes", "Cartes de vœux", "Crée une carte avec un verset ou une invocation, et envoie-la à tes proches.") +
-        fc("#/apprendre", "Apprendre", "Les leçons, les quiz et les fiches de ton parcours.") +
-        fc("#/dhikr", "Les dhikr", "Les invocations quotidiennes, avec compteur.") +
-        fc("#/evenements", "Événements à venir", "Les prochaines dates du calendrier hégirien.") +
-        fc("#/qibla", "Trouver la qibla", "La boussole pour trouver la direction de la Kaaba où que tu sois.") +
-        fc("#/guide", "Ablutions et prière", "Le guide pas à pas, selon l'école malikite.") +
-        fc("#/jeune", "Le jeûne", "Ramaḍân, jours à rattraper, jeûnes recommandés.") +
-        fc("#/zakat", "La zakât", "Calcule la zakât sur tes biens.") +
-        (!kid && femmeVisible() ? fc("#/femme", "Espace femme", "Règles propres à la femme et pause du suivi des prières.") : '') +
-        fc("#/converti", "Nouveau musulman", "Les 30 premiers jours, pas à pas.") +
-        fc("#/glossaire", "Glossaire", "Les mots de l'islam expliqués simplement.") +
-        fc("#/revision", "Révision du jour", "Les versets mémorisés à réviser.") +
-        fc("#/audio", "Récitations hors ligne", "Les sourates téléchargées sur cet appareil.") +
-        '<h3>NÛR</h3>' +
-        fc("#/parcours", "Mon parcours et mes points", "Paliers, étapes, leçons et quiz.") +
-        fc("#/khatm", "Ma lecture complète du Coran", "Khatm et lecture du jour.") +
-        fc("#/mediter", "Méditer", "Verset du jour et journal.") +
-        fc("#/aimer", "Aimer", "Gratitude, invocations, partage.") +
-        (kid ? '' : fc("#/tidjaniya", "Tidjaniya", "Compteurs de dhikr ; contenus à fournir par votre mouqaddam.")) +
-        fc("#/enfant", "Espace enfant", "Sourates courtes et étoiles.") +
-        fc("#/profil", "Profil et paramètres", "Prénom, lieu, horaires, profils, à propos.") +
-        (kid ? '' : '<div class="card"><h3>Soutenir NÛR' + (don ? '' : ' (en construction)') + '</h3><p>NÛR est gratuite et le restera. Un don libre, à partir de ' + (opt.conf.don_min_eur || 2) + ' euros, aidera à la faire vivre. Aucun accès ne dépend du don.</p>' + (don ? '<p><a class="btn" href="' + esc(don) + '" target="_blank" rel="noopener">Faire un don</a></p>' : '<p class="muted">Le lien de don de l\'association sera ajouté ici dès qu\'il sera ouvert.</p>') + '</div>') +
-        '<div id="install" class="card" hidden><p>Installer NÛR sur cet appareil pour l\'utiliser hors ligne.</p><button class="btn" id="doInstall">Installer l\'application</button></div>';
+      function gi(href, n, t) { return '<a class="gico" href="' + href + '"><span>' + ic(n, 26) + '</span><b>' + t + '</b></a>'; }
+      var p = prof();
+      var html = '<a class="card plain-link prow" href="#/profil"><span class="avatar">' + avat() + '</span><div><strong>' + esc(p && p.nom ? p.nom : "Mon profil") + '</strong><div class="muted">Profil, famille, réglages</div></div>' + ICO.arrow + '</a>' +
+        '<h3>Pratique</h3><div class="ggrid">' + gi("#/jeune", "moon", "Jeûne") + gi("#/zakat", "coin", "Zakât") + gi("#/dhikr", "beads", "Dhikr") + gi("#/qibla", "compass", "Qibla") + (!kid && femmeVisible() ? gi("#/femme", "flower", "Espace femme") : '') + gi("#/ecoles", "school", "Les 4 écoles") + '</div>' +
+        '<h3>Coran et apprentissage</h3><div class="ggrid">' + gi("#/mediter", "pen", "Méditer") + gi("#/revision", "refresh", "Révision") + gi("#/converti", "lantern", "Nouveau musulman") + gi("#/glossaire", "glossary", "Glossaire") + gi("#/audio", "audio", "Récitations hors ligne") + '</div>' +
+        '<h3>Partager</h3><div class="ggrid">' + gi("#/cartes", "mail", "Cartes de vœux") + gi("#/aimer", "heart", "Gratitude et invocations") + '</div>' +
+        '<h3>Spiritualité et famille</h3><div class="ggrid">' + (kid ? '' : gi("#/tidjaniya", "layers", "Tariqas")) + gi("#/evenements", "cal", "Événements") + gi("#/enfant", "star", "Espace enfant") + '</div>' +
+        (kid ? '' : '<div class="card"><h3>Soutenir NÛR</h3><p>NÛR est gratuite et le restera. Un don libre aidera à la faire vivre ; aucun accès ne dépend d\'un don.</p>' + (don ? '<a class="btn alt" href="' + esc(don) + '" target="_blank" rel="noopener">Faire un don</a>' : '') + '</div>') +
+        '<div id="install" class="card" hidden><p>Installe NÛR sur cet appareil pour l\'utiliser hors ligne.</p><button class="btn" id="doInstall">Installer l\'application</button></div>';
       return { title: "Plus", html: html, tab: "#/plus", bind: function (r) {
         if (deferredPrompt) { $("#install", r).hidden = false; $("#doInstall", r).onclick = function () { deferredPrompt.prompt(); deferredPrompt = null; $("#install", r).hidden = true; }; }
       } };
@@ -1223,7 +1241,7 @@
     return loadOpt().then(function (opt) {
       var p = prof(), L = loc(), st2 = opt.parcours ? parcoursNow(opt) : null;
       function lc(href, t, id) { return '<a class="lcardM" href="' + href + '"' + (id ? ' id="' + id + '"' : '') + '><span>' + t + '</span>' + ICO.arrow + '</a>'; }
-      var html = '<div class="qhead"><span class="avatar big">' + esc(initiale()) + '</span><div><div class="salutM">' + esc(p && p.nom ? p.nom : "Mon profil") + '</div><a class="hchip light" href="#/priere/reglages">' + ICO.pin + ' ' + esc(L.name) + '</a></div></div>' +
+      var html = '<div class="qhead"><span class="avatar big">' + avat() + '</span><div><div class="salutM">' + esc(p && p.nom ? p.nom : "Mon profil") + '</div><a class="hchip light" href="#/priere/reglages">' + ICO.pin + ' ' + esc(L.name) + '</a></div></div>' +
         '<div class="card gold"><strong>Le rappel profite au croyant</strong><p>Tu penses que NÛR pourrait aider un proche à se rapprocher de Dieu ? Partage-lui l\'application, gratuite et sans publicité.</p><button class="btn alt" id="shapp">Partager à un proche ' + ICO.arrow + '</button></div>' +
         '<h3>Mes points</h3><a class="card plain-link" href="#/parcours"><div class="row between"><strong>' + (opt.parcours ? totalPts(opt) : 0) + ' points</strong><span class="pill">' + esc(st2 ? st2.pal.nom : "") + '</span></div>' + (st2 && st2.pal.seuil ? '<div class="bar"><i style="width:' + Math.min(100, Math.round(100 * st2.pts / st2.pal.seuil)) + '%"></i></div><div class="muted">' + st2.pts + ' / ' + st2.pal.seuil + ' pour le palier suivant</div>' : '') + '</a>' +
         '<h3>Paramètres</h3>' + lc("#/priere/reglages", "Horaires de prière") + '<div class="card"><strong>Langue</strong>' + langChips() + '</div>' +
@@ -1242,11 +1260,19 @@
     });
   });
   route(/^\/conditions$/, function () {
-    var html = '<h2>Conditions d\'utilisation</h2><div class="card"><p>NÛR est une application gratuite, sans publicité et sans abonnement, destinée à l\'apprentissage du Coran et des bases de la foi.</p><p>Le texte du Coran est celui du complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. Les contenus pédagogiques sont validés par l\'imam garant du projet ; la phonétique est une aide à la lecture qui ne remplace pas un enseignant.</p><p>Les horaires de prière sont calculés sur l\'appareil ; ils peuvent différer de ceux de votre mosquée.</p><p>Les profils enfants sont créés et contrôlés par un adulte responsable.</p></div>';
+    var html = '<h2>Conditions d\'utilisation</h2><div class="card"><p>NÛR est une application gratuite, sans publicité et sans abonnement, destinée à l\'apprentissage du Coran et des bases de la foi.</p><p>Le texte du Coran est celui du complexe du Roi Fahd (KFGQPC), riwaya de Warsh ʿan Nâfiʿ. Les contenus pédagogiques sont validés par l\'imam garant du projet ; la phonétique est une aide à la lecture qui ne remplace pas un enseignant.</p><p>Les horaires de prière sont calculés sur l\'appareil ; ils peuvent différer de ceux de ta mosquée.</p><p>Les profils enfants sont créés et contrôlés par un adulte responsable.</p></div>';
     return { title: "Conditions", html: html, back: "#/profil" };
   });
   route(/^\/confidentialite$/, function () {
-    var html = '<h2>Politique de confidentialité</h2><div class="card"><p>NÛR ne crée pas de compte et ne collecte aucune donnée personnelle. Prénoms, profils, points, lecture, prières marquées et journal restent sur votre appareil, dans le stockage du navigateur.</p><p>La position, si vous l\'autorisez, sert uniquement à calculer les horaires et la qibla sur l\'appareil ; elle n\'est transmise à personne.</p><p>« Supprimer mes données » efface tout ce que NÛR a enregistré sur cet appareil.</p></div>';
+    var html = '<h2>Politique de confidentialité</h2><p class="muted">Mise à jour : 22 novembre 2026.</p>' +
+      '<div class="card"><h3>Ce qui reste sur ton appareil</h3><p>NÛR ne crée pas de compte et n\'a pas de serveur qui reçoit tes données. Prénoms, profils, points, prières cochées, lecture, mémorisation et journal sont enregistrés dans le stockage de ton navigateur, sur cet appareil seulement.</p></div>' +
+      '<div class="card"><h3>Ce qui est envoyé à des services tiers</h3><ul>' +
+      '<li><b>Position (OpenStreetMap Nominatim)</b> : si tu utilises « Ma position », tes coordonnées (latitude et longitude) sont envoyées à nominatim.openstreetmap.org pour trouver le nom de ta ville. Les heures de prière et la qibla, elles, sont calculées sur l\'appareil.</li>' +
+      '<li><b>Recherche de ville (Open-Meteo)</b> : le nom que tu tapes est envoyé à geocoding-api.open-meteo.com pour proposer des villes.</li>' +
+      '<li><b>Récitations (EveryAyah)</b> : écouter ou télécharger une sourate demande le fichier audio à everyayah.com.</li>' +
+      '<li><b>Liens que tu ouvres</b> : Mawaqit et WhatsApp ne sont contactés que si tu touches le lien correspondant.</li></ul>' +
+      '<p>Ces services reçoivent, comme tout site, ton adresse IP et la requête. NÛR ne leur transmet ni prénom ni identifiant. Leurs propres politiques s\'appliquent : <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OpenStreetMap</a>, <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Open-Meteo</a>.</p></div>' +
+      '<div class="card"><h3>Tes droits</h3><p>« Exporter mes données » (dans Réglages) te donne une copie de tout ce que NÛR a enregistré ; « Supprimer mes données » efface tout sur cet appareil. Aucune publicité, aucun traceur, aucune mesure d\'audience.</p></div>';
     return { title: "Confidentialité", html: html, back: "#/profil" };
   });
 
@@ -1255,7 +1281,7 @@
     return loadOpt().then(function (opt) {
       var D = (opt.quot && opt.quot.dhikr) || [], k = today();
       if (!S.dhk || S.dhk.k !== k) S.dhk = { k: k, c: {} };
-      var html = '<h2>Les dhikr</h2><p class="muted">Touchez la formule pour compter. Les compteurs repartent à zéro chaque jour.</p>' + D.map(function (x, i) {
+      var html = '<h2>Les dhikr</h2><p class="muted">Touche la formule pour compter. Les compteurs repartent à zéro chaque jour.</p>' + D.map(function (x, i) {
         var c = S.dhk.c[i] || 0, pct = Math.min(100, Math.round(100 * c / x.cible));
         return '<div class="invrow"><div><b class="ph">' + esc(x.ph) + '</b> <span class="muted">' + x.cible + ' fois</span><div class="ar small" lang="ar" dir="rtl">' + esc(x.ar) + '</div><div class="muted">' + esc(x.fr) + '</div></div><button class="ring" data-dk="' + i + '" style="--p:' + pct + '" aria-label="Compter"><span>' + c + '/' + x.cible + '</span></button></div>';
       }).join("") + NOTE_VALIDATION;
@@ -1291,7 +1317,7 @@
       var ex = (NC().evts || {})[x[3]];
       return '<li><details class="card evt" style="margin:0"><summary><strong>' + esc(x[1]) + '</strong><div class="muted"><span data-noi18n>' + esc(dl) + ' · ' + esc(hijriOf(x[0])) + '</span> · <span>' + (x[2] === 0 ? "aujourd'hui" : "dans " + x[2] + " jours") + '</span></div></summary>' + (ex ? '<p>' + esc(ex[0]) + '</p><p>' + esc(ex[1]) + '</p><p class="muted small">Sources : ' + esc(ex[2]) + '</p>' : '') + '</details></li>';
     }).join("") + '</ul>' : '<p>Calendrier hégirien indisponible sur ce navigateur.</p>') +
-      '<p class="muted">Dates calculées selon le calendrier Umm al-Qurâ ; elles peuvent varier d\'un jour selon l\'observation de la lune et les annonces de votre mosquée. Le décalage se règle dans les réglages. Les nuits commencent au coucher du soleil de la veille.</p>';
+      '<p class="muted">Dates calculées selon le calendrier Umm al-Qurâ ; elles peuvent varier d\'un jour selon l\'observation de la lune et les annonces de ta mosquée. Le décalage se règle dans les réglages. Les nuits commencent au coucher du soleil de la veille.</p>';
     return { title: "Événements", html: html, back: "#/plus", tab: "#/plus" };
   });
 
@@ -1331,7 +1357,7 @@
   route(/^\/scanner$/, function () { location.hash = "#/plus"; return { title: "Plus", html: "" };
   });
   route(/^\/scanner-ancien$/, function () {
-    var html = '<h2>Scanner halal <span class="pill">bêta</span></h2><div class="callout">Le scanner indique seulement si le label halal est déclaré pour ce produit dans la base publique Open Food Facts. Ce n\'est pas un avis religieux : en cas de doute, renseignez-vous auprès de votre imam.</div>' +
+    var html = '<h2>Scanner halal <span class="pill">bêta</span></h2><div class="callout">Le scanner indique seulement si le label halal est déclaré pour ce produit dans la base publique Open Food Facts. Ce n\'est pas un avis religieux : en cas de doute, renseigne-toi auprès de ton imam.</div>' +
       '<video id="vid" playsinline muted class="scanv" hidden></video><p class="row"><button class="btn" id="cam">Scanner avec la caméra</button></p>' +
       '<label class="f" for="ean">Ou saisir le code-barres</label><div class="row"><input type="text" id="ean" inputmode="numeric" pattern="[0-9]*" maxlength="14" style="flex:1"><button class="btn alt" id="go">Vérifier</button></div><div id="res" aria-live="polite"></div>';
     return { title: "Scanner halal", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
@@ -1349,7 +1375,7 @@
       }
       $("#go", r).onclick = function () { look($("#ean", r).value); };
       $("#cam", r).onclick = function () {
-        if (!("BarcodeDetector" in window) || !navigator.mediaDevices) return toast("Lecture par caméra indisponible sur ce navigateur : saisissez le code.");
+        if (!("BarcodeDetector" in window) || !navigator.mediaDevices) return toast("Lecture par caméra indisponible sur ce navigateur : saisis le code.");
         var det = new window.BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }), v = $("#vid", r);
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (s) {
           stream = s; v.srcObject = s; v.hidden = false; v.play();
@@ -1361,17 +1387,25 @@
 
   /* ---------------------------------------------------------------- premier lancement, sur le modèle de MAARIFA */
   var obR = { prieres: true, routine: true, verset: true };
+  var obDose = 5, obTrack = true;
+  function autoLang() { if (STORE.lang) return; var n = (navigator.language || "fr").toLowerCase(), l = n.indexOf("ar") === 0 ? "ar" : n.indexOf("zh") === 0 ? "zh" : n === "en-gb" ? "en-GB" : n.indexOf("en") === 0 ? "en-US" : "fr"; STORE.lang = l; if (l !== "fr") { save(); applyLang(); prefetchLang(); } }
+  function langChipsOb() {
+    var L0 = LANG(), en = L0.indexOf("en") === 0, enV = (navigator.language || "").toLowerCase() === "en-gb" ? "en-GB" : "en-US";
+    return '<div class="chipsH langs nt" role="group" aria-label="Langue">' + [["fr", "Français"], [en ? L0 : enV, "English"], ["zh", "中文"], ["ar", "العربية"]].map(function (l) { var on = l[0] === L0; return '<button class="chip' + (on ? " on" : "") + '" data-lang="' + l[0] + '" aria-pressed="' + on + '">' + l[1] + '</button>'; }).join("") + '</div>';
+  }
   route(/^\/bienvenue$/, function (m, params) {
     var e = Math.max(1, Math.min(10, +params.e || 1)), html, N = 10;
     if (e >= 7 && STORE.profiles.length) e = 10;
-    var bar = '<div class="prog"><div class="bar"><i style="width:' + Math.round(e * 100 / N) + '%"></i></div>' + (e > 1 && e < 10 ? '<a class="btn alt small" href="#/bienvenue?e=' + (e === 6 ? 7 : e + 1) + '" id="pass">Passer</a>' : '') + '</div>';
+    var bar = '<div class="prog"><div class="bar"><i style="width:' + Math.round(e * 100 / N) + '%"></i></div>' + (e > 6 && e < 10 ? '<a class="lnk" href="#/bienvenue?e=' + (e + 1) + '" id="pass">Passer cette étape</a>' : '') + '</div>';
     function slide(t, s, glyph) { return '<div class="obGlyph" aria-hidden="true">' + glyph + '</div><h2>' + t + '</h2><p class="lead">' + s + '</p><p><a class="btn big" href="#/bienvenue?e=' + (e + 1) + '">Suivant</a></p>'; }
-    if (e === 1) html = '<p class="muted" style="margin:0">Choisis ta langue</p>' + langChips() + '<img src="logo.svg" alt="NÛR" style="width:150px;display:block;margin:1rem auto"><h2>Ton compagnon pour apprendre le Coran</h2><p class="lead">Apprends, prie et progresse dans la foi, pas à pas.</p>' +
-      '<p><a class="btn big" href="#/bienvenue?e=2">Commencer</a></p><p><button class="btn alt" id="skip">Plus d\'options : passer l\'introduction</button></p>';
+    if (e === 1) { autoLang(); html = '<img class="oblogo" src="logo.svg" alt="NÛR"><h2>Ton compagnon pour apprendre le Coran</h2><p class="lead">Apprends, prie et progresse dans la foi, pas à pas.</p>' +
+      '<p><a class="btn big" href="#/bienvenue?e=5">Commencer</a></p><p class="muted small" style="margin:.8rem 0 .2rem">Langue</p>' + langChipsOb() + '<p><a class="lnk" href="#" id="skip">Passer l\'introduction</a></p>'; }
     else if (e === 2) html = slide("Construis ta routine", "Quelques minutes par jour : un verset, un dhikr, un hadith et ta lecture du Coran.", "☾");
     else if (e === 3) html = slide("Suivi des prières", "Les horaires selon ton lieu, la qibla, et tes prières marquées chaque jour.", "◎");
     else if (e === 4) html = slide("Apprendre pas à pas", "Des leçons courtes, des quiz et des points, de l\'Étincelle à l\'Étoile.", "✦");
-    else if (e === 5) html = '<h2>Dans 21 jours, tu auras :</h2><ul class="proj"><li>Marqué <b>105</b> prières</li><li>Lu <b>105</b> versets du Coran</li><li>Répété <b>21</b> dhikr du jour</li><li>Médité <b>21</b> hadiths</li><li>Gagné jusqu\'à <b>' + (21 * CAP) + '</b> points</li></ul><p class="muted">Si tu suis ta routine chaque jour, avec 5 versets par jour.</p><p><a class="btn big" href="#/bienvenue?e=6">C\'est parti !</a></p>';
+    else if (e === 5) html = '<h2>Ton objectif</h2><p class="muted">Combien de versets veux-tu lire chaque jour ?</p><div class="chipsH" role="group" aria-label="Versets par jour">' + [3, 5, 10, 20].map(function (n) { return '<button class="chip' + (obDose === n ? " on" : "") + '" data-dose="' + n + '" aria-pressed="' + (obDose === n) + '">' + n + ' versets</button>'; }).join("") + '</div>' +
+      '<label class="tcard" style="text-align:left"><span><b>Suivre mes prières</b><small>Cocher chaque prière accomplie, en privé.</small></span><input type="checkbox" class="sw" id="obtr"' + (obTrack ? " checked" : "") + '></label>' +
+      '<h3>Dans 21 jours, tu auras :</h3><div class="projG">' + (obTrack ? '<div><b>' + (21 * 5) + '</b><span>prières cochées</span></div>' : '') + '<div><b>' + (21 * obDose) + '</b><span>versets lus</span></div><div><b>21</b><span>dhikr du jour</span></div><div><b>21</b><span>hadiths médités</span></div></div><p class="muted small">Si tu suis ta routine chaque jour.</p><p><a class="btn big" href="#/bienvenue?e=7">C\'est parti</a></p>';
     else if (e === 6) html = '<div class="obGlyph" aria-hidden="true">◌</div><h2>Ne manque aucun rendez-vous avec Dieu</h2><div style="text-align:left">' +
       [["prieres", "Heures des prières", "Une alerte pour chaque prière"], ["routine", "Routine quotidienne", "Un rappel pour tes objectifs du jour"], ["verset", "Verset du jour", "Un verset chaque jour"]].map(function (x) {
         return '<label class="tcard"><span><b>' + x[1] + '</b><small>' + x[2] + '</small></span><input type="checkbox" class="sw" data-rp="' + x[0] + '"' + (obR[x[0]] ? " checked" : "") + '></label>';
@@ -1387,8 +1421,10 @@
           '<label class="f" for="pc">' + (STORE.pin ? "Code parental" : "Choisir un code parental (4 chiffres)") + '</label><input type="password" id="pc" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="off"><p class="muted">Ce code sera demandé pour quitter le profil enfant, ouvrir ses réglages et valider ses paliers.</p></div>' : '') +
         '<p><button class="btn big" id="go9">Continuer</button></p>';
     } else html = '<h2>Ton lieu</h2><p>Le lieu sert à calculer les heures de prière et la qibla, partout dans le monde. Il reste sur ton appareil.</p><div style="text-align:left">' + lieuHTML() + '</div><p style="margin-top:1rem"><button class="btn alt" id="later">Plus tard</button></p>';
-    return { title: "Bienvenue", html: '<div class="ob">' + bar + html + '</div>', bare: true, tab: null, bind: function (r) {
-      var sk = $("#skip", r); if (sk) sk.onclick = finishOb;
+    return { title: "", html: '<div class="ob">' + bar + html + '</div>', bare: true, tab: null, bind: function (r) {
+      var sk = $("#skip", r); if (sk) sk.onclick = function (ev) { ev.preventDefault(); finishOb(); };
+      $$("[data-dose]", r).forEach(function (b) { b.onclick = function () { obDose = +b.dataset.dose; render(); }; });
+      var otr = $("#obtr", r); if (otr) otr.onchange = function () { obTrack = otr.checked; render(); };
       if (typeof bindLang === "function") bindLang(r);
       var ps = $("#pass", r);
       if (ps && e === 9) ps.onclick = function (ev) { ev.preventDefault(); if (pf.type === "garcon" || pf.type === "fille") return toast("Pour un profil enfant, l'âge et l'accord de l'adulte sont nécessaires."); createAndGo(); };
@@ -1410,7 +1446,7 @@
         pr.then(function (id) {
           if (!id) return; switchProfile(id); var s2 = stt(); s2.lang = STORE.lang || "fr";
           s2.rappels = { prieres: !!obR.prieres, routine: !!obR.routine, verset: !!obR.verset }; s2.notif = !!obR.prieres;
-          if (kid) s2.prayerTrack = false; save(); location.hash = "#/bienvenue?e=10";
+          s2.dose = obDose; if (!obTrack) s2.prayerOff = true; if (kid) s2.prayerTrack = false; save(); location.hash = "#/bienvenue?e=10";
         });
       }
       var g9 = $("#go9", r); if (g9) g9.onclick = createAndGo;
@@ -1530,7 +1566,7 @@
   function lieuHTML() {
     var L = loc(), st = S.settings;
     return '<div class="card"><p style="margin-top:0"><strong>' + esc(L.name) + '</strong><br><span class="muted">' + L.lat.toFixed(4) + ', ' + L.lng.toFixed(4) + ' · ' + esc(L.tz) + (L.acc ? ' · précision ' + L.acc + ' m' : '') + '</span></p>' +
-      '<label class="tcard"><span><b>Localisation automatique</b><small>NÛR suit votre position à chaque ouverture, dans n\'importe quelle ville du monde.</small></span><input type="checkbox" class="sw" id="autol"' + (st.autoLoc ? " checked" : "") + '></label>' +
+      '<label class="tcard"><span><b>Localisation automatique</b><small>NÛR suit ta position à chaque ouverture, dans n\'importe quelle ville du monde.</small></span><input type="checkbox" class="sw" id="autol"' + (st.autoLoc ? " checked" : "") + '></label>' +
       '<p class="row" style="margin:0"><button class="btn" id="gps">Me localiser maintenant</button></p>' +
       '<label class="f" for="gq">Rechercher une ville, partout dans le monde</label><div class="row" style="margin:0"><input type="search" id="gq" placeholder="Ex. Dzaoudzi, Dakar, Lyon" style="flex:1"><button class="btn alt" id="gqb">Rechercher</button></div><ul class="list" id="gres"></ul></div>';
   }
@@ -1579,7 +1615,7 @@
   function cardLink(f, m, s) { return location.origin + location.pathname + "#/carte?f=" + f + "&m=" + encodeURIComponent(m || "") + "&s=" + encodeURIComponent(s || ""); }
   route(/^\/carte$/, function (m, params) {
     var f = Math.max(0, Math.min(CARTES.length - 1, +params.f || 0)), msg = (params.m || "").slice(0, 160), sg = (params.s || "").slice(0, 40);
-    var html = '<h2>Une carte pour vous</h2><canvas id="cvs" width="1080" height="1080" class="cardprev" aria-label="' + esc(CARTES[f][0] + (msg ? ". " + msg : "")) + '"></canvas>' +
+    var html = '<h2>Une carte pour toi</h2><canvas id="cvs" width="1080" height="1080" class="cardprev" aria-label="' + esc(CARTES[f][0] + (msg ? ". " + msg : "")) + '"></canvas>' +
       '<p class="row"><a class="btn" href="#/cartes">Créer ma carte</a><a class="btn alt" href="#/">Découvrir NÛR</a></p>';
     return { title: "Carte de vœux", html: html, back: STORE.onboarded ? "#/plus" : null, tab: STORE.onboarded ? "#/plus" : null, bare: !STORE.onboarded, bind: function (r) { drawCard($("#cvs", r), CARTES[f], msg, sg); } };
   });
@@ -1649,7 +1685,7 @@
     ["Mon parcours", "My path", "我的学习路径", "مساري"], ["Les étapes", "Steps", "步骤", "المراحل"], ["Les paliers", "Levels", "等级", "المستويات"], ["Les leçons", "Lessons", "课程", "الدروس"], ["Le quiz", "The quiz", "测验", "الاختبار"], ["Fiches de révision", "Flashcards", "复习卡片", "بطاقات المراجعة"],
     ["Bilan du jour", "Today's summary", "今日总结", "حصيلة اليوم"], ["Retour à l'accueil", "Back to home", "返回首页", "العودة إلى الرئيسية"], ["Continuer mon parcours", "Continue my path", "继续我的学习路径", "تابع مساري"], ["Suivant ", "Next", "下一步", "التالي"],
     ["Créer ma carte", "Create my card", "制作我的贺卡", "أنشئ بطاقتي"], ["Découvrir NÛR", "Discover NÛR", "了解 NÛR", "اكتشف نور"], ["Envoyer par WhatsApp", "Send by WhatsApp", "通过 WhatsApp 发送", "أرسل عبر واتساب"], ["Copier le lien", "Copy link", "复制链接", "انسخ الرابط"],
-    ["Télécharger", "Download", "下载", "تنزيل"], ["Formule", "Greeting", "祝福语", "العبارة"], ["Soutenir NÛR (en construction)", "Support NÛR (under construction)", "支持 NÛR（建设中）", "ادعم نور (قيد الإنشاء)"], ["Une carte pour vous", "A card for you", "给你的贺卡", "بطاقة لك"]
+    ["Télécharger", "Download", "下载", "تنزيل"], ["Formule", "Greeting", "祝福语", "العبارة"], ["Soutenir NÛR (en construction)", "Support NÛR (under construction)", "支持 NÛR（建设中）", "ادعم نور (قيد الإنشاء)"], ["Une carte pour toi", "A card for you", "给你的贺卡", "بطاقة لك"]
   ];
   var DI = { en: {}, zh: {}, ar: {} };
   D.forEach(function (r) { DI.en[r[0]] = r[1]; DI.zh[r[0]] = r[2]; DI.ar[r[0]] = r[3]; });
@@ -1787,7 +1823,7 @@
     var n = 0; OBJ.forEach(function (o) { if (d.f[o[0]]) n++; });
     var lab = n === 0 ? "Commencer" : (n < OBJ.length ? "Continuer" : "Revoir mes objectifs");
     return '<div class="card"><div class="row between"><h3 style="margin:0">Objectifs du jour</h3><span class="pill">' + d.p + ' / ' + CAP + ' points</span></div>' +
-      '<p class="muted">Quelques minutes par jour, à votre rythme.</p><ol class="steps">' + OBJ.map(function (o, i) {
+      '<p class="muted">Quelques minutes par jour, à ton rythme.</p><ol class="steps">' + OBJ.map(function (o, i) {
         return '<li class="' + (d.f[o[0]] ? "done" : "") + '"><a href="#/jour?e=' + (i + 1) + '"><span>' + o[1] + '</span><span class="pt">' + (d.f[o[0]] ? "fait" : "+" + PTS[o[0]]) + '</span></a></li>';
       }).join("") + '</ol><p class="row"><a class="btn" href="#/jour">' + lab + '</a></p>' + weekHTML() + '</div>';
   }
@@ -1820,7 +1856,7 @@
         '<a class="tile" href="#/mediter"><strong>Méditer</strong><span>Verset du jour, journal</span></a>' +
         '<a class="tile" href="#/aimer"><strong>Aimer</strong><span>Gratitude, invocations, partage</span></a></div>';
       if (last) html += '<p style="margin-top:1rem"><a class="btn alt" href="#/reciter/' + last.s + '?a=' + last.a + '">Reprendre ma lecture</a></p>';
-      html += '<p class="muted" style="margin-top:1.2rem">Gratuit, sans publicité, sans traceur. Vos données restent sur votre appareil. <a href="#/plus">Plus d\'options</a>.</p>';
+      html += '<p class="muted" style="margin-top:1.2rem">Gratuit, sans publicité, sans traceur. Tes données restent sur ton appareil. <a href="#/plus">Plus d\'options</a>.</p>';
       return { title: "NÛR", html: html, tab: "#/", bind: function (r) {
         $$("[data-pr]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pr); render(); }; });
       } };
@@ -1838,7 +1874,7 @@
         '<li><a href="#/alphabet"><span class="nm">Alphabet et lecture<small>Pour débuter</small></span></a></li>' +
         '<li><a href="#/niveaux"><span class="nm">Repères de mémorisation</span></a></li>' +
         '<li><a href="#/profils"><span class="nm">Profils<small>Jusqu\'à cinq sur cet appareil, adultes et enfants</small></span></a></li>' +
-        (kid ? '' : '<li><a href="#/tidjaniya"><span class="nm">Tidjaniya — compteurs de dhikr<small>Contenus à fournir par votre mouqaddam</small></span></a></li>') +
+        (kid ? '' : '<li><a href="#/tidjaniya"><span class="nm">Tidjaniya — compteurs de dhikr<small>Compteurs pour ton wird et tes dhikr</small></span></a></li>') +
         '<li><a href="#/enfant"><span class="nm">Espace enfant<small>Sourates courtes, étoiles</small></span></a></li>' +
         '<li><a href="#/reglages"><span class="nm">Réglages</span></a></li>' +
         '<li><a href="#/apropos"><span class="nm">À propos, sources et licences</span></a></li></ul>' +
@@ -1967,7 +2003,7 @@
           '<div class="card prog2"><div class="row between"><span><strong>' + nLus + ' / ' + s.v.length + '</strong> versets lus · <strong>' + mem + ' / ' + s.v.length + '</strong> mémorisés</span></div>' +
           '<div class="bar"><i style="width:' + Math.round(100 * nLus / s.v.length) + '%"></i></div>' + readingLine() +
           '<p style="margin:.6rem 0 0"><button class="btn alt" id="readAll">' + (nLus >= s.v.length ? "Marquer la sourate non lue" : "Marquer toute la sourate comme lue") + '</button></p></div>';
-      } else html += '<p class="muted">Touchez un verset après l\'avoir répété pour gagner une étoile.</p>' + arSeulHTML();
+      } else html += '<p class="muted">Touche un verset après l\'avoir répété pour gagner une étoile.</p>' + arSeulHTML();
       html += (mode === "verset" && !kid ? versesHTML(s, q, opt) : readerHTML(s, q, mode, phonOn() && (kid || mode === "lecture"))) + '<div id="sheetBox"></div>';
       if (!kid) {
         html += '<div class="row between" style="margin-top:1rem">' + (sn > 1 ? '<a class="btn alt" href="#/reciter/' + (sn - 1) + '">Sourate précédente</a>' : '<span></span>') +
@@ -2033,7 +2069,7 @@
   route(/^\/apprendre$/, function () {
     return loadQ().then(function (q) {
       var started = q.suras.filter(function (s) { return (S.hifz[s.n] || []).length; });
-      var html = '<h2>Apprendre</h2><a class="tile wide" href="#/parcours"><strong>Mon parcours, pas à pas</strong><span>Leçons courtes, quiz, fiches de révision, points et paliers</span></a><div class="grid keep" style="margin-bottom:1rem"><a class="tile" href="#/alphabet"><strong>Alphabet et lecture</strong><span>Lettres, voyelles, signes</span></a><a class="tile" href="#/niveaux"><strong>Mémorisation</strong><span>Mes repères, sourate par sourate</span></a></div><div class="card"><h3>Parcours de mémorisation</h3><p>Commencez par les dernières sourates, courtes et fréquemment récitées, puis remontez progressivement. Ouvrez une sourate, choisissez le mode « premier mot visible » ou « texte masqué », puis marquez chaque verset mémorisé.</p>' +
+      var html = '<h2>Apprendre</h2><a class="tile wide" href="#/parcours"><strong>Mon parcours, pas à pas</strong><span>Leçons courtes, quiz, fiches de révision, points et paliers</span></a><div class="grid keep" style="margin-bottom:1rem"><a class="tile" href="#/alphabet"><strong>Alphabet et lecture</strong><span>Lettres, voyelles, signes</span></a><a class="tile" href="#/niveaux"><strong>Mémorisation</strong><span>Mes repères, sourate par sourate</span></a></div><div class="card"><h3>Parcours de mémorisation</h3><p>Commencez par les dernières sourates, courtes et fréquemment récitées, puis remonte progressivement. Ouvre une sourate, choisis le mode « premier mot visible » ou « texte masqué », puis marquez chaque verset mémorisé.</p>' +
         '<ul class="list">' + [114, 113, 112, 111, 110, 109, 108, 107, 106, 105].map(function (n) {
           var s = q.byN[n], m = (S.hifz[n] || []).length;
           return '<li><a href="#/reciter/' + n + '"><span class="badge">' + n + '</span><span class="nm">' + esc(s.fr) + '<small>' + m + ' / ' + s.v.length + ' mémorisés</small></span><span class="ar">' + esc(s.ar) + '</span></a></li>';
@@ -2086,7 +2122,7 @@
   // Aimer
   route(/^\/aimer$/, function () {
     var html = '<h2>Aimer</h2><div class="card"><h3>Carnet de gratitude</h3><div class="row"><input type="text" id="gi" placeholder="Une gratitude…" style="flex:1;min-width:180px"><button class="btn" id="ga">Ajouter</button></div><ul class="list" id="gl" style="margin-top:.8rem"></ul></div>' +
-      '<div class="card"><h3>Mes invocations et intentions</h3><p class="muted">Écrivez vos propres invocations pour vos proches ou vos intentions. Elles restent privées sur votre appareil.</p><div class="row"><input type="text" id="ii" placeholder="Une invocation, une intention…" style="flex:1;min-width:180px"><button class="btn" id="ia">Ajouter</button></div><ul class="list" id="il" style="margin-top:.8rem"></ul></div>' +
+      '<div class="card"><h3>Mes invocations et intentions</h3><p class="muted">Écris tes propres invocations pour tes proches ou tes intentions. Elles restent privées sur ton appareil.</p><div class="row"><input type="text" id="ii" placeholder="Une invocation, une intention…" style="flex:1;min-width:180px"><button class="btn" id="ia">Ajouter</button></div><ul class="list" id="il" style="margin-top:.8rem"></ul></div>' +
       '<div class="card"><h3>Transmettre</h3><p>Invitez un proche à découvrir NÛR : sans publicité, hors ligne, en Warsh.</p><button class="btn" id="sh">Partager NÛR</button></div>';
     return { title: "Aimer", html: html, tab: "#/aimer", bind: function (r) {
       function list(key, ul) {
@@ -2107,14 +2143,14 @@
     var L = loc(), t0 = addDays(ymd(Date.now(), L.tz), dayOff), T = timesFor(L, t0), np = nextPrayer();
     var method = P.METHODS[S.settings.method] || P.METHODS.MWL;
     var html = '<h2>Heures de prière</h2><div class="card"><div class="row between"><div><strong>' + esc(L.name) + '</strong><div class="muted">' + L.lat.toFixed(3) + ', ' + L.lng.toFixed(3) + ' — ' + esc(L.tz) + '</div></div><a class="btn alt" href="#/reglages">Changer</a></div>' +
-      (L.def ? '<div class="callout warn">Lieu par défaut. Pour des horaires exacts, utilisez votre position ou choisissez votre ville dans les réglages.</div>' : "") + '</div>' +
+      (L.def ? '<div class="callout warn">Lieu par défaut. Pour des horaires exacts, utilise ta position ou choisis ta ville dans les réglages.</div>' : "") + '</div>' +
       '<div class="row between" style="margin:.4rem 0"><button class="btn alt" id="dm">Jour précédent</button><strong>' + dayKey(t0) + '</strong><button class="btn alt" id="dp">Jour suivant</button></div>' +
       '<div class="prayers">' + ORDER.slice(0, 1).concat([["sunrise", "Chourouq (lever du soleil)"]]).concat(ORDER.slice(1)).map(function (p) {
         var nx = dayOff === 0 && np && np.k === p[0] && np.ts === T[p[0]];
         return '<div class="prayer' + (nx ? " next" : "") + '"><span>' + p[1] + (nx ? ' <span class="muted">(dans ' + countdown(np.ts) + ')</span>' : "") + '</span><span class="t">' + fmtT(T[p[0]], L.tz) + '</span></div>';
       }).join("") + '</div>';
-    if (T.flags && (T.flags.fajrAdjusted || T.flags.ishaAdjusted)) html += '<div class="callout">Nuit courte à cette latitude : l\'angle choisi n\'est pas atteint ; ' + (T.flags.fajrAdjusted ? "Fajr " : "") + (T.flags.ishaAdjusted ? "Ichâʾ " : "") + 'est calculé selon la portion de la nuit (règle des hautes latitudes). Consultez l\'imam garant sur la convention à retenir.</div>';
-    html += '<p class="muted">Méthode : ' + esc(method.name) + '. Asr : ombre égale à la hauteur de l\'objet (rite malikite). Les horaires sont calculés sur votre appareil, sans connexion. Les mosquées locales peuvent retenir d\'autres conventions : ajustez les minutes dans les réglages.</p>' +
+    if (T.flags && (T.flags.fajrAdjusted || T.flags.ishaAdjusted)) html += '<div class="callout">Nuit courte à cette latitude : l\'angle choisi n\'est pas atteint ; ' + (T.flags.fajrAdjusted ? "Fajr " : "") + (T.flags.ishaAdjusted ? "Ichâʾ " : "") + 'est calculé selon la portion de la nuit (règle des hautes latitudes). Consulte l\'imam garant sur la convention à retenir.</div>';
+    html += '<p class="muted">Méthode : ' + esc(method.name) + '. Asr : ombre égale à la hauteur de l\'objet (rite malikite). Les horaires sont calculés sur ton appareil, sans connexion. Les mosquées locales peuvent retenir d\'autres conventions : ajustez les minutes dans les réglages.</p>' +
       '<details class="card" id="md"' + (monthOpen ? " open" : "") + '><summary><strong>Les 30 prochains jours</strong></summary><div class="scroll" id="mt"></div></details>';
     var qb = P.qibla(L.lat, L.lng);
     html += '<div class="card"><h3>Qibla</h3><p>Direction de la Kaaba : <strong>' + qb.bearing.toFixed(1) + '°</strong> depuis le nord (à ' + Math.round(qb.distanceKm).toLocaleString("fr-FR") + ' km).</p>' +
@@ -2140,7 +2176,7 @@
         var h = e.webkitCompassHeading != null ? e.webkitCompassHeading : (e.absolute && e.alpha != null ? 360 - e.alpha : null);
         if (h == null) return;
         needle.style.transform = "rotate(" + ((q - h + 360) % 360) + "deg)";
-        $("#cs", r).textContent = "Boussole active : tournez-vous jusqu'à ce que l'aiguille pointe vers le haut.";
+        $("#cs", r).textContent = "Boussole active : tourne-toi jusqu'à ce que l'aiguille pointe vers le haut.";
       }
       $("#cb", r).onclick = function () {
         function start() { window.addEventListener("deviceorientationabsolute", onOrient, true); window.addEventListener("deviceorientation", onOrient, true); compassOn = true; }
@@ -2153,15 +2189,27 @@
   });
 
   // Tidjaniya : compteurs
+  route(/^\/ecoles$/, function () {
+    var E4 = [["École hanafite", "Abû Ḥanîfa an-Nuʿmân (mort en 150 H / 767), Koufa. Majoritaire en Turquie, en Asie centrale et dans le sous-continent indien."], ["École malikite", "Mâlik ibn Anas (mort en 179 H / 795), Médine, auteur d\'al-Muwaṭṭaʾ. Majoritaire au Maghreb et en Afrique de l\'Ouest. C\'est l\'école suivie par NÛR."], ["École chafiite", "Muḥammad ibn Idrîs ach-Châfiʿî (mort en 204 H / 820), Le Caire. Répandue en Égypte, en Afrique de l\'Est, aux Comores et en Asie du Sud-Est."], ["École hanbalite", "Aḥmad ibn Ḥanbal (mort en 241 H / 855), Bagdad. Majoritaire dans la péninsule Arabique."]];
+    var html = '<div class="lhead"><img src="img/ill-calendrier.svg" alt=""><div><strong>Les 4 écoles sunnites</strong><div class="muted">Quatre lectures reconnues de la pratique</div></div></div>' +
+      '<div class="card"><p>Les quatre écoles juridiques (madhhab) sunnites partagent les mêmes fondements : le Coran, la Sunna, le consensus et le raisonnement par analogie. Elles diffèrent sur des détails de pratique, par exemple la position des mains pendant la prière. Toutes sont reconnues comme valides.</p>' +
+      E4.map(function (t) { return '<details><summary><b>' + t[0] + '</b></summary><p>' + t[1] + '</p></details>'; }).join("") +
+      '<p>NÛR présente la pratique selon l\'école malikite, la plus suivie dans la diaspora africaine francophone. Si tu suis une autre école, demande l\'avis d\'un savant de ta mosquée.</p><p class="muted small">Sources : Encyclopædia Britannica, articles « Ḥanafī school », « Mālikī school », « Shāfiʿī school » et « Ḥanbalī school ».</p></div>';
+    return { title: "Les 4 écoles", html: html, back: "#/plus", tab: "#/plus" };
+  });
   route(/^\/tidjaniya$/, function () {
     var L = loc(), today = dayKey(ymd(Date.now(), L.tz));
     var log = S.tidj.log[today] || {};
-    var html = '<h2>Tidjaniya</h2><div class="callout warn">Cet espace ne contient <strong>aucun texte de wird</strong>. Le wird est transmis par un mouqaddam autorisé. Vous créez ici vos propres compteurs, avec les noms et les quantités qui vous ont été prescrits.</div>' +
+    var TQ = [["Qadiriya", "Fondée sur l\'enseignement de ʿAbd al-Qâdir al-Jîlânî (mort en 561 H / 1166), à Bagdad. Très présente en Afrique de l\'Ouest."], ["Shadhiliya", "Fondée par Abû al-Ḥasan ach-Châdhilî (mort en 656 H / 1258), au Maghreb et en Égypte."], ["Naqshbandiya", "Rattachée à Bahâʾ ad-Dîn Naqshband (mort en 791 H / 1389), à Boukhara ; répandue en Asie centrale et en Turquie."], ["Tidjaniya", "Fondée par Aḥmad at-Tidjânî (mort en 1230 H / 1815), à Fès ; très répandue au Maghreb et en Afrique de l\'Ouest."]];
+    var html = '<div class="lhead"><img src="img/ill-tidjaniya.svg" alt=""><div><strong>Les tariqas</strong><div class="muted">Les voies spirituelles du soufisme sunnite</div></div></div>' +
+      '<div class="card"><p>Une tariqa est une voie d\'éducation spirituelle transmise de maître à disciple. Y entrer est un choix personnel, qui n\'est pas une obligation religieuse. Voici quatre grandes tariqas, par ordre chronologique :</p>' +
+      TQ.map(function (t) { return '<details><summary><b>' + t[0] + '</b></summary><p>' + t[1] + '</p></details>'; }).join("") + '<p class="muted small">Sources : Encyclopædia Britannica, articles « Qādiriyyah », « Shādhiliyyah », « Naqshbandiyyah » et « Tijāniyyah ».</p></div>' +
+      '<h3>Mes compteurs de wird</h3><div class="callout warn">Compteurs pour ton wird et tes dhikr. Cet espace ne contient <strong>aucun texte de wird</strong> : le wird est transmis par un mouqaddam ou un cheikh autorisé de ta voie. Crée ici tes compteurs, avec les noms et les quantités qui t\'ont été prescrits.</div>' +
       '<div class="card"><h3>Ajouter un compteur</h3><label class="f" for="tn">Nom</label><input type="text" id="tn" placeholder="Ex. Lazim du matin">' +
       '<label class="f" for="tt">Quantité visée (facultatif)</label><input type="number" id="tt" min="0" inputmode="numeric"><p class="row" style="margin-top:.8rem"><button class="btn" id="ta">Ajouter</button></p>' +
-      '<p class="muted">Modèles de noms : <button class="btn alt" data-tpl="Lazim — matin">Lazim matin</button> <button class="btn alt" data-tpl="Lazim — soir">Lazim soir</button> <button class="btn alt" data-tpl="Wazifa">Wazifa</button> <button class="btn alt" data-tpl="Hailala du vendredi">Hailala du vendredi</button></p></div><div id="tl"></div>' +
-      '<p class="muted">Les compteurs se remettent à zéro chaque jour (date de votre lieu). L\'historique des 7 derniers jours est conservé sur l\'appareil.</p>';
-    return { title: "Tidjaniya", html: html, back: "#/plus", bind: function (r) {
+      '<p class="muted">Modèles de noms : <button class="btn alt" data-tpl="Wird du matin">Wird du matin</button> <button class="btn alt" data-tpl="Wird du soir">Wird du soir</button> <button class="btn alt" data-tpl="Dhikr du vendredi">Dhikr du vendredi</button></p></div><div id="tl"></div>' +
+      '<p class="muted">Les compteurs se remettent à zéro chaque jour (date de ton lieu). L\'historique des 7 derniers jours est conservé sur l\'appareil.</p>';
+    return { title: "Tariqas", html: html, back: "#/plus", bind: function (r) {
       function draw() {
         var lg = S.tidj.log[today] || {};
         $("#tl", r).innerHTML = S.tidj.items.map(function (it) {
@@ -2178,7 +2226,7 @@
       }
       function prune() { var keys = Object.keys(S.tidj.log).sort(); while (keys.length > 7) delete S.tidj.log[keys.shift()]; }
       $("#ta", r).onclick = function () {
-        var n = $("#tn", r).value.trim(); if (!n) return toast("Donnez un nom au compteur.");
+        var n = $("#tn", r).value.trim(); if (!n) return toast("Donne un nom au compteur.");
         S.tidj.items.push({ id: Date.now(), name: n, target: +$("#tt", r).value || 0 }); save(); $("#tn", r).value = ""; $("#tt", r).value = ""; draw();
       };
       $$("[data-tpl]", r).forEach(function (b) { b.onclick = function () { $("#tn", r).value = b.dataset.tpl; $("#tt", r).focus(); }; });
@@ -2209,17 +2257,17 @@
       '<details style="margin-top:.7rem"><summary>Ajustements en minutes (pour s\'aligner sur la mosquée locale)</summary>' + [["fajr", "Fajr"], ["sunrise", "Chourouq"], ["dhuhr", "Dhuhr"], ["asr", "ʿAsr"], ["maghrib", "Maghrib"], ["isha", "ʿIshâʾ"]].map(function (p) { return '<label class="f" for="o_' + p[0] + '">' + p[1] + '</label><input type="number" step="1" id="o_' + p[0] + '" data-o="' + p[0] + '" value="' + ((st.offsets && st.offsets[p[0]]) || 0) + '">'; }).join("") + '</details>' +
       '<label class="f" for="hj">Ajustement de la date hégirienne (jours)</label><select id="hj">' + [-2, -1, 0, 1, 2].map(function (n) { return '<option value="' + n + '"' + ((st.hijriOffset || 0) === n ? " selected" : "") + '>' + (n > 0 ? "+" + n : n) + '</option>'; }).join("") + '</select><p class="muted">La date hégirienne affichée suit le calendrier civil d\'Oumm al-Qourâ ; elle peut différer d\'un jour de l\'observation locale.</p>' +
       '<p><label><input type="checkbox" id="nt"' + (st.notif ? " checked" : "") + '> Rappels de prière (uniquement lorsque l\'application est ouverte)</label></p></div>' +
-      '<div class="card"><h3>Ma pratique</h3><p><label><input type="checkbox" id="ptk"' + (st.prayerTrack ? " checked" : "") + '> Suivre mes cinq prières (privé, ' + PRI + ' points par prière)</label></p><p class="muted">Désactivé par défaut. Les prières cochées restent sur cet appareil.</p><p class="row"><a class="btn alt" href="#/khatm">Lecture du jour et khatm</a><a class="btn alt" href="#/profils">Profils</a></p></div>' +
+      '<div class="card"><h3>Ma pratique</h3><p><label><input type="checkbox" id="ptk"' + ((isChild() ? st.prayerTrack : !st.prayerOff) ? " checked" : "") + '> Suivre mes cinq prières (privé, ' + PRI + ' points par prière)</label></p><p class="muted">Désactivé par défaut. Les prières cochées restent sur cet appareil.</p><p class="row"><a class="btn alt" href="#/khatm">Lecture du jour et khatm</a><a class="btn alt" href="#/profils">Profils</a></p></div>' +
       '<div class="card"><h3>Affichage</h3><label class="f" for="th">Thème</label><select id="th">' + [["auto", "Automatique"], ["light", "Clair"], ["dark", "Sombre"], ["contrast", "Contraste élevé"]].map(function (t) { return '<option value="' + t[0] + '"' + (st.theme === t[0] ? " selected" : "") + '>' + t[1] + '</option>'; }).join("") + '</select><label class="f" for="fs">Taille du texte</label><input type="range" id="fs" min="0.8" max="1.8" step="0.1" value="' + st.fs + '"></div>' +
       '<div class="card"><h3>Code parental</h3><p class="muted">Protège les profils enfants : sortie du profil, réglages, validation des paliers. Le code reste sur l\'appareil.</p><label class="f" for="pin">Nouveau code (4 chiffres)</label><input type="password" id="pin" inputmode="numeric" maxlength="4" pattern="[0-9]*"><p class="row"><button class="btn alt" id="pset">Enregistrer</button>' + (STORE.pin ? '<button class="btn danger" id="pclr">Supprimer le code</button>' : "") + '</p></div>' +
-      '<div class="card"><h3>Mes données</h3><p class="muted">Signets, mémorisation, journal, compteurs, points et parcours du profil actif : stockés uniquement sur cet appareil.</p><div class="row"><button class="btn alt" id="exp">Exporter</button><label class="btn alt" for="imp" style="margin:0">Importer</label><input type="file" id="imp" accept="application/json" hidden><button class="btn danger" id="rst">Tout effacer</button></div></div>' +
+      '<div class="card"><h3>Mes données</h3><p class="muted">Signets, mémorisation, journal, compteurs, points et parcours du profil actif : stockés uniquement sur cet appareil.</p><div class="row"><button class="btn alt" id="exp">Exporter mes données</button><label class="btn alt" for="imp" style="margin:0">Importer</label><input type="file" id="imp" accept="application/json" hidden><button class="btn danger" id="rst">Tout effacer</button></div></div>' +
       '<div class="card"><h3>Hors ligne</h3><p id="offl" class="muted">Vérification…</p></div>';
     return { title: "Réglages", html: html, back: "#/plus", bind: function (r) {
       function setLoc(l) { S.settings.loc = l; save(); toast("Lieu enregistré : " + l.name); render(); }
       $("#gps", r).onclick = function () {
         if (!navigator.geolocation) return toast("Géolocalisation indisponible.");
         navigator.geolocation.getCurrentPosition(function (p) { setLoc({ name: "Ma position (GPS)", lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); },
-          function () { toast("Position refusée ou indisponible. Choisissez une ville."); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+          function () { toast("Position refusée ou indisponible. Choisis une ville."); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
       };
       $("#city", r).onchange = function (e) { if (e.target.value === "") return; var c = CITIES[+e.target.value]; setLoc({ name: c[0], lat: c[1], lng: c[2], tz: c[3] }); };
       $("#mset", r).onclick = function () {
@@ -2237,7 +2285,7 @@
         if (e.target.checked && "Notification" in window) { Notification.requestPermission().then(function (p) { st.notif = p === "granted"; e.target.checked = st.notif; save(); scheduleNotifs(); if (!st.notif) toast("Notifications refusées."); }); }
         else { st.notif = false; save(); scheduleNotifs(); }
       };
-      $("#ptk", r).onchange = function (e) { st.prayerTrack = e.target.checked; save(); toast(st.prayerTrack ? "Suivi des prières activé." : "Suivi des prières désactivé."); };
+      $("#ptk", r).onchange = function (e) { st.prayerTrack = e.target.checked; st.prayerOff = !e.target.checked; save(); toast(st.prayerTrack ? "Suivi des prières activé." : "Suivi des prières désactivé."); };
       $("#th", r).onchange = function (e) { st.theme = e.target.value; save(); applyTheme(); };
       $("#fs", r).oninput = function (e) { st.fs = +e.target.value; save(); applyTheme(); };
       $("#pset", r).onclick = function () { var v = $("#pin", r).value; if (!/^\d{4}$/.test(v)) return toast("Le code doit comporter 4 chiffres."); askPin("Code parental actuel").then(function (ok) { if (!ok) return; pinHash(v).then(function (h) { STORE.pin = h; save(); toast("Code enregistré."); render(); }); }); };
@@ -2245,10 +2293,10 @@
         if (STORE.profiles.some(function (p) { return isChild(p); })) return toast("Un profil enfant existe : le code parental ne peut pas être supprimé.");
         askPin("Code parental actuel").then(function (ok) { if (!ok) return; STORE.pin = null; save(); toast("Code supprimé."); render(); });
       };
-      $("#exp", r).onclick = function () { download("nur-sauvegarde.json", JSON.stringify(S, null, 1)); };
+      $("#exp", r).onclick = function () { save(); download("nur-sauvegarde-" + new Date().toISOString().slice(0, 10) + ".json", JSON.stringify({ nur: VERSION, store: STORE }, null, 1)); };
       $("#imp", r).onchange = function (e) {
         var f = e.target.files[0]; if (!f) return; var fr = new FileReader();
-        fr.onload = function () { try { S = merge(DEF(), JSON.parse(fr.result)); save(); applyTheme(); toast("Données importées."); render(); } catch (x) { toast("Fichier invalide."); } };
+        fr.onload = function () { try { var j = JSON.parse(fr.result); if (j && j.store && j.store.data) { localStorage.setItem(KEY2, JSON.stringify(j.store)); STORE = loadStore(); S = curData(); } else S = merge(DEF(), j); save(); applyTheme(); toast("Données importées."); render(); } catch (x) { toast("Fichier invalide."); } };
         fr.readAsText(f);
       };
       $("#rst", r).onclick = function () { if (confirm("Effacer tous les profils et toutes les données de NÛR sur cet appareil ?")) { localStorage.removeItem(KEY); localStorage.removeItem(KEY2); STORE = loadStore(); S = curData(); applyTheme(); toast("Données effacées."); location.hash = "#/bienvenue"; } };
@@ -2336,7 +2384,7 @@
   route(/^\/alphabet$/, function () {
     var html = '<h2>Alphabet et lecture</h2>' + NOTE_VALIDATION +
       '<p>L\'arabe s\'écrit de droite à gauche. Il compte 28 lettres, toutes des consonnes ; les voyelles brèves s\'écrivent par de petits signes placés au-dessus ou au-dessous des lettres. Les approximations ci-dessous aident à démarrer, mais <strong>seule l\'écoute d\'un enseignant</strong> permet de bien prononcer.</p>' +
-      '<h3>Les 28 lettres</h3><p class="muted">Touchez ▶ pour entendre le nom de la lettre avec la voix arabe de l\'appareil.</p><div class="lgrid">' + LETTERS.map(function (l, i) {
+      '<h3>Les 28 lettres</h3><p class="muted">Touche ▶ pour entendre le nom de la lettre avec la voix arabe de l\'appareil.</p><div class="lgrid">' + LETTERS.map(function (l, i) {
         return '<div class="lcard"><div class="lg ar" lang="ar">' + l[0] + '</div><div><strong>' + esc(l[1]) + '</strong> <span class="pill">' + esc(l[2]) + '</span><div class="muted">' + esc(l[3]) + '</div></div><button class="ib" data-say="' + i + '" aria-label="Écouter la lettre ' + esc(l[1]) + '">▶</button></div>';
       }).join("") + '</div>' +
       '<h3>Les voyelles brèves</h3><div class="card"><ul class="plain"><li><span class="ar big2">بَ</span> fatha : « a » (ba)</li><li><span class="ar big2">بُ</span> damma : « ou » (bou)</li><li><span class="ar big2">بِ</span> kasra : « i » (bi)</li></ul></div>' +
@@ -2426,18 +2474,18 @@
     if (e === 3 && STORE.profiles.length) e = 4;
     var bar = '<div class="prog"><div class="bar"><i style="width:' + (e * 25) + '%"></i></div><span class="muted">' + e + ' / 4</span></div>', html;
     if (e === 1) html = '<img src="logo.svg" alt="NÛR" style="width:150px;display:block;margin:1rem auto"><h2>Bienvenue dans NÛR</h2>' +
-      '<p class="lead">Apprendre le Coran et les bases de la foi, pas à pas, à votre rythme.</p>' +
-      '<ul class="plain"><li>Gratuit, sans publicité.</li><li>Vos données restent sur votre appareil.</li><li>Un parcours simple, pour qui découvre comme pour qui reprend.</li></ul>' +
+      '<p class="lead">Apprendre le Coran et les bases de la foi, pas à pas, à ton rythme.</p>' +
+      '<ul class="plain"><li>Gratuit, sans publicité.</li><li>Tes données restent sur ton appareil.</li><li>Un parcours simple, pour qui découvre comme pour qui reprend.</li></ul>' +
       '<p><a class="btn big" href="#/bienvenue?e=2">Commencer</a></p><p><button class="btn alt" id="skip">Passer l\'introduction</button></p>';
-    else if (e === 2) html = '<h2>Comment vous allez avancer</h2><ul class="plain">' +
+    else if (e === 2) html = '<h2>Comment tu vas avancer</h2><ul class="plain">' +
       '<li><strong>Chaque jour</strong> : quatre petits objectifs, en quelques minutes. Une lecture, un verset, un dhikr, un hadith.</li>' +
       '<li><strong>Chaque étape</strong> : quatre leçons courtes, un quiz et des fiches de révision.</li>' +
       '<li><strong>Des points privés</strong> : ni classement, ni pénalité. Ils ouvrent les paliers : Étincelle, Flamme, Lanterne, Étoile.</li>' +
       '<li><strong>Rien ne presse</strong> : on passe à la suite quand on se sent prêt.</li></ul>' +
       '<p><a class="btn big" href="#/bienvenue?e=3">Continuer</a></p>';
-    else if (e === 3) html = '<h2>Votre profil</h2><div style="text-align:left">' + profilFormHTML() + '</div>' +
+    else if (e === 3) html = '<h2>Ton profil</h2><div style="text-align:left">' + profilFormHTML() + '</div>' +
       '<p><button class="btn big" id="go">Continuer</button></p><p><button class="btn alt" id="skip3">Passer</button></p>';
-    else html = '<h2>Votre lieu</h2><p>Le lieu sert à calculer les heures de prière. Il reste sur votre appareil.</p>' +
+    else html = '<h2>Ton lieu</h2><p>Le lieu sert à calculer les heures de prière. Il reste sur ton appareil.</p>' +
       '<p><button class="btn big" id="gps">Utiliser ma position</button></p>' +
       '<div style="text-align:left"><label class="f" for="city">Ou choisir une ville</label><select id="city"><option value="">—</option>' + CITIES.map(function (c, i) { return '<option value="' + i + '">' + esc(c[0]) + '</option>'; }).join("") + '</select></div>' +
       '<p style="margin-top:1.2rem"><button class="btn alt" id="later">Plus tard</button></p>';
@@ -2452,9 +2500,9 @@
       if (e === 4) {
         var setL = function (l) { if (!STORE.profiles.length) switchProfile(addProfile({ nom: "", type: "adulte" })); S.settings.loc = l; save(); finishOb(); };
         $("#gps", r).onclick = function () {
-          if (!navigator.geolocation) return toast("Géolocalisation indisponible. Choisissez une ville.");
+          if (!navigator.geolocation) return toast("Géolocalisation indisponible. Choisis une ville.");
           navigator.geolocation.getCurrentPosition(function (p) { setL({ name: "Ma position (GPS)", lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); },
-            function () { toast("Position refusée ou indisponible. Choisissez une ville."); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+            function () { toast("Position refusée ou indisponible. Choisis une ville."); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
         };
         $("#city", r).onchange = function (ev) { if (ev.target.value === "") return; var c = CITIES[+ev.target.value]; setL({ name: c[0], lat: c[1], lng: c[2], tz: c[3] }); };
         $("#later", r).onclick = finishOb;
@@ -2660,7 +2708,7 @@
       html += '<form class="qz" id="qf">' + et.quiz.map(function (qq, i) {
         return '<fieldset><legend>' + (i + 1) + '. ' + esc(qq.q) + '</legend>' + qq.c.map(function (c, j) {
           var mark = "";
-          if (res) { if (j === qq.r) mark = ' <span class="ok">bonne réponse</span>'; else if (res.ans[i] === j) mark = ' <span class="ko">votre réponse</span>'; }
+          if (res) { if (j === qq.r) mark = ' <span class="ok">bonne réponse</span>'; else if (res.ans[i] === j) mark = ' <span class="ko">ta réponse</span>'; }
           return '<label><input type="radio" name="q' + i + '" value="' + j + '"' + (res ? (res.ans[i] === j ? " checked" : "") + " disabled" : "") + '> <span>' + esc(c) + mark + '</span></label>';
         }).join("") + '</fieldset>';
       }).join("") + '</form>';
@@ -2763,7 +2811,7 @@
   /* ------------------------------------------------------------ routeur */
   var deferredPrompt = null;
   window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferredPrompt = e; });
-  var TABS = [["#/apprendre", "Apprendre", "✎"], ["#/priere", "Prière", "◎"], ["#/", "Quotidien", "☾"], ["#/reciter", "Coran", "❖"], ["#/plus", "Plus", "⋯"]];
+  var TABS = [["#/apprendre", "Apprendre", "book"], ["#/priere", "Prière", "mosque"], ["#/", "Quotidien", "moon"], ["#/reciter", "Coran", "quran"], ["#/plus", "Plus", "grid"]];
   function drawPts(hide) {
     var el = $("#pts"); if (!el) return;
     if (hide || !STORE.active) { el.hidden = true; return; }
@@ -2775,7 +2823,7 @@
     }).catch(function () { el.hidden = true; });
   }
   function drawTabs(active) {
-    $("#tabs").innerHTML = TABS.map(function (t) { return '<a href="' + t[0] + '"' + (t[0] === active ? ' aria-current="page"' : "") + '><span class="g" aria-hidden="true">' + t[2] + '</span>' + t[1] + '</a>'; }).join("");
+    $("#tabs").innerHTML = TABS.map(function (t) { return '<a href="' + t[0] + '"' + (t[0] === active ? ' aria-current="page"' : "") + '><span class="g" aria-hidden="true">' + ic(t[2], 22) + '</span>' + t[1] + '</a>'; }).join("");
   }
   var rendering = 0, prevHash = null;
   function render() {
@@ -2800,7 +2848,7 @@
         else location.hash = v.back;
       };
       drawTabs(v.tab === undefined ? null : v.tab); drawPts(!!v.bare);
-      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild());
+      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || "";
       if (v.bind) v.bind(main);
       $("#title").textContent = v.title === "NÛR" ? "NÛR" : tr(v.title || ""); if (v.title === "NÛR") $("#title").innerHTML = '<img class="brand" src="icon-192.png" alt=""> NÛR <span class="ar" aria-hidden="true">نور</span>';
       sayBtn(); i18n(main); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);
@@ -2808,7 +2856,7 @@
       main.focus({ preventScroll: true });
     }).catch(function (e) {
       if (token !== rendering) return;
-      $("#main").innerHTML = '<div class="callout warn">Impossible de charger le contenu (' + esc(e && e.message || "erreur") + '). Vérifiez la connexion pour le premier chargement, puis <a href="#/" onclick="location.reload()">réessayez</a>.</div>';
+      $("#main").innerHTML = '<div class="callout warn">Impossible de charger le contenu (' + esc(e && e.message || "erreur") + '). Vérifie la connexion pour le premier chargement, puis <a href="#/" onclick="location.reload()">réessayez</a>.</div>';
     });
   }
   window.addEventListener("hashchange", render);
