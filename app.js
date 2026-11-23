@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.2.0";
+  var VERSION = "2.3.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -219,7 +219,7 @@
   function loadOpt() {
     if (OPT) return Promise.resolve(OPT);
     function get(f) { return fetch(f).then(function (r) { return r && r.ok ? r.json() : null; }).catch(function () { return null; }); }
-    return Promise.all([get("phonetique.json"), get(TRF()), get("audio.json"), get("parcours.json"), get("quotidien.json"), get("config.json")]).then(function (a) {
+    return Promise.all([get("phonetique.json"), get(TRF()), Promise.resolve(null), get("parcours.json"), get("quotidien.json"), get("config.json")]).then(function (a) {
       OPT = { phon: a[0], fr: a[1], audio: a[2], parcours: a[3], quot: a[4], conf: a[5] || {} }; return OPT;
     });
   }
@@ -3042,7 +3042,7 @@
       main.focus({ preventScroll: true });
     }).catch(function (e) {
       if (token !== rendering) return;
-      $("#main").innerHTML = '<div class="callout warn">Impossible de charger le contenu (' + esc(e && e.message || "erreur") + '). Vérifie la connexion pour le premier chargement, puis <a href="#/" onclick="location.reload()">réessayez</a>.</div>';
+      $("#main").innerHTML = '<div class="callout warn">Impossible de charger le contenu (' + esc(e && e.message || "erreur") + '). Vérifie la connexion pour le premier chargement, puis <a href="#/" id="rld2">réessaie</a>.</div>'; var r2 = $("#rld2"); if (r2) r2.onclick = function (ev) { ev.preventDefault(); location.reload(); };
     });
   }
   window.addEventListener("hashchange", render);
@@ -3101,5 +3101,9 @@
       document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") reg.update(); });
     }).catch(function () {});
   }
+  /* v2.3 : données protégées contre l'effacement automatique du navigateur */
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(function (ok) { if (!ok && STORE.onboarded) navigator.storage.persist(); }); } catch (e) {}
+  /* v2.3 : un incident inattendu ne laisse jamais un écran vide */
+  window.addEventListener("error", function (e) { try { var m = $("#main"); if (m && !m.children.length) { m.innerHTML = '<div class="card"><strong>Un incident est survenu</strong><p>Recharge l\'application. Tes données sont conservées sur ton appareil.</p><button class="btn" id="rld">Recharger</button></div>'; i18n(m); $("#rld", m).onclick = function () { location.reload(); }; } } catch (x) {} });
   window.__NUR__ = { render: render, state: function () { return S; }, store: function () { return STORE; } };
 })();

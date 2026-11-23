@@ -764,3 +764,7 @@ html.snap .scr.fitS { gap: .55rem; }
 html.snap .scr > .scrNum { margin: 0; }
 html.snap .scr::before { content: ""; position: absolute; inset: 7px; border-radius: 20px; border: 1px solid rgba(201,162,75,.28); pointer-events: none; }
 html.snap .scr.long { border-radius: 26px 26px 0 0; }
+/* v2.3 : zones tactiles d'au moins 36 px (recommandation d'accessibilité) */
+#main button, #main .btn, #main .chip, #main select, #main input:not([type=checkbox]):not([type=radio]), #main summary, #main .pill.mem { min-height: 36px; }
+#main .lnk { display: inline-block; padding: .35rem 0; }
+#main .pill.mem { display: inline-flex; align-items: center; padding: 0 .8rem; }

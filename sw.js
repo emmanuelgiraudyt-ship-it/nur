@@ -1,5 +1,5 @@
 /* NÛR — service worker : fonctionnement hors ligne (cache de l'application, du texte et de la police). */
-const VERSION = "nur-v2.2.0";
+const VERSION = "nur-v2.3.0";
 const SHELL = [
   "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./translit.js", "./contenus.js", "./manifest.webmanifest",
   "./quran.json", "./phonetique.json", "./parcours.json", "./quotidien.json", "./config.json", "./traduction-fr.json", "./hafs.json", "./i18n-en.json", "./i18n-zh.json", "./i18n-ar.json", "./KFGQPC-Warsh-Uthmanic.ttf", "./LICENCE-KFGQPC.txt",

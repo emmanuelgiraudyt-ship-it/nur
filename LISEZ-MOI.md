@@ -102,3 +102,14 @@ Les leçons, les questions, les dhikr et les hadiths se corrigent directement da
 - Audio (récitations, lettres, leçons) et accord des ayants droit.
 - Lien de don de l'association.
 - Notifications d'adhan en arrière-plan (application native).
+
+## Versions 1.7.0 à 2.3.0 (novembre 2026)
+
+- **1.7.0** : couleurs claires, nouveau logo, pastille « mémorisé » sur chaque verset, événements expliqués et sourcés, qibla par ville, scanner retiré.
+- **1.8.0** : correctifs de l'audit fonctionnel (date hégirienne, Imsak, Quotidien sur un écran, Plus en grille, Coran en liste, écoles et tariqas, confidentialité réécrite, icônes, grands écrans, export complet).
+- **1.9.0** : ambiance selon le moment de la journée, le jour particulier et le profil ; anneau d'astrolabe ; garde-fous d'autonomie.
+- **2.0.x** : constellation, 99 noms de Dieu, jeux d'apprentissage, quêtes ; ciel animé et message du moment sur toutes les pages ; dhikr sur 100 extensible ; prières oubliées des jours précédents.
+- **2.1.0 et 2.2.0** : pages principales découpées en écrans pleins, un écran par glissement, contenu ajusté à la hauteur du téléphone, transitions entre onglets.
+- **2.3.0** : diagnostic technique. Suppression d'une requête vers un fichier inexistant (audio.json), politique de sécurité du contenu, aperçu de partage (Open Graph), raccourcis d'installation, protection des données contre l'effacement automatique du navigateur, écran de secours en cas d'incident, zones tactiles agrandies.
+
+Tests automatiques : `/home/claude/work/scripts` (test_v13 à test_v17, test_offline16, test_pc2, test_palier, diag.py, domcheck.py).
