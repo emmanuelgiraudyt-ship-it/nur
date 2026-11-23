@@ -4,13 +4,13 @@
  "note": "Sélection et formulations rédigées pour NÛR. Validées par l'imam garant. Le sens des hadiths est donné dans une formulation simplifiée, non comme une traduction littérale.",
  "points": { "lecture": 5, "verset": 3, "dhikr": 4, "hadith": 3 },
  "dhikr": [
-  { "ar": "سبحان الله", "tr": "subḥāna llāh", "ph": "soubhânallâh", "fr": "Gloire à Dieu", "cible": 33 },
-  { "ar": "الحمد لله", "tr": "al-ḥamdu lillāh", "ph": "al-hamdoulillâh", "fr": "Louange à Dieu", "cible": 33 },
-  { "ar": "الله أكبر", "tr": "Allāhu akbar", "ph": "Allâhou akbar", "fr": "Dieu est le plus grand", "cible": 33 },
-  { "ar": "أستغفر الله", "tr": "astaghfiru llāh", "ph": "astaghfiroullâh", "fr": "Je demande pardon à Dieu", "cible": 33 },
-  { "ar": "لا إله إلا الله", "tr": "lā ilāha illā llāh", "ph": "lâ ilâha illallâh", "fr": "Il n'y a de dieu que Dieu", "cible": 33 },
-  { "ar": "لا حول ولا قوة إلا بالله", "tr": "lā ḥawla wa lā quwwata illā billāh", "ph": "lâ hawla wa lâ qouwwata illâ billâh", "fr": "Il n'y a de force et de puissance que par Dieu", "cible": 33 },
-  { "ar": "اللهم صل على سيدنا محمد", "tr": "Allāhumma ṣalli ʿalā sayyidinā Muḥammad", "ph": "Allâhoumma salli ʿalâ sayyidinâ Mouhammad", "fr": "Ô Dieu, accorde Ta bénédiction à notre maître Muhammad", "cible": 33 }
+  { "ar": "سبحان الله", "tr": "subḥāna llāh", "ph": "soubhânallâh", "fr": "Gloire à Dieu", "cible": 100 },
+  { "ar": "الحمد لله", "tr": "al-ḥamdu lillāh", "ph": "al-hamdoulillâh", "fr": "Louange à Dieu", "cible": 100 },
+  { "ar": "الله أكبر", "tr": "Allāhu akbar", "ph": "Allâhou akbar", "fr": "Dieu est le plus grand", "cible": 100 },
+  { "ar": "أستغفر الله", "tr": "astaghfiru llāh", "ph": "astaghfiroullâh", "fr": "Je demande pardon à Dieu", "cible": 100 },
+  { "ar": "لا إله إلا الله", "tr": "lā ilāha illā llāh", "ph": "lâ ilâha illallâh", "fr": "Il n'y a de dieu que Dieu", "cible": 100 },
+  { "ar": "لا حول ولا قوة إلا بالله", "tr": "lā ḥawla wa lā quwwata illā billāh", "ph": "lâ hawla wa lâ qouwwata illâ billâh", "fr": "Il n'y a de force et de puissance que par Dieu", "cible": 100 },
+  { "ar": "اللهم صل على سيدنا محمد", "tr": "Allāhumma ṣalli ʿalā sayyidinā Muḥammad", "ph": "Allâhoumma salli ʿalâ sayyidinâ Mouhammad", "fr": "Ô Dieu, accorde Ta bénédiction à notre maître Muhammad", "cible": 100 }
  ],
  "hadiths": [
   { "n": 1, "sens": "Les actes ne valent que par les intentions, et chacun reçoit selon son intention.", "rapporteur": "ʿUmar ibn al-Khattâb", "recueils": "al-Bukhârî et Muslim" },

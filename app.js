@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.0.1";
+  var VERSION = "2.0.2";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -94,8 +94,8 @@
     d.f[kind] = 1; d.p += add; S.pts.pratique = (S.pts.pratique || 0) + add; addStar(); pruneDays(); save();
     return add;
   }
-  function togglePrayer(k) {
-    var d = dayRec();
+  function togglePrayer(k, dk) {
+    var d = dayRec(dk);
     if (d.pr[k]) { delete d.pr[k]; S.pts.prieres = Math.max(0, (S.pts.prieres || 0) - PRI); }
     else { d.pr[k] = 1; S.pts.prieres = (S.pts.prieres || 0) + PRI; }
     save();
@@ -1076,9 +1076,11 @@
       '<div class="row" style="justify-content:center;margin:.5rem 0 0"><span class="hchip">dans ' + (np ? countdown(np.ts) : "—") + '</span></div></div>' + chips3(Tt, L);
     if (L.def) html += '<div class="callout warn">Lieu par défaut. Pour des horaires exacts, indique ta position ou ta ville.</div>';
     html += '<div class="datenav"><button class="iconbtn" id="dm" aria-label="Jour précédent">‹</button><div><strong>' + esc(dl) + '</strong><div class="muted">' + esc(hijriOf(t0)) + '</div></div><button class="iconbtn" id="dp" aria-label="Jour suivant">›</button></div>';
+    if (dayOffP < 0 && dayOffP >= -30 && (isChild() ? st.prayerTrack : !st.prayerOff)) html += '<p class="muted small">Tu as oublié de cocher une prière ce jour-là ? Coche-la ici. Ce suivi est entre toi et Dieu.</p>';
     html += '<div class="plist">' + ORDER.map(function (p) {
       var on = st.alerts[p[0]] !== false, nx = dayOffP === 0 && np && np.k === p[0] && np.ts === T[p[0]];
-      return '<div class="prow' + (nx ? " next" : "") + '"><button class="bell' + (on ? " on" : "") + '" data-al="' + p[0] + '" aria-pressed="' + on + '" aria-label="Alerte pour ' + p[1] + (on ? ' : activée' : ' : désactivée') + '">' + (on ? ICO.bell : ICO.belloff) + '</button><span class="pn">' + p[1] + '<small class="bst">' + (on ? "alerte activée" : "alerte désactivée") + '</small></span><span class="t">' + fmtT(T[p[0]], L.tz) + '</span></div>';
+      var dk0 = dayKey(t0), dd0 = S.days[dk0], done0 = dd0 && dd0.pr[p[0]], ck = dayOffP < 0 && dayOffP >= -30 && (isChild() ? st.prayerTrack : !st.prayerOff) ? '<button class="pck' + (done0 ? " on" : "") + '" data-pk="' + p[0] + '" aria-pressed="' + !!done0 + '" aria-label="' + p[1] + ', accomplie"><i aria-hidden="true"></i></button>' : '';
+      return '<div class="prow' + (nx ? " next" : "") + '">' + ck + '<button class="bell' + (on ? " on" : "") + '" data-al="' + p[0] + '" aria-pressed="' + on + '" aria-label="Alerte pour ' + p[1] + (on ? ' : activée' : ' : désactivée') + '">' + (on ? ICO.bell : ICO.belloff) + '</button><span class="pn">' + p[1] + '<small class="bst">' + (on ? "alerte activée" : "alerte désactivée") + '</small></span><span class="t">' + fmtT(T[p[0]], L.tz) + '</span></div>';
     }).join("") + '</div>';
     html += '<a class="card linkcard" href="#/priere/reglages"><span>Les heures de prière te semblent incorrectes ?</span><b>Explications ' + ICO.arrow + '</b></a>';
     var k = prTab || (np ? np.k : "fajr"), F = FICHES[k], nm = ORDER.filter(function (o) { return o[0] === k; })[0][1];
@@ -1090,6 +1092,7 @@
     html += '<details class="card" id="md"><summary><strong>Les 30 prochains jours</strong></summary><div class="scroll" id="mt"></div></details>';
     return { title: "Prière", html: html, tab: "#/priere", bind: function (r) {
       $("#dm", r).onclick = function () { dayOffP--; render(); };
+      $$("[data-pk]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pk, dayKey(t0)); render(); }; });
       $("#dp", r).onclick = function () { dayOffP++; render(); };
       $$("[data-al]", r).forEach(function (b) { b.onclick = function () { st.alerts[b.dataset.al] = !(st.alerts[b.dataset.al] !== false); save(); if (st.alerts[b.dataset.al]) { st.rappels.prieres = true; st.notif = true; save(); askNotif(); } scheduleNotifs(); render(); }; });
       $$("[data-tab]", r).forEach(function (b) { b.onclick = function () { prTab = b.dataset.tab; render(); }; });
@@ -1116,7 +1119,7 @@
         INV.map(function (x, i) {
           var c = aCount[i] || 0, pct = Math.min(100, Math.round(100 * c / x[1]));
           return '<div class="invrow"><div><b class="ph">' + esc(x[0].ph) + '</b> <span class="muted">' + x[1] + ' fois</span><div class="ar small" lang="ar" dir="rtl">' + esc(x[0].ar) + '</div><div class="muted">' + esc(x[0].fr) + '</div></div>' +
-            '<button class="ring" data-inv="' + i + '" style="--p:' + pct + '" aria-label="Compter ' + esc(x[0].ph) + '"><span>' + (c ? c + '/' + x[1] : 'Toucher') + '</span></button></div>';
+            '<button class="ring" data-inv="' + i + '" style="--p:' + pct + '" aria-label="Compter ' + esc(x[0].ph) + '"><span>' + (c ? c + '/' + Math.max(c, x[1]) : 'Toucher') + '</span></button></div>';
         }).join("") +
         '<p><button class="btn alt" id="raz">Remettre les compteurs à zéro</button></p>';
       var s2 = q.byN[2], ak = s2.v.filter(function (v) { return v[0] === 253 || v[0] === 254; });
@@ -1410,7 +1413,7 @@
       if (!S.dhk || S.dhk.k !== k) S.dhk = { k: k, c: {} };
       var html = '<h2>Les dhikr</h2><p class="muted">Touche la formule pour compter. Les compteurs repartent à zéro chaque jour.</p>' + D.map(function (x, i) {
         var c = S.dhk.c[i] || 0, pct = Math.min(100, Math.round(100 * c / x.cible));
-        return '<div class="invrow"><div><b class="ph">' + esc(x.ph) + '</b> <span class="muted">' + x.cible + ' fois</span><div class="ar small" lang="ar" dir="rtl">' + esc(x.ar) + '</div><div class="muted">' + esc(x.fr) + '</div></div><button class="ring" data-dk="' + i + '" style="--p:' + pct + '" aria-label="Compter"><span>' + c + '/' + x.cible + '</span></button></div>';
+        return '<div class="invrow"><div><b class="ph">' + esc(x.ph) + '</b> <span class="muted">' + x.cible + ' fois</span><div class="ar small" lang="ar" dir="rtl">' + esc(x.ar) + '</div><div class="muted">' + esc(x.fr) + '</div></div><button class="ring" data-dk="' + i + '" style="--p:' + pct + '" aria-label="Compter"><span>' + c + '/' + Math.max(c, x.cible) + '</span></button></div>';
       }).join("") + NOTE_VALIDATION;
       return { title: "Dhikr", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
         $$("[data-dk]", r).forEach(function (b) { b.onclick = function () { var i = +b.dataset.dk; S.dhk.c[i] = (S.dhk.c[i] || 0) + 1; save(); if (navigator.vibrate) navigator.vibrate(10); render(); }; });
@@ -2710,7 +2713,7 @@
         html += '<h2>Dhikr du jour</h2>' + doneNote;
         if (!it) html += '<div class="callout warn">Contenu indisponible : une connexion est nécessaire au premier chargement.</div>';
         else html += '<div class="card counter"><div class="flashA ar" lang="ar" dir="rtl">' + esc(it.ar) + '</div><p><strong class="ph">' + esc(it.ph) + '</strong><br><span class="muted">translittération : ' + esc(it.tr) + '</span></p><p>' + esc(it.fr) + '</p>' +
-          '<div class="num" id="dn" aria-live="polite">' + dz.n + ' / ' + cible + '</div><div class="bar"><i id="db" style="width:' + Math.min(100, Math.round(100 * dz.n / cible)) + '%"></i></div>' +
+          '<div class="num" id="dn" aria-live="polite">' + dz.n + ' / ' + Math.max(dz.n, cible) + '</div><div class="bar"><i id="db" style="width:' + Math.min(100, Math.round(100 * dz.n / cible)) + '%"></i></div>' +
           '<p><button class="tap" id="dt">Toucher pour compter</button></p></div>' + NOTE_VALIDATION;
         html += done ? '<p class="row"><a class="btn" href="' + nextHref + '">Suivant</a></p>' :
           '<p class="row"><button class="btn" id="ok"' + (it && dz.n >= cible ? "" : " disabled") + '>J\'ai terminé ce dhikr</button><button class="btn alt" id="okAlt">Déjà fait sans compter</button><a class="btn alt" href="' + nextHref + '">Passer</a></p>';
@@ -2718,7 +2721,7 @@
           var t = $("#dt", r);
           if (t) t.onclick = function () {
             dz.n++; if (navigator.vibrate) navigator.vibrate(12);
-            $("#dn", r).textContent = dz.n + " / " + cible; $("#db", r).style.width = Math.min(100, Math.round(100 * dz.n / cible)) + "%";
+            $("#dn", r).textContent = dz.n + " / " + Math.max(dz.n, cible); $("#db", r).style.width = Math.min(100, Math.round(100 * dz.n / cible)) + "%";
             var ok = $("#ok", r); if (ok && dz.n >= cible) ok.disabled = false;
           };
           validate(r); var alt = $("#okAlt", r); if (alt) alt.onclick = give;
