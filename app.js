@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.1.0";
+  var VERSION = "2.2.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -998,23 +998,46 @@
     if (ml && getComputedStyle(ml).display !== "none") top += ml.offsetHeight;
     var avail = innerHeight - top - tb - 8, kids = [].slice.call(main.children).filter(function (c) { return !c.classList.contains("scr"); });
     if (!kids.length) return;
-    document.documentElement.style.setProperty("--scrH", avail + "px");
+    document.documentElement.style.setProperty("--scrH", avail + "px"); document.documentElement.style.setProperty("--scrTop", top + "px");
     var secs = [], cur = [], hh = 0;
     kids.forEach(function (c) {
       var cs = getComputedStyle(c), ch = c.getBoundingClientRect().height + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
       var head = /^H[23]$/.test(c.tagName);
-      if (cur.length && (hh + ch > avail || (head && hh > avail * .55))) { secs.push(cur); cur = []; hh = 0; }
+      if (cur.length && (hh + ch > avail - 60 || (head && hh > avail * .5))) { secs.push(cur); cur = []; hh = 0; }
       cur.push(c); hh += ch;
     });
     if (cur.length) secs.push(cur);
     if (secs.length < 2) { document.documentElement.classList.remove("snap"); return; }
-    secs.forEach(function (g, i) { var w = document.createElement("section"); w.className = "scr"; w.setAttribute("aria-label", (i + 1) + " / " + secs.length); main.insertBefore(w, g[0]); g.forEach(function (c) { w.appendChild(c); }); });
+    secs.forEach(function (g, i) { var w = document.createElement("section"); w.className = "scr" + (i ? "" : " in"); w.setAttribute("aria-label", (i + 1) + " / " + secs.length); main.insertBefore(w, g[0]); g.forEach(function (c) { w.appendChild(c); }); });
     var dots = document.createElement("nav"); dots.id = "sdots"; dots.setAttribute("aria-hidden", "true");
     dots.innerHTML = secs.map(function (_, i) { return '<i' + (i ? '' : ' class="on"') + '></i>'; }).join("");
     document.body.appendChild(dots);
-    var S2 = $$(".scr", main), D2 = $$("#sdots i");
+    var S2 = $$(".scr", main), D2 = $$("#sdots i"), cur0 = 0;
+    S2.forEach(function (x) {
+      x.style.zoom = ""; var target = avail - 6, inner = 0;
+      [].slice.call(x.children).forEach(function (c) { var cs = getComputedStyle(c); inner += c.getBoundingClientRect().height + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); });
+      inner += 36;
+      if (inner > target * 1.3) x.classList.add("long"); else if (inner > target) { var z = Math.max(.8, target / inner); x.style.zoom = z.toFixed(3); x.style.minHeight = (target / z) + "px"; }
+      else x.classList.add(inner < target * .7 ? "fitC" : "fitS");
+    });
+    S2.forEach(function (x, i) { var t = document.createElement("div"); t.className = "scrNum"; t.textContent = (i + 1) + " / " + S2.length; x.insertBefore(t, x.firstChild); });
+    if (S2.length > 1 && !STORE.swipeSeen) { var hint = document.createElement("button"); hint.className = "swipeHint"; hint.setAttribute("aria-label", "Écran suivant"); hint.innerHTML = '<span>Glisse vers le haut</span><b aria-hidden="true">⌃</b>'; hint.onclick = function () { S2[1].scrollIntoView({ behavior: "smooth" }); }; S2[0].appendChild(hint); }
     D2.forEach(function (d, i) { d.onclick = function () { S2[i].scrollIntoView({ behavior: "smooth" }); }; });
-    if ("IntersectionObserver" in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var i = S2.indexOf(e.target); D2.forEach(function (d, j) { d.classList.toggle("on", j === i); }); } }); }, { threshold: .55 }); S2.forEach(function (x) { io.observe(x); }); }
+    var tops = function () { var o = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scrTop")) || 82; return S2.map(function (x) { return x.getBoundingClientRect().top + scrollY - o - 6; }); };
+    var pIdx = 0, lock = false, endT;
+    window.onscroll = function () {
+      if (lock || !document.documentElement.classList.contains("snap")) return;
+      clearTimeout(endT); endT = setTimeout(function () {
+        var T = tops(), y = scrollY, i = pIdx, h = S2[i] ? S2[i].offsetHeight : 0, tall = h > innerHeight * .95;
+        if (tall && y > T[i] && y < T[i] + h - innerHeight * .6) return;
+        var t = i;
+        if (y > T[i] + 30 && i < S2.length - 1) t = i + 1; else if (y < T[i] - 30 && i > 0) t = i - 1;
+        for (var k = 0; k < T.length; k++) if (Math.abs(T[k] - y) < Math.abs(T[t] - y) - innerHeight * .6) t = k;
+        pIdx = t; lock = true; scrollTo({ top: Math.max(0, T[t]), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        setTimeout(function () { lock = false; }, 520);
+      }, 90);
+    };
+    if ("IntersectionObserver" in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var i = S2.indexOf(e.target); e.target.classList.add("in"); D2.forEach(function (d, j) { d.classList.toggle("on", j === i); }); if (i !== cur0) { cur0 = i; if (navigator.vibrate) try { navigator.vibrate(8); } catch (x) {} if (i > 0 && !STORE.swipeSeen) { STORE.swipeSeen = true; save(); var hh = $(".swipeHint"); if (hh) hh.remove(); } } } else e.target.classList.remove("in"); }); }, { threshold: .55 }); S2.forEach(function (x) { io.observe(x); }); }
   }
   var snapT; addEventListener("resize", function () { clearTimeout(snapT); snapT = setTimeout(function () { var m = $("#main"); if (!m) return; $$(".scr", m).forEach(function (w) { while (w.firstChild) m.insertBefore(w.firstChild, w); w.remove(); }); snapPack(); }, 250); });
   /* ---------------------------------------------------------------- QUOTIDIEN (accueil) */
@@ -3012,7 +3035,9 @@
       $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || ""; document.body.dataset.moment = moment0(); skyFx(); momLine(); document.body.classList.toggle("home", v.tab === "#/" && v.title === "NÛR"); var pp = prof(); document.body.dataset.prof = pp && pp.type ? pp.type : "adulte";
       if (v.bind) v.bind(main);
       $("#title").textContent = v.title === "NÛR" ? "NÛR" : tr(v.title || ""); if (v.title === "NÛR") $("#title").innerHTML = '<img class="brand" src="icon-192.png" alt=""> NÛR <span class="ar" aria-hidden="true">نور</span>';
-      sayBtn(); i18n(main); setTimeout(snapPack, 60); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);
+      sayBtn(); i18n(main); setTimeout(snapPack, 60);
+      var ti = TABS.map(function (t) { return t[0]; }).indexOf(v.tab), pv = window.__nurTab; main.classList.remove("fromL", "fromR", "fromB"); void main.offsetWidth;
+      main.classList.add(ti >= 0 && pv >= 0 && ti !== pv ? (ti > pv ? "fromR" : "fromL") : "fromB"); window.__nurTab = ti; if (ti >= 0 || !v.back) scrollTo(0, 0); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);
       if (keepScroll) window.scrollTo(0, y0); else if (!params.a) window.scrollTo(0, 0);
       main.focus({ preventScroll: true });
     }).catch(function (e) {
