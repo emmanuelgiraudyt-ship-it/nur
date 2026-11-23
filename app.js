@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.0.2";
+  var VERSION = "2.1.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -986,6 +986,37 @@
     var g = 0; S.jeux = S.jeux || {}; for (var i = 0; i < 7; i++) g += Math.min(1, S.jeux[dayKey(addDays(b, -i))] || 0);
     return ["Quête de la semaine", "5 jours d'objectifs et 3 jours de jeux", Math.min(5, last(7, function (d) { return d.p > 0; })) + Math.min(3, g), 8];
   }
+
+  /* v2.1 : pages découpées en écrans qui se calent, selon la taille du téléphone */
+  var SNAP = ["#/", "#/priere", "#/apprendre", "#/plus", "#/reciter", "#/profil"];
+  function snapPack() {
+    var main = $("#main"), h = location.hash || "#/", on = SNAP.indexOf(h === "" ? "#/" : h) >= 0 && innerWidth < 900;
+    document.documentElement.classList.toggle("snap", on);
+    var old = $("#sdots"); if (old) old.remove();
+    if (!on || !main) return;
+    var top = ($("#top") || {}).offsetHeight || 56, ml = $("#momline"), tb = ($("#tabs") || {}).offsetHeight || 60;
+    if (ml && getComputedStyle(ml).display !== "none") top += ml.offsetHeight;
+    var avail = innerHeight - top - tb - 8, kids = [].slice.call(main.children).filter(function (c) { return !c.classList.contains("scr"); });
+    if (!kids.length) return;
+    document.documentElement.style.setProperty("--scrH", avail + "px");
+    var secs = [], cur = [], hh = 0;
+    kids.forEach(function (c) {
+      var cs = getComputedStyle(c), ch = c.getBoundingClientRect().height + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+      var head = /^H[23]$/.test(c.tagName);
+      if (cur.length && (hh + ch > avail || (head && hh > avail * .55))) { secs.push(cur); cur = []; hh = 0; }
+      cur.push(c); hh += ch;
+    });
+    if (cur.length) secs.push(cur);
+    if (secs.length < 2) { document.documentElement.classList.remove("snap"); return; }
+    secs.forEach(function (g, i) { var w = document.createElement("section"); w.className = "scr"; w.setAttribute("aria-label", (i + 1) + " / " + secs.length); main.insertBefore(w, g[0]); g.forEach(function (c) { w.appendChild(c); }); });
+    var dots = document.createElement("nav"); dots.id = "sdots"; dots.setAttribute("aria-hidden", "true");
+    dots.innerHTML = secs.map(function (_, i) { return '<i' + (i ? '' : ' class="on"') + '></i>'; }).join("");
+    document.body.appendChild(dots);
+    var S2 = $$(".scr", main), D2 = $$("#sdots i");
+    D2.forEach(function (d, i) { d.onclick = function () { S2[i].scrollIntoView({ behavior: "smooth" }); }; });
+    if ("IntersectionObserver" in window) { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var i = S2.indexOf(e.target); D2.forEach(function (d, j) { d.classList.toggle("on", j === i); }); } }); }, { threshold: .55 }); S2.forEach(function (x) { io.observe(x); }); }
+  }
+  var snapT; addEventListener("resize", function () { clearTimeout(snapT); snapT = setTimeout(function () { var m = $("#main"); if (!m) return; $$(".scr", m).forEach(function (w) { while (w.firstChild) m.insertBefore(w.firstChild, w); w.remove(); }); snapPack(); }, 250); });
   /* ---------------------------------------------------------------- QUOTIDIEN (accueil) */
   route(/^\/?$/, function () {
     return loadOpt().then(function (opt) {
@@ -2981,7 +3012,7 @@
       $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || ""; document.body.dataset.moment = moment0(); skyFx(); momLine(); document.body.classList.toggle("home", v.tab === "#/" && v.title === "NÛR"); var pp = prof(); document.body.dataset.prof = pp && pp.type ? pp.type : "adulte";
       if (v.bind) v.bind(main);
       $("#title").textContent = v.title === "NÛR" ? "NÛR" : tr(v.title || ""); if (v.title === "NÛR") $("#title").innerHTML = '<img class="brand" src="icon-192.png" alt=""> NÛR <span class="ar" aria-hidden="true">نور</span>';
-      sayBtn(); i18n(main); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);
+      sayBtn(); i18n(main); setTimeout(snapPack, 60); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);
       if (keepScroll) window.scrollTo(0, y0); else if (!params.a) window.scrollTo(0, 0);
       main.focus({ preventScroll: true });
     }).catch(function (e) {

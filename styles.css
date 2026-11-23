@@ -692,3 +692,39 @@ body:not(.home) { padding-top: calc(env(safe-area-inset-top, 0px) + 82px); }
 /* v2.0.2 : cocher une prière oubliée */
 .pck { font: inherit; flex: none; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--accent); background: var(--panel); cursor: pointer; margin-right: .3rem; padding: 0; }
 .pck.on { background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12l4 4 8-8' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 18px no-repeat; animation: nurPop .26s ease-out; }
+
+/* ================================================================ v2.1 : écrans qui se calent, taille adaptée au téléphone */
+html.snap { scroll-snap-type: y mandatory; scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 82px); }
+body.home { --_pt: 56px; }
+html.snap .scr { scroll-snap-align: start; min-height: var(--scrH, 70vh); display: flex; flex-direction: column; justify-content: flex-start; padding-bottom: .4rem; }
+html.snap .scr > *:last-child { margin-bottom: 0; }
+html.snap #main { padding-bottom: .5rem; }
+#sdots { position: fixed; right: 5px; top: 50%; transform: translateY(-50%); z-index: 18; display: flex; flex-direction: column; gap: 7px; }
+#sdots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(23,128,106,.25); transition: all .25s; cursor: pointer; }
+#sdots i.on { background: #17806A; height: 18px; border-radius: 4px; }
+/* miniaturisation selon la hauteur de l'écran */
+@media (max-height: 760px) {
+  body { font-size: calc(15.5px * var(--fs)); line-height: 1.5; }
+  .card { padding: .7rem .85rem; margin-bottom: .6rem; }
+  .heroQ { padding: .75rem .9rem; }
+  .heroQ .hn { font-size: 1.35rem; } .heroQ .ht { font-size: 1.5rem; }
+  .hscene { width: 92px; height: 66px; }
+  .pq { min-height: 40px; padding: .3rem .1rem; }
+  .moment { margin-bottom: .45rem; } .moment span { font-size: .9rem; }
+  .ocell { padding: .45rem; font-size: .82rem; } .oi { width: 30px; height: 30px; }
+  .gico span { width: 48px; height: 48px; border-radius: 14px; } .ggrid { gap: .5rem .3rem; margin-bottom: .6rem; }
+  .astro { width: 54px; height: 54px; }
+  h2 { font-size: 1.3rem; margin: .3rem 0 .5rem; } h3 { margin: .6rem 0 .4rem; }
+  .constel { max-height: 110px; }
+  .t2 img { height: 66px; }
+}
+@media (max-height: 660px) {
+  body { font-size: calc(14.5px * var(--fs)); }
+  .qhead .avatar { width: 40px; height: 40px; }
+  .heroQ .ht { font-size: 1.35rem; } .hscene { width: 76px; height: 56px; }
+  .pq b { font-size: .82rem; } .pq span { font-size: .66rem; }
+  .gico span { width: 42px; height: 42px; } .gico { font-size: .72rem; }
+  .tabs a { min-height: 50px; font-size: .72rem; }
+  .srow { padding: .45rem .2rem; }
+}
+@media (prefers-reduced-motion: reduce) { #sdots i { transition: none; } }
