@@ -673,3 +673,19 @@ body[data-moment="nuit"] .skyfx b { background: radial-gradient(circle, rgba(246
 .astro { transition: background .8s ease; }
 @media (prefers-reduced-motion: reduce) { body::after, .skyfx i, .skyfx b, .hscene, .constel circle, #main > * { animation: none !important; } }
 @media (min-width: 900px) { .tabs { background: color-mix(in srgb, var(--sky1, #fff) 60%, #fff) !important; } }
+
+/* ================================================================ v2.0.1 : image et message du moment sur toutes les pages */
+.skyfx .sk-cloud { position: absolute; width: 220px; height: 40px; border-radius: 40px; background: rgba(255,255,255,.8); filter: blur(6px); left: -260px; animation: skCloud 70s linear infinite; }
+.skyfx .sk-cloud.c1 { top: 16%; } .skyfx .sk-cloud.c2 { top: 32%; width: 160px; animation-duration: 95s; animation-delay: -40s; }
+body[data-moment="nuit"] .skyfx .sk-cloud { opacity: .15; } body[data-moment="soir"] .skyfx .sk-cloud, body[data-moment="aube"] .skyfx .sk-cloud { background: rgba(255,236,224,.75); }
+@keyframes skCloud { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 520px)); } }
+.skyfx .sk-city { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 96px; opacity: .13; fill: #17806A; transition: fill 1.2s; }
+body[data-moment="aube"] .skyfx .sk-city { fill: #8E6A8F; } body[data-moment="matin"] .skyfx .sk-city { fill: #9A6F12; } body[data-moment="soir"] .skyfx .sk-city { fill: #7A3B2E; } body[data-moment="nuit"] .skyfx .sk-city { fill: #3B4C86; opacity: .2; }
+.skyfx i { width: 3px; height: 3px; }
+body[data-moment="nuit"] .skyfx i { background: #5B6BA8; box-shadow: 0 0 6px #8E9CD8; }
+#momline { position: fixed; z-index: 19; left: 0; right: 0; max-width: 480px; margin: 0 auto; top: calc(env(safe-area-inset-top, 0px) + 56px); padding: .22rem .7rem; text-align: center; font-size: .76rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: color-mix(in srgb, var(--sky1, #FBF8F1) 75%, #fff); border-bottom: 1px solid var(--line); animation: nurIn .6s ease-out; transition: background 1.2s; }
+body.home #momline, body:has(.ob) #momline { display: none; }
+body:not(.home) { padding-top: calc(env(safe-area-inset-top, 0px) + 82px); }
+@media (min-width: 900px) { #momline { left: 220px; max-width: none; } }
+@media (prefers-reduced-motion: reduce) { .skyfx .sk-cloud, #momline { animation: none !important; } }

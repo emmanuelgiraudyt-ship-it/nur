@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.0.0";
+  var VERSION = "2.0.1";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -904,9 +904,12 @@
     if (document.querySelector(".skyfx")) return;
     var d = document.createElement("div"), h = "<b></b>"; d.className = "skyfx"; d.setAttribute("aria-hidden", "true");
     for (var i = 0; i < 26; i++) h += '<i style="left:' + (rnd(i + 7) * 100).toFixed(1) + '%;top:' + (rnd(i + 70) * 100).toFixed(1) + '%;animation-delay:' + (rnd(i + 170) * 4).toFixed(2) + 's"></i>';
+    h += '<span class="sk-cloud c1"></span><span class="sk-cloud c2"></span><svg class="sk-city" viewBox="0 0 400 60" preserveAspectRatio="xMidYMax slice"><path d="M0 60V44h30V36h8v-6h2v6h8v8h40V30c0-8 10-14 16-18 6 4 16 10 16 18v14h18V22h4v-6h2v6h4v22h40V38c0-6 6-10 10-12 4 2 10 6 10 12v6h46V34h6v-8h2v8h6v10h40V40c0-5 6-8 9-10 3 2 9 5 9 10v4h30v16z"/></svg>';
     d.innerHTML = h; document.body.insertBefore(d, document.body.firstChild);
-    setInterval(function () { document.body.dataset.moment = moment0(); }, 60000);
+    var ml = document.createElement("div"); ml.id = "momline"; ml.setAttribute("role", "note"); document.body.appendChild(ml);
+    setInterval(function () { document.body.dataset.moment = moment0(); momLine(); }, 60000);
   }
+  function momLine() { var m = document.getElementById("momline"); if (!m) return; var mo = document.body.dataset.moment || "jour", M = MOM[mo]; m.textContent = tr(M[0]) + " · " + tr(isChild() ? MOMK[mo] : M[1]); }
   function moment0() { var L = loc(); try { return moment(timesFor(L, ymd(Date.now(), L.tz))); } catch (e) { return "jour"; } }
 
   /* ================================================================ v2.0 : constellation, 99 noms, jeux, quêtes */
@@ -2972,7 +2975,7 @@
         else location.hash = v.back;
       };
       drawTabs(v.tab === undefined ? null : v.tab); drawPts(!!v.bare);
-      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || ""; document.body.dataset.moment = moment0(); skyFx(); var pp = prof(); document.body.dataset.prof = pp && pp.type ? pp.type : "adulte";
+      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || ""; document.body.dataset.moment = moment0(); skyFx(); momLine(); document.body.classList.toggle("home", v.tab === "#/" && v.title === "NÛR"); var pp = prof(); document.body.dataset.prof = pp && pp.type ? pp.type : "adulte";
       if (v.bind) v.bind(main);
       $("#title").textContent = v.title === "NÛR" ? "NÛR" : tr(v.title || ""); if (v.title === "NÛR") $("#title").innerHTML = '<img class="brand" src="icon-192.png" alt=""> NÛR <span class="ar" aria-hidden="true">نور</span>';
       sayBtn(); i18n(main); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);
