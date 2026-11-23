@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.3.0";
+  var VERSION = "2.4.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -100,7 +100,7 @@
     else { d.pr[k] = 1; S.pts.prieres = (S.pts.prieres || 0) + PRI; }
     save();
   }
-  function firstTodo(d) { for (var i = 0; i < OBJ.length; i++) if (!d.f[OBJ[i][0]]) return i + 1; return 5; }
+  
   function weekHTML() {
     var L = loc(), t0 = ymd(Date.now(), L.tz), out = '<div class="week" aria-label="Régularité des sept derniers jours">';
     for (var i = 6; i >= 0; i--) {
@@ -296,7 +296,7 @@
       var o = ymd(now + shift * 864e5, L.tz); return hFmt(new Date(Date.UTC(o.y, o.m - 1, o.d, 12)));
     } catch (e) { return ""; }
   }
-  function gregStr() { return new Intl.DateTimeFormat(UIL(), { timeZone: loc().tz, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()); }
+  
 
   /* ------------------------------------------------------------ outils d'interface */
   var cleanups = [];
@@ -1064,6 +1064,11 @@
         '<div class="ogrid">' + A.map(function (s, i) {
           return '<a class="ocell' + (d.f[s[0]] ? " done" : "") + '" href="#/jour?e=' + (i + 1) + '"><span class="oi">' + (d.f[s[0]] ? ic("star", 18) : ic(SI[s[0]] || "doc", 18)) + '</span><span>' + s[1] + '</span></a>';
         }).join("") + '</div><div class="row between" style="margin-top:.5rem"><a class="btn" href="#/jour?e=' + Math.min(fp, A.length + 1) + '">' + (alldone ? "Voir mon bilan" : (fp > 1 ? "Continuer" : "Commencer")) + '</a><a class="lnk" href="#/routine">Personnaliser</a></div></div>';
+      var nowD = Date.now(), lastB = STORE.lastBackup || STORE.firstUse || 0; if (!STORE.firstUse) { STORE.firstUse = nowD; save(); }
+      if (!kidP && nowD - lastB > 30 * 864e5 && (STORE.backupSnooze || 0) < nowD) html += '<div class="card bkp"><strong>Sauvegarde du mois</strong><p>Tes données restent sur ce téléphone. Garde-en une copie, au cas où tu changerais d\'appareil.</p><div class="row between"><button class="btn" id="bkNow">Sauvegarder maintenant</button><button class="lnk" id="bkLater">Plus tard</button></div></div>';
+      var standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+      if (!standalone && !kidP && (STORE.visits || 0) >= 2 && !STORE.installHide) { var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        html += '<div class="card inst"><strong>Installe NÛR sur ton téléphone</strong><p>' + (ios ? "Touche le bouton Partager de Safari, puis « Sur l\'écran d\'accueil ». NÛR s\'ouvrira comme une application, même hors ligne." : "Une icône sur ton écran d\'accueil, l\'ouverture en plein écran et le fonctionnement hors ligne.") + '</p><div class="row between">' + (!ios && deferredPrompt ? '<button class="btn" id="instNow">Installer</button>' : '<span></span>') + '<button class="lnk" id="instHide">Plus tard</button></div></div>'; }
       var Qq = quete(), ns = stars().length;
       html += '<a class="card plain-link qcard" href="#/constellation"><div class="row between"><div><strong>' + Qq[0] + '</strong><div class="muted small">' + Qq[1] + '</div></div><span class="pill gold">' + Math.min(Qq[2], Qq[3]) + ' / ' + Qq[3] + '</span></div><div class="bar"><i style="width:' + Math.round(100 * Math.min(Qq[2], Qq[3]) / Qq[3]) + '%"></i></div>' + constSVG(Math.min(ns, 21), false) + '<div class="muted small dots"><span>' + ns + ' étoiles allumées</span><span>Voir ma constellation</span></div></a>';
       if (alldone) html += '<div class="card assez"><strong>C\'est assez pour aujourd\'hui</strong><p>' + (kidP ? "Bravo, ta lanterne brille ! Va jouer et aide tes parents." : "Tes objectifs sont atteints. Ferme NÛR et vis ta journée : appelle un proche, prie à la mosquée, rends un service.") + '</p></div>';
@@ -1079,6 +1084,10 @@
 
       return { title: "NÛR", html: html, tab: "#/", bind: function (r) {
         $$("[data-pr]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pr); b.classList.add("pop"); setTimeout(render, 260); }; });
+        var bn = $("#bkNow", r); if (bn) bn.onclick = function () { save(); download("nur-sauvegarde-" + new Date().toISOString().slice(0, 10) + ".json", JSON.stringify({ nur: VERSION, store: STORE }, null, 1)); STORE.lastBackup = Date.now(); save(); toast("Sauvegarde enregistrée dans tes téléchargements."); render(); };
+        var bl = $("#bkLater", r); if (bl) bl.onclick = function () { STORE.backupSnooze = Date.now() + 7 * 864e5; save(); render(); };
+        var ih = $("#instHide", r); if (ih) ih.onclick = function () { STORE.installHide = true; save(); render(); };
+        var inn = $("#instNow", r); if (inn) inn.onclick = function () { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; } STORE.installHide = true; save(); render(); };
         var ph = $("#phelp", r); if (ph) ph.onclick = function () { toast("Touche une prière pour la cocher quand tu l'as accomplie. Suivi privé, sur cet appareil."); };
       } };
     });
@@ -1537,37 +1546,10 @@
     } };
   });
 
-  /* ---------------------------------------------------------------- Scanner halal (bêta) : label déclaré dans Open Food Facts */
+  /* ---------------------------------------------------------------- ancien lien du scanner, redirigé vers Plus */
   route(/^\/scanner$/, function () { location.hash = "#/plus"; return { title: "Plus", html: "" };
   });
-  route(/^\/scanner-ancien$/, function () {
-    var html = '<h2>Scanner halal <span class="pill">bêta</span></h2><div class="callout">Le scanner indique seulement si le label halal est déclaré pour ce produit dans la base publique Open Food Facts. Ce n\'est pas un avis religieux : en cas de doute, renseigne-toi auprès de ton imam.</div>' +
-      '<video id="vid" playsinline muted class="scanv" hidden></video><p class="row"><button class="btn" id="cam">Scanner avec la caméra</button></p>' +
-      '<label class="f" for="ean">Ou saisir le code-barres</label><div class="row"><input type="text" id="ean" inputmode="numeric" pattern="[0-9]*" maxlength="14" style="flex:1"><button class="btn alt" id="go">Vérifier</button></div><div id="res" aria-live="polite"></div>';
-    return { title: "Scanner halal", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
-      var stream = null, timer = null;
-      function stop() { if (timer) clearInterval(timer); timer = null; if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; $("#vid", r).hidden = true; }
-      onLeave(stop);
-      function look(code) {
-        code = String(code || "").replace(/\D/g, ""); if (code.length < 8) return toast("Code-barres incomplet.");
-        $("#res", r).innerHTML = '<p class="muted">Recherche du produit ' + esc(code) + '…</p>';
-        fetch("https://world.openfoodfacts.org/api/v2/product/" + code + ".json?fields=product_name,brands,labels_tags").then(function (x) { return x.json(); }).then(function (j) {
-          if (!j || j.status !== 1 || !j.product) { $("#res", r).innerHTML = '<div class="card"><strong>Produit introuvable</strong><p class="muted">Le code ' + esc(code) + ' n\'est pas dans Open Food Facts.</p></div>'; return; }
-          var p = j.product, h = (p.labels_tags || []).some(function (t) { return /halal/.test(t); });
-          $("#res", r).innerHTML = '<div class="card"><strong>' + esc(p.product_name || "Produit sans nom") + '</strong><div class="muted">' + esc(p.brands || "") + ' · ' + esc(code) + '</div><p class="big" style="font-size:1.2rem;margin:.6rem 0 0">' + (h ? "Label halal déclaré" : "Aucun label halal déclaré") + '</p><p class="muted">Source : Open Food Facts, données déclarées par les contributeurs.</p></div>';
-        }).catch(function () { $("#res", r).innerHTML = '<p class="callout warn">Connexion nécessaire pour interroger Open Food Facts.</p>'; });
-      }
-      $("#go", r).onclick = function () { look($("#ean", r).value); };
-      $("#cam", r).onclick = function () {
-        if (!("BarcodeDetector" in window) || !navigator.mediaDevices) return toast("Lecture par caméra indisponible sur ce navigateur : saisis le code.");
-        var det = new window.BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] }), v = $("#vid", r);
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (s) {
-          stream = s; v.srcObject = s; v.hidden = false; v.play();
-          timer = setInterval(function () { det.detect(v).then(function (c) { if (c && c.length) { var code = c[0].rawValue; stop(); $("#ean", r).value = code; look(code); } }).catch(function () {}); }, 400);
-        }).catch(function () { toast("Accès à la caméra refusé."); });
-      };
-    } };
-  });
+  
 
   /* ---------------------------------------------------------------- premier lancement, sur le modèle de MAARIFA */
   var obR = { prieres: true, routine: true, verset: true };
@@ -2003,92 +1985,15 @@
 
 
   // Accueil
-  function objectifsHTML(d) {
-    var n = 0; OBJ.forEach(function (o) { if (d.f[o[0]]) n++; });
-    var lab = n === 0 ? "Commencer" : (n < OBJ.length ? "Continuer" : "Revoir mes objectifs");
-    return '<div class="card"><div class="row between"><h3 style="margin:0">Objectifs du jour</h3><span class="pill">' + d.p + ' / ' + CAP + ' points</span></div>' +
-      '<p class="muted">Quelques minutes par jour, à ton rythme.</p><ol class="steps">' + OBJ.map(function (o, i) {
-        return '<li class="' + (d.f[o[0]] ? "done" : "") + '"><a href="#/jour?e=' + (i + 1) + '"><span>' + o[1] + '</span><span class="pt">' + (d.f[o[0]] ? "fait" : "+" + PTS[o[0]]) + '</span></a></li>';
-      }).join("") + '</ol><p class="row"><a class="btn" href="#/jour">' + lab + '</a></p>' + weekHTML() + '</div>';
-  }
-  function parcoursTileHTML(opt) {
-    var st = parcoursNow(opt); if (!st) return "";
-    var seuil = st.pal.seuil || 0, pct = seuil ? Math.min(100, Math.round(100 * st.pts / seuil)) : 0;
-    var line = st.cur ? "Étape " + st.cur.n + " sur " + st.tot + " : " + st.cur.titre : (st.tot ? "Toutes les étapes sont terminées" : (st.pal.etat || ""));
-    return '<a class="tile wide" href="#/parcours"><strong>Mon parcours : ' + esc(st.pal.nom) + '</strong><span>' + esc(line) + '</span>' +
-      (seuil ? '<div class="bar"><i style="width:' + pct + '%"></i></div><span>' + st.pts + ' / ' + seuil + ' points</span>' : '') + '</a>';
-  }
-  route(/^\/?$/, function () {
-    return loadOpt().then(function (opt) {
-      var np = nextPrayer(), L = loc(), p = prof(), d = dayRec(), last = S.last, html = "";
-      if (p && p.nom) html += '<p class="salut">Assalâmou ʿalaykoum, ' + esc(p.nom) + '</p>';
-      html += '<div class="card"><div class="muted">' + esc(gregStr()) + '</div><div class="big" style="margin:.2rem 0">' + esc(hijriStr()) + '</div>';
-      if (np) html += '<p style="margin:.4rem 0 0"><strong>' + np.name + ' à ' + fmtT(np.ts, np.tz) + '</strong> <span class="muted">(dans ' + countdown(np.ts) + ' — ' + esc(L.name) + ')</span></p>';
-      html += '<p class="row" style="margin:.6rem 0 0"><a class="btn alt" href="#/prieres">Heures de prière et qibla</a></p></div>';
-      var wd = new Intl.DateTimeFormat("en-US", { timeZone: L.tz, weekday: "short" }).format(new Date());
-      if (wd === "Fri" && opt.quot && opt.quot.vendredi) html += '<div class="callout">' + esc(opt.quot.vendredi) + '</div>';
-      if (S.settings.prayerTrack) {
-        var np5 = 0; ORDER.forEach(function (o) { if (d.pr[o[0]]) np5++; });
-        html += '<div class="card"><div class="row between"><strong>Mes prières du jour</strong><span class="pill">' + np5 + ' / 5</span></div><div class="chips">' + ORDER.map(function (o) {
-          return '<button class="chip' + (d.pr[o[0]] ? " on" : "") + '" data-pr="' + o[0] + '" aria-pressed="' + !!d.pr[o[0]] + '">' + o[1] + '</button>';
-        }).join("") + '</div><p class="muted" style="margin:0">Suivi privé, conservé sur cet appareil. ' + PRI + ' points par prière.</p></div>';
-      }
-      html += objectifsHTML(d) + parcoursTileHTML(opt);
-      html += '<div class="grid keep">' +
-        '<a class="tile" href="#/apprendre"><strong>Apprendre</strong><span>Parcours, alphabet, tajwid</span></a>' +
-        '<a class="tile" href="#/reciter"><strong>Réciter</strong><span>Coran en Warsh ʿan Nâfiʿ</span></a>' +
-        '<a class="tile" href="#/mediter"><strong>Méditer</strong><span>Verset du jour, journal</span></a>' +
-        '<a class="tile" href="#/aimer"><strong>Aimer</strong><span>Gratitude, invocations, partage</span></a></div>';
-      if (last) html += '<p style="margin-top:1rem"><a class="btn alt" href="#/reciter/' + last.s + '?a=' + last.a + '">Reprendre ma lecture</a></p>';
-      html += '<p class="muted" style="margin-top:1.2rem">Gratuit, sans publicité, sans traceur. Tes données restent sur ton appareil. <a href="#/plus">Plus d\'options</a>.</p>';
-      return { title: "NÛR", html: html, tab: "#/", bind: function (r) {
-        $$("[data-pr]", r).forEach(function (b) { b.onclick = function () { togglePrayer(b.dataset.pr); render(); }; });
-      } };
-    });
-  });
+  
+  
+  
 
   // Plus (menu secondaire)
-  route(/^\/plus$/, function () {
-    return loadOpt().then(function (opt) {
-      var kid = isChild(), don = opt.conf && opt.conf.don_url;
-      var html = '<ul class="list">' +
-        '<li><a href="#/parcours"><span class="nm">Mon parcours et mes points<small>Paliers, étapes, leçons, quiz</small></span></a></li>' +
-        '<li><a href="#/khatm"><span class="nm">Ma lecture complète du Coran<small>Khatm et lecture du jour</small></span></a></li>' +
-        '<li><a href="#/prieres"><span class="nm">Heures de prière et qibla</span></a></li>' +
-        '<li><a href="#/alphabet"><span class="nm">Alphabet et lecture<small>Pour débuter</small></span></a></li>' +
-        '<li><a href="#/niveaux"><span class="nm">Repères de mémorisation</span></a></li>' +
-        '<li><a href="#/profils"><span class="nm">Profils<small>Jusqu\'à cinq sur cet appareil, adultes et enfants</small></span></a></li>' +
-        (kid ? '' : '<li><a href="#/tidjaniya"><span class="nm">Tidjaniya — compteurs de dhikr<small>Compteurs pour ton wird et tes dhikr</small></span></a></li>') +
-        '<li><a href="#/enfant"><span class="nm">Espace enfant<small>Sourates courtes, étoiles</small></span></a></li>' +
-        '<li><a href="#/reglages"><span class="nm">Réglages</span></a></li>' +
-        '<li><a href="#/apropos"><span class="nm">À propos, sources et licences</span></a></li></ul>' +
-        (kid ? '' : '<div class="card"><h3>Soutenir NÛR' + (don ? '' : ' (en construction)') + '</h3><p>NÛR est gratuite et le restera. Un don libre, à partir de ' + (opt.conf.don_min_eur || 2) + ' euros, aidera à la faire vivre. Aucun accès ne dépend du don.</p>' +
-          (don ? '<p><a class="btn" href="' + esc(don) + '" target="_blank" rel="noopener">Faire un don</a></p>' : '<p class="muted">Le lien de don de l\'association sera ajouté ici dès qu\'il sera ouvert.</p>') + '</div>') +
-        '<div id="install" class="card" hidden><p>Installer NÛR sur cet appareil pour l\'utiliser hors ligne.</p><button class="btn" id="doInstall">Installer l\'application</button></div>' +
-        '<div class="callout">Sur iPhone ou iPad : ouvrez ce site dans Safari, touchez « Partager », puis « Sur l\'écran d\'accueil ».</div>';
-      return { title: "Plus", html: html, back: "#/", bind: function (r) {
-        if (deferredPrompt) { $("#install", r).hidden = false; $("#doInstall", r).onclick = function () { deferredPrompt.prompt(); deferredPrompt = null; $("#install", r).hidden = true; }; }
-      } };
-    });
-  });
+  
 
   // Réciter : liste
-  route(/^\/reciter$/, function () {
-    return loadQ().then(function (q) {
-      var ks = kStats(q);
-      var html = '<h2>Réciter</h2><div class="card"><div class="row between"><strong>Ma lecture complète</strong><span class="pill">' + ks.s + ' / 114 sourates</span></div><div class="bar"><i style="width:' + ks.pct + '%"></i></div><p class="muted" style="margin:.5rem 0 .6rem">' + ks.v.toLocaleString("fr-FR") + ' / ' + ks.tot.toLocaleString("fr-FR") + ' versets lus</p><p class="row" style="margin:0"><a class="btn" href="#/jour?k=lecture">Lecture du jour</a><a class="btn alt" href="#/khatm">Détail du khatm</a></p></div><label class="f" for="q">Rechercher une sourate (nom ou numéro)</label><input type="search" id="q" placeholder="Ex. 18, Al-Kahf, الكهف" autocomplete="off">' +
-        (S.last ? '<p style="margin-top:.8rem"><a class="btn" href="#/reciter/' + S.last.s + '?a=' + S.last.a + '">Reprendre : ' + esc(q.byN[S.last.s].fr) + ', verset ' + S.last.a + '</a></p>' : '') +
-        '<ul class="list" id="sl" style="margin-top:1rem">' + q.suras.map(function (s) {
-          return '<li data-k="' + esc((s.n + " " + s.en + " " + s.fr + " " + s.ar).toLowerCase()) + '"><a href="#/reciter/' + s.n + '"><span class="badge">' + s.n + '</span><span class="nm">' + esc(s.fr) + '<small>' + s.v.length + ' versets' + (kRead(s.n).length ? ' · ' + Math.min(kRead(s.n).length, s.v.length) + ' lus' : '') + '</small></span><span class="ar">' + esc(s.ar) + '</span></a></li>';
-        }).join("") + '</ul>';
-      return { title: "Réciter", html: html, tab: "#/reciter", bind: function (r) {
-        $("#q", r).addEventListener("input", function (e) {
-          var v = e.target.value.trim().toLowerCase();
-          $$("#sl li", r).forEach(function (li) { li.hidden = v && li.dataset.k.indexOf(v) < 0; });
-        });
-      } };
-    });
-  });
+  
 
   // Lecteur (Réciter / Apprendre)
   var readMode = null;
@@ -2239,7 +2144,7 @@
       } };
     });
   }
-  route(/^\/reciter\/(\d+)$/, function (m, params) { return readerView(+m[1], params, false); });
+  
 
   // Apprendre
   var TAJWID = [
@@ -2250,22 +2155,7 @@
     ["La qalqala et la ghunna", "<p>La <em>qalqala</em> est un léger rebondissement sur les lettres ق ط ب ج د lorsqu'elles sont muettes. La <em>ghunna</em> est la nasalisation de la nûn et de la mîm portant une chadda.</p>"],
     ["Particularités de la riwaya de Warsh", "<p>La riwaya de Warsh ʿan Nâfiʿ comporte des règles propres (mesure des prolongations, transfert de la hamza, prononciation pleine ou amincie de certaines lettres, lecture de la mîm du pluriel). Ces points doivent être enseignés <strong>avec l'imam garant</strong> ; ils ne sont pas détaillés ici pour éviter toute approximation.</p>"]
   ];
-  route(/^\/apprendre$/, function () {
-    return loadQ().then(function (q) {
-      var started = q.suras.filter(function (s) { return (S.hifz[s.n] || []).length; });
-      var html = '<h2>Apprendre</h2><a class="tile wide" href="#/parcours"><strong>Mon parcours, pas à pas</strong><span>Leçons courtes, quiz, fiches de révision, points et paliers</span></a><div class="grid keep" style="margin-bottom:1rem"><a class="tile" href="#/alphabet"><strong>Alphabet et lecture</strong><span>Lettres, voyelles, signes</span></a><a class="tile" href="#/niveaux"><strong>Mémorisation</strong><span>Mes repères, sourate par sourate</span></a></div><div class="card"><h3>Parcours de mémorisation</h3><p>Commencez par les dernières sourates, courtes et fréquemment récitées, puis remonte progressivement. Ouvre une sourate, choisis le mode « premier mot visible » ou « texte masqué », puis marquez chaque verset mémorisé.</p>' +
-        '<ul class="list">' + [114, 113, 112, 111, 110, 109, 108, 107, 106, 105].map(function (n) {
-          var s = q.byN[n], m = (S.hifz[n] || []).length;
-          return '<li><a href="#/reciter/' + n + '"><span class="badge">' + n + '</span><span class="nm">' + esc(s.fr) + '<small>' + m + ' / ' + s.v.length + ' mémorisés</small></span><span class="ar">' + esc(s.ar) + '</span></a></li>';
-        }).join("") + '</ul></div>';
-      if (started.length) html += '<div class="card"><h3>Mon suivi</h3><ul class="list">' + started.map(function (s) {
-        var m = S.hifz[s.n].length;
-        return '<li><a href="#/reciter/' + s.n + '"><span class="badge">' + s.n + '</span><span class="nm">' + esc(s.fr) + '<small>' + m + ' / ' + s.v.length + '</small></span></a></li>';
-      }).join("") + '</ul></div>';
-      html += '<h3>Tajwid</h3>' + NOTE_VALIDATION + TAJWID.map(function (t) { return '<details class="card"><summary><strong>' + esc(t[0]) + '</strong></summary>' + t[1] + '</details>'; }).join("");
-      return { title: "Apprendre", html: html, tab: "#/apprendre" };
-    });
-  });
+  
 
   // Méditer
   function versePool(q) {
@@ -2323,54 +2213,7 @@
 
   // Prières et qibla
   var monthOpen = false, dayOff = 0, compassOn = false;
-  route(/^\/prieres$/, function () {
-    var L = loc(), t0 = addDays(ymd(Date.now(), L.tz), dayOff), T = timesFor(L, t0), np = nextPrayer();
-    var method = P.METHODS[S.settings.method] || P.METHODS.MWL;
-    var html = '<h2>Heures de prière</h2><div class="card"><div class="row between"><div><strong>' + esc(L.name) + '</strong><div class="muted">' + L.lat.toFixed(3) + ', ' + L.lng.toFixed(3) + ' — ' + esc(L.tz) + '</div></div><a class="btn alt" href="#/reglages">Changer</a></div>' +
-      (L.def ? '<div class="callout warn">Lieu par défaut. Pour des horaires exacts, utilise ta position ou choisis ta ville dans les réglages.</div>' : "") + '</div>' +
-      '<div class="row between" style="margin:.4rem 0"><button class="btn alt" id="dm">Jour précédent</button><strong>' + dayKey(t0) + '</strong><button class="btn alt" id="dp">Jour suivant</button></div>' +
-      '<div class="prayers">' + ORDER.slice(0, 1).concat([["sunrise", "Chourouq (lever du soleil)"]]).concat(ORDER.slice(1)).map(function (p) {
-        var nx = dayOff === 0 && np && np.k === p[0] && np.ts === T[p[0]];
-        return '<div class="prayer' + (nx ? " next" : "") + '"><span>' + p[1] + (nx ? ' <span class="muted">(dans ' + countdown(np.ts) + ')</span>' : "") + '</span><span class="t">' + fmtT(T[p[0]], L.tz) + '</span></div>';
-      }).join("") + '</div>';
-    if (T.flags && (T.flags.fajrAdjusted || T.flags.ishaAdjusted)) html += '<div class="callout">Nuit courte à cette latitude : l\'angle choisi n\'est pas atteint ; ' + (T.flags.fajrAdjusted ? "Fajr " : "") + (T.flags.ishaAdjusted ? "Ichâʾ " : "") + 'est calculé selon la portion de la nuit (règle des hautes latitudes). Consulte l\'imam garant sur la convention à retenir.</div>';
-    html += '<p class="muted">Méthode : ' + esc(method.name) + '. Asr : ombre égale à la hauteur de l\'objet (rite malikite). Les horaires sont calculés sur ton appareil, sans connexion. Les mosquées locales peuvent retenir d\'autres conventions : ajustez les minutes dans les réglages.</p>' +
-      '<details class="card" id="md"' + (monthOpen ? " open" : "") + '><summary><strong>Les 30 prochains jours</strong></summary><div class="scroll" id="mt"></div></details>';
-    var qb = P.qibla(L.lat, L.lng);
-    html += '<div class="card"><h3>Qibla</h3><p>Direction de la Kaaba : <strong>' + qb.bearing.toFixed(1) + '°</strong> depuis le nord (à ' + Math.round(qb.distanceKm).toLocaleString("fr-FR") + ' km).</p>' +
-      '<div class="compass" id="cp" aria-label="Boussole de la qibla"><span class="n">N</span><div class="needle" id="nd"></div><div class="dot"></div></div>' +
-      '<p class="row" style="justify-content:center"><button class="btn alt" id="cb">Activer la boussole</button></p>' +
-      '<p class="muted" id="cs">Sans capteur, l\'aiguille indique la qibla lorsque le haut de l\'écran est orienté vers le nord.</p></div>';
-    return { title: "Prières", html: html, back: "#/", tab: null, bind: function (r) {
-      $("#dm", r).onclick = function () { dayOff--; render(); };
-      $("#dp", r).onclick = function () { dayOff++; render(); };
-      $("#md", r).addEventListener("toggle", function (e) { monthOpen = e.target.open; if (monthOpen) drawMonth(); });
-      function drawMonth() {
-        var base = ymd(Date.now(), L.tz), rows = "";
-        for (var i = 0; i < 30; i++) {
-          var d = addDays(base, i), X = timesFor(L, d);
-          rows += '<tr' + (i === 0 ? ' class="today"' : "") + '><td>' + String(d.d).padStart(2, "0") + '/' + String(d.m).padStart(2, "0") + '</td>' + ["fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha"].map(function (k) { return '<td>' + fmtT(X[k], L.tz) + '</td>'; }).join("") + '</tr>';
-        }
-        $("#mt", r).innerHTML = '<table class="month"><thead><tr><th>Jour</th><th>Fajr</th><th>Chrq</th><th>Dhr</th><th>Asr</th><th>Mgb</th><th>Ichâʾ</th></tr></thead><tbody>' + rows + '</tbody></table>';
-      }
-      if (monthOpen) drawMonth();
-      var needle = $("#nd", r), q = qb.bearing;
-      needle.style.transform = "rotate(" + q + "deg)";
-      function onOrient(e) {
-        var h = e.webkitCompassHeading != null ? e.webkitCompassHeading : (e.absolute && e.alpha != null ? 360 - e.alpha : null);
-        if (h == null) return;
-        needle.style.transform = "rotate(" + ((q - h + 360) % 360) + "deg)";
-        $("#cs", r).textContent = "Boussole active : tourne-toi jusqu'à ce que l'aiguille pointe vers le haut.";
-      }
-      $("#cb", r).onclick = function () {
-        function start() { window.addEventListener("deviceorientationabsolute", onOrient, true); window.addEventListener("deviceorientation", onOrient, true); compassOn = true; }
-        if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") {
-          DeviceOrientationEvent.requestPermission().then(function (s) { if (s === "granted") start(); else toast("Accès aux capteurs refusé."); }).catch(function () { toast("Capteur indisponible."); });
-        } else if (window.DeviceOrientationEvent) start(); else toast("Capteur d'orientation indisponible.");
-      };
-      onLeave(function () { window.removeEventListener("deviceorientationabsolute", onOrient, true); window.removeEventListener("deviceorientation", onOrient, true); });
-    } };
-  });
+  
 
   // Tidjaniya : compteurs
   route(/^\/ecoles$/, function () {
@@ -2477,7 +2320,7 @@
         if (STORE.profiles.some(function (p) { return isChild(p); })) return toast("Un profil enfant existe : le code parental ne peut pas être supprimé.");
         askPin("Code parental actuel").then(function (ok) { if (!ok) return; STORE.pin = null; save(); toast("Code supprimé."); render(); });
       };
-      $("#exp", r).onclick = function () { save(); download("nur-sauvegarde-" + new Date().toISOString().slice(0, 10) + ".json", JSON.stringify({ nur: VERSION, store: STORE }, null, 1)); };
+      $("#exp", r).onclick = function () { STORE.lastBackup = Date.now(); save(); download("nur-sauvegarde-" + new Date().toISOString().slice(0, 10) + ".json", JSON.stringify({ nur: VERSION, store: STORE }, null, 1)); };
       $("#imp", r).onchange = function (e) {
         var f = e.target.files[0]; if (!f) return; var fr = new FileReader();
         fr.onload = function () { try { var j = JSON.parse(fr.result); if (j && j.store && j.store.data) { localStorage.setItem(KEY2, JSON.stringify(j.store)); STORE = loadStore(); S = curData(); } else S = merge(DEF(), j); save(); applyTheme(); toast("Données importées."); render(); } catch (x) { toast("Fichier invalide."); } };
@@ -2653,46 +2496,7 @@
     var nxt = null; try { nxt = sessionStorage.getItem("nur:next"); sessionStorage.removeItem("nur:next"); } catch (e) {}
     location.hash = nxt && nxt.indexOf("#/") === 0 && nxt.indexOf("bienvenue") < 0 ? nxt : "#/";
   }
-  route(/^\/bienvenue$/, function (m, params) {
-    var e = Math.max(1, Math.min(4, +params.e || 1));
-    if (e === 3 && STORE.profiles.length) e = 4;
-    var bar = '<div class="prog"><div class="bar"><i style="width:' + (e * 25) + '%"></i></div><span class="muted">' + e + ' / 4</span></div>', html;
-    if (e === 1) html = '<img src="logo.svg" alt="NÛR" style="width:150px;display:block;margin:1rem auto"><h2>Bienvenue dans NÛR</h2>' +
-      '<p class="lead">Apprendre le Coran et les bases de la foi, pas à pas, à ton rythme.</p>' +
-      '<ul class="plain"><li>Gratuit, sans publicité.</li><li>Tes données restent sur ton appareil.</li><li>Un parcours simple, pour qui découvre comme pour qui reprend.</li></ul>' +
-      '<p><a class="btn big" href="#/bienvenue?e=2">Commencer</a></p><p><button class="btn alt" id="skip">Passer l\'introduction</button></p>';
-    else if (e === 2) html = '<h2>Comment tu vas avancer</h2><ul class="plain">' +
-      '<li><strong>Chaque jour</strong> : quatre petits objectifs, en quelques minutes. Une lecture, un verset, un dhikr, un hadith.</li>' +
-      '<li><strong>Chaque étape</strong> : quatre leçons courtes, un quiz et des fiches de révision.</li>' +
-      '<li><strong>Des points privés</strong> : ni classement, ni pénalité. Ils ouvrent les paliers : Étincelle, Flamme, Lanterne, Étoile.</li>' +
-      '<li><strong>Rien ne presse</strong> : on passe à la suite quand on se sent prêt.</li></ul>' +
-      '<p><a class="btn big" href="#/bienvenue?e=3">Continuer</a></p>';
-    else if (e === 3) html = '<h2>Ton profil</h2><div style="text-align:left">' + profilFormHTML() + '</div>' +
-      '<p><button class="btn big" id="go">Continuer</button></p><p><button class="btn alt" id="skip3">Passer</button></p>';
-    else html = '<h2>Ton lieu</h2><p>Le lieu sert à calculer les heures de prière. Il reste sur ton appareil.</p>' +
-      '<p><button class="btn big" id="gps">Utiliser ma position</button></p>' +
-      '<div style="text-align:left"><label class="f" for="city">Ou choisir une ville</label><select id="city"><option value="">—</option>' + CITIES.map(function (c, i) { return '<option value="' + i + '">' + esc(c[0]) + '</option>'; }).join("") + '</select></div>' +
-      '<p style="margin-top:1.2rem"><button class="btn alt" id="later">Plus tard</button></p>';
-    return { title: "Bienvenue", html: '<div class="ob">' + bar + html + '</div>', bare: true, tab: null, bind: function (r) {
-      var sk = $("#skip", r); if (sk) sk.onclick = finishOb;
-      if (typeof bindLang === "function") bindLang(r);
-      if (e === 3) {
-        bindProfilForm(r);
-        $("#go", r).onclick = function () { submitProfil(r).then(function (id) { if (!id) return; switchProfile(id); location.hash = "#/bienvenue?e=4"; }); };
-        $("#skip3", r).onclick = function () { switchProfile(addProfile({ nom: "", type: "adulte" })); location.hash = "#/bienvenue?e=4"; };
-      }
-      if (e === 4) {
-        var setL = function (l) { if (!STORE.profiles.length) switchProfile(addProfile({ nom: "", type: "adulte" })); S.settings.loc = l; save(); finishOb(); };
-        $("#gps", r).onclick = function () {
-          if (!navigator.geolocation) return toast("Géolocalisation indisponible. Choisis une ville.");
-          navigator.geolocation.getCurrentPosition(function (p) { setL({ name: "Ma position (GPS)", lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), tz: Intl.DateTimeFormat().resolvedOptions().timeZone }); },
-            function () { toast("Position refusée ou indisponible. Choisis une ville."); }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
-        };
-        $("#city", r).onchange = function (ev) { if (ev.target.value === "") return; var c = CITIES[+ev.target.value]; setL({ name: c[0], lat: c[1], lng: c[2], tz: c[3] }); };
-        $("#later", r).onclick = finishOb;
-      }
-    } };
-  });
+  
 
   route(/^\/profils$/, function () {
     return guardParent(function () {
@@ -3105,5 +2909,6 @@
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(function (ok) { if (!ok && STORE.onboarded) navigator.storage.persist(); }); } catch (e) {}
   /* v2.3 : un incident inattendu ne laisse jamais un écran vide */
   window.addEventListener("error", function (e) { try { var m = $("#main"); if (m && !m.children.length) { m.innerHTML = '<div class="card"><strong>Un incident est survenu</strong><p>Recharge l\'application. Tes données sont conservées sur ton appareil.</p><button class="btn" id="rld">Recharger</button></div>'; i18n(m); $("#rld", m).onclick = function () { location.reload(); }; } } catch (x) {} });
+  try { var vk = new Date().toISOString().slice(0, 10); if (STORE.lastVisit !== vk) { STORE.lastVisit = vk; STORE.visits = (STORE.visits || 0) + 1; save(); } } catch (e) {}
   window.__NUR__ = { render: render, state: function () { return S; }, store: function () { return STORE; } };
 })();

@@ -1,12 +1,26 @@
 /* NÛR — service worker : fonctionnement hors ligne (cache de l'application, du texte et de la police). */
-const VERSION = "nur-v2.3.0";
+const VERSION = "nur-v2.4.0";
 const SHELL = [
   "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./translit.js", "./contenus.js", "./manifest.webmanifest",
-  "./quran.json", "./phonetique.json", "./parcours.json", "./quotidien.json", "./config.json", "./traduction-fr.json", "./hafs.json", "./i18n-en.json", "./i18n-zh.json", "./i18n-ar.json", "./KFGQPC-Warsh-Uthmanic.ttf", "./LICENCE-KFGQPC.txt",
-  "./icon-192.png", "./logo.svg", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./img/icon-a.svg", "./img/icon-b.svg", "./img/icon-c.svg", "./img/ill-calendrier.svg", "./img/ill-cartes.svg", "./img/ill-dhikr.svg", "./img/ill-enfant.svg", "./img/ill-femme.svg", "./img/ill-jeune.svg", "./img/ill-kaaba.svg", "./img/ill-lanterne.svg", "./img/ill-mediter.svg", "./img/ill-nouveau.svg", "./img/ill-parcours.svg", "./img/ill-quran.svg", "./img/ill-tafsir.svg", "./img/ill-tidjaniya.svg", "./img/ill-wudu.svg", "./img/ill-zakat.svg", "./img/logo-light.svg", "./img/pattern-dark.svg", "./img/pattern-gold.svg", "./img/pattern-light.svg", "./img/scene-day.svg", "./img/scene-fajr.svg", "./img/scene-isha.svg", "./img/scene-maghrib.svg"
+  "./quran.json", "./phonetique.json", "./parcours.json", "./quotidien.json", "./config.json", "./traduction-fr.json", "./KFGQPC-Warsh-Uthmanic.ttf", "./icon-192.png", "./logo.svg", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./img/ill-calendrier.svg", "./img/ill-cartes.svg", "./img/ill-dhikr.svg", "./img/ill-enfant.svg", "./img/ill-femme.svg", "./img/ill-jeune.svg", "./img/ill-kaaba.svg", "./img/ill-lanterne.svg", "./img/ill-mediter.svg", "./img/ill-nouveau.svg", "./img/ill-parcours.svg", "./img/ill-quran.svg", "./img/ill-tafsir.svg", "./img/ill-tidjaniya.svg", "./img/ill-wudu.svg", "./img/ill-zakat.svg", "./img/logo-light.svg", "./img/pattern-gold.svg", "./img/pattern-light.svg", "./img/scene-day.svg", "./img/scene-fajr.svg", "./img/scene-isha.svg", "./img/scene-maghrib.svg"
 ];
+/* Mise à jour légère : les fichiers lourds qui ne changent pas (texte du Coran, police, icônes) sont repris du cache précédent
+   au lieu d'être retéléchargés ; les fichiers de langue déjà utilisés sur l'appareil sont rafraîchis. */
+const KEEP = /\/(quran\.json|KFGQPC-Warsh-Uthmanic\.ttf|icon-[^/]*\.png|apple-touch-icon\.png|img\/[^/]+\.svg)$/;
+const LANGF = /\/(i18n-(en|zh|ar)\.json|traduction-(en|zh)\.json|tafsir-ar\.json|hafs\.json)$/;
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(VERSION), old = (await caches.keys()).filter((k) => k !== VERSION && k !== "nur-audio");
+    const extra = [];
+    for (const k of old) for (const r of await (await caches.open(k)).keys()) if (LANGF.test(new URL(r.url).pathname)) extra.push(r.url);
+    await Promise.all(SHELL.map(async (u) => {
+      const abs = new URL(u, self.registration.scope).href;
+      if (KEEP.test(new URL(abs).pathname)) { const hit = await caches.match(abs); if (hit) return c.put(abs, hit); }
+      return c.add(u);
+    }));
+    await Promise.all([...new Set(extra)].map((u) => c.add(u).catch(() => {})));
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener("activate", (e) => {
   e.waitUntil(

@@ -768,3 +768,6 @@ html.snap .scr.long { border-radius: 26px 26px 0 0; }
 #main button, #main .btn, #main .chip, #main select, #main input:not([type=checkbox]):not([type=radio]), #main summary, #main .pill.mem { min-height: 36px; }
 #main .lnk { display: inline-block; padding: .35rem 0; }
 #main .pill.mem { display: inline-flex; align-items: center; padding: 0 .8rem; }
+/* v2.4 : sauvegarde mensuelle et invitation à installer */
+.card.bkp, .card.inst { border: 1px solid #C9A24B; background: linear-gradient(135deg, #FFF6E0, #FFFFFF); }
+.card.inst { background: linear-gradient(135deg, #E4F4EF, #FFFFFF); border-color: #17806A; }
