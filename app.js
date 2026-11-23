@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.9.0";
+  var VERSION = "2.0.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -86,10 +86,12 @@
   function dayIndex() { var t = ymd(Date.now(), loc().tz); return Math.floor(Date.UTC(t.y, t.m - 1, t.d) / 864e5); }
   function dayRec(k) { k = k || today(); if (!S.days[k]) S.days[k] = { f: {}, pr: {}, p: 0 }; return S.days[k]; }
   function pruneDays() { var ks = Object.keys(S.days).sort(); while (ks.length > 60) delete S.days[ks.shift()]; }
+  function stars() { if (!S.stars) S.stars = Object.keys(S.days).filter(function (k) { return Object.keys(S.days[k].f || {}).length; }).sort(); return S.stars; }
+  function addStar() { var L = stars(), k = today(); if (L.indexOf(k) < 0) L.push(k); }
   function award(kind) {
     var d = dayRec(); if (d.f[kind]) return 0;
     var add = Math.max(0, Math.min(PTS[kind] || 0, CAP - d.p));
-    d.f[kind] = 1; d.p += add; S.pts.pratique = (S.pts.pratique || 0) + add; pruneDays(); save();
+    d.f[kind] = 1; d.p += add; S.pts.pratique = (S.pts.pratique || 0) + add; addStar(); pruneDays(); save();
     return add;
   }
   function togglePrayer(k) {
@@ -889,16 +891,98 @@
   };
   function jourSpecial(L) {
     var b = ymd(Date.now(), L.tz), h = hNum(b), wd = new Intl.DateTimeFormat("en-US", { timeZone: L.tz, weekday: "short" }).format(new Date()), p = prof(), t = p && p.type;
-    if (h.m === 10 && h.d === 1) return ["Aïd al-Fiṭr moubârak", "Le jour de la fête de la rupture du jeûne.", "Bukhârî 956"];
-    if (h.m === 12 && h.d === 10) return ["Aïd al-Aḍḥâ moubârak", "Le jour de la fête du sacrifice.", "Bukhârî 956"];
-    if (h.m === 9) return ["Ramadân, jour " + h.d, "Le mois où le Coran a été révélé.", "Coran 2:185"];
-    if (h.m === 12 && h.d <= 9) return ["Les dix jours de Dhoû al-hijja", "Les œuvres pieuses y sont les plus aimées de Dieu.", "Bukhârî 969"];
+    if (h.m === 10 && h.d === 1) return ["Aïd al-Fiṭr moubârak", "Le jour de la fête de la rupture du jeûne.", "Bukhârî 956", 1];
+    if (h.m === 12 && h.d === 10) return ["Aïd al-Aḍḥâ moubârak", "Le jour de la fête du sacrifice.", "Bukhârî 956", 1];
+    if (h.m === 9) return ["Ramadân, jour " + h.d, "Le mois où le Coran a été révélé.", "Coran 2:185", 1];
+    if (h.m === 12 && h.d <= 9) return ["Les dix jours de Dhoû al-hijja", "Les œuvres pieuses y sont les plus aimées de Dieu.", "Bukhârî 969", 1];
     if (wd === "Fri") return ["Djoumouʿa moubâraka", t === "femme" || t === "fille" ? "La prière du vendredi n'est pas obligatoire pour la femme ; elle peut y assister. Lis Al-Kahf." : "Pense à la prière du vendredi à la mosquée et à la sourate Al-Kahf.", "Coran 62:9"];
-    if (h.d >= 13 && h.d <= 15) return ["Les jours blancs", "Il est recommandé de jeûner les 13, 14 et 15 du mois hégirien.", "Tirmidhî 761"];
+    if (h.d >= 13 && h.d <= 15) return ["Les jours blancs", "Il est recommandé de jeûner les 13, 14 et 15 du mois hégirien.", "Tirmidhî 761", 1];
     if (wd === "Mon" || wd === "Thu") return [wd === "Mon" ? "Lundi" : "Jeudi", "Un jour où le jeûne est recommandé, si tu le peux.", "Tirmidhî 747"];
     return null;
   }
+  function skyFx() {
+    if (document.querySelector(".skyfx")) return;
+    var d = document.createElement("div"), h = "<b></b>"; d.className = "skyfx"; d.setAttribute("aria-hidden", "true");
+    for (var i = 0; i < 26; i++) h += '<i style="left:' + (rnd(i + 7) * 100).toFixed(1) + '%;top:' + (rnd(i + 70) * 100).toFixed(1) + '%;animation-delay:' + (rnd(i + 170) * 4).toFixed(2) + 's"></i>';
+    d.innerHTML = h; document.body.insertBefore(d, document.body.firstChild);
+    setInterval(function () { document.body.dataset.moment = moment0(); }, 60000);
+  }
   function moment0() { var L = loc(); try { return moment(timesFor(L, ymd(Date.now(), L.tz))); } catch (e) { return "jour"; } }
+
+  /* ================================================================ v2.0 : constellation, 99 noms, jeux, quêtes */
+  function rnd(i) { var x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); }
+  function constSVG(n, big) {
+    var W = 320, H = big ? 110 * Math.max(1, Math.min(3, Math.ceil(n / 21))) : 150, out = "", prev = null;
+    for (var i = 0; i < n; i++) {
+      var g = Math.floor(i / 7), j = i % 7, cx = 55 + (g % 3) * 105, cy = (big ? 55 : 75) + (big ? Math.floor(g / 3) % 3 * 105 : 0);
+      var x = cx + (rnd(i) - .5) * 70, y = cy + (rnd(i + 99) - .5) * (big ? 70 : 90);
+      if (prev && j) out += '<line x1="' + prev[0].toFixed(1) + '" y1="' + prev[1].toFixed(1) + '" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#E9C46A" stroke-opacity=".45" stroke-width="1"/>';
+      out += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (j === 6 ? 4 : 2.6) + '" fill="#FFE9A8"/>';
+      prev = [x, y];
+    }
+    var bg = ""; for (var k = 0; k < 40; k++) bg += '<circle cx="' + (rnd(k + 500) * W).toFixed(0) + '" cy="' + (rnd(k + 900) * H).toFixed(0) + '" r=".7" fill="#fff" opacity=".35"/>';
+    return '<svg class="constel" viewBox="0 0 ' + W + ' ' + H + '" aria-hidden="true"><rect width="' + W + '" height="' + H + '" rx="16" fill="#1B2A4A"/>' + bg + out + '</svg>';
+  }
+  route(/^\/constellation$/, function () {
+    var n = stars().length, nc = Math.floor(n / 7);
+    var html = '<h2>Ma constellation</h2><p class="muted">Chaque jour où tu accomplis au moins un objectif allume une étoile. Sept étoiles forment une constellation.</p>' + constSVG(Math.min(n, 63), true) +
+      '<div class="projG" style="margin-top:.8rem"><div><b>' + n + '</b><span>étoiles allumées</span></div><div><b>' + nc + '</b><span>constellations</span></div></div>' +
+      (n > 63 ? '<p class="muted small">Les 63 dernières étoiles sont affichées.</p>' : '') +
+      '<p class="muted small" style="margin-top:.8rem">Une étoile manquée ne s\'éteint jamais : ton ciel ne fait que grandir.</p><button class="btn alt" id="csh">Partager mon ciel</button>';
+    return { title: "Constellation", html: html, back: "#/plus", tab: "#/plus", bind: function (r) {
+      $("#csh", r).onclick = function () { var t = tr("J'ai allumé {0} étoiles avec NÛR.").replace("{0}", n); if (navigator.share) navigator.share({ text: t }).catch(function () {}); else { try { navigator.clipboard.writeText(t); toast("Texte copié."); } catch (e) {} } };
+    } };
+  });
+  route(/^\/noms$/, function () {
+    var N = NC().noms || [], k = Math.min(99, stars().length + 1);
+    var html = '<h2>Les 99 noms de Dieu</h2><p class="muted">Un nom se dévoile pour chaque jour de régularité. Médite-le, puis invoque Dieu par ce nom.</p><p class="muted small">« Dieu a quatre-vingt-dix-neuf noms. » Source : Bukhârî 2736. Liste rapportée par at-Tirmidhî (3507).</p>' +
+      '<div class="pill gold" style="display:inline-block;margin:.3rem 0 .8rem">' + k + ' / 99</div><div class="ngrid">' + N.map(function (x, i) {
+        return i < k ? '<details class="ncard"><summary><span class="nn">' + (i + 1) + '</span><span class="nar" lang="ar" dir="rtl">' + esc(x[0]) + '</span><span class="ph">' + esc(x[1]) + '</span></summary><p>' + esc(x[2]) + '</p></details>' : '<div class="ncard locked"><span class="nn">' + (i + 1) + '</span><span class="nar" aria-hidden="true">✧</span></div>';
+      }).join("") + '</div>';
+    return { title: "99 noms", html: html, back: "#/plus", tab: "#/plus" };
+  });
+  var GLY = "ابتثجحخدذرزسشصضطظعغفقكلمنهوي".split(""), jeu = null;
+  function shuf(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function jeuWin() { S.jeux = S.jeux || {}; var k = today(); S.jeux[k] = (S.jeux[k] || 0) + 1; save(); }
+  route(/^\/jeux$/, function () {
+    var html = '<h2>Jeux d\'apprentissage</h2><p class="muted">Pour apprendre en jouant, quelques minutes. Pas de classement, pas de chrono.</p>' +
+      '<a class="card plain-link hcard" href="#/jeux/lettre"><span class="oi">' + ic("glossary", 22) + '</span><div><strong>Reconnais la lettre</strong><div class="muted">Trouve le nom de la lettre arabe.</div></div></a>' +
+      '<a class="card plain-link hcard" href="#/jeux/ordre"><span class="oi">' + ic("quran", 22) + '</span><div><strong>Remets la sourate dans l\'ordre</strong><div class="muted">Touche les versets du premier au dernier.</div></div></a>';
+    return { title: "Jeux", html: html, back: "#/plus", tab: "#/plus" };
+  });
+  route(/^\/jeux\/lettre$/, function () {
+    var Nm = NC().lettresAr || [];
+    if (!jeu || jeu.t !== "l") { var i = Math.floor(Math.random() * 28), oth = shuf(GLY.map(function (_, k) { return k; }).filter(function (k) { return k !== i; })).slice(0, 3); jeu = { t: "l", i: i, op: shuf([i].concat(oth)), ok: null }; }
+    var html = '<h2>Reconnais la lettre</h2><div class="glyph" lang="ar">' + GLY[jeu.i] + '</div><div class="ogrid">' + jeu.op.map(function (k) {
+      return '<button class="ocell gopt' + (jeu.ok !== null && k === jeu.i ? " done" : "") + (jeu.ok === false && k === jeu.pick ? " bad" : "") + '" data-g="' + k + '"><span class="nar" lang="ar" dir="rtl">' + esc(Nm[k] || "") + '</span></button>';
+    }).join("") + '</div>' + (jeu.ok === null ? '' : '<p>' + (jeu.ok ? "Bravo, c'est juste !" : "Ce n'est pas celle-là : la bonne réponse est en vert.") + '</p><button class="btn" id="gn">Lettre suivante</button>');
+    return { title: "Jeux", html: html, back: "#/jeux", tab: "#/plus", bind: function (r) {
+      $$("[data-g]", r).forEach(function (b) { b.onclick = function () { if (jeu.ok !== null) return; jeu.pick = +b.dataset.g; jeu.ok = jeu.pick === jeu.i; if (jeu.ok) jeuWin(); render(); }; });
+      var gn = $("#gn", r); if (gn) gn.onclick = function () { jeu = null; render(); };
+    } };
+  });
+  route(/^\/jeux\/ordre$/, function () {
+    return loadQ().then(function (q) {
+      var P = [112, 113, 114, 103, 108, 110, 111, 106, 107, 109];
+      if (!jeu || jeu.t !== "o") { var n = P[Math.floor(Math.random() * P.length)]; jeu = { t: "o", n: n, ord: shuf(q.byN[n].v.map(function (_, k) { return k; })), got: 0, err: -1 }; }
+      var su = q.byN[jeu.n], fin = jeu.got >= su.v.length;
+      var html = '<h2>Remets la sourate dans l\'ordre</h2><p><b>' + esc(su.fr) + '</b> <span class="ar" lang="ar">' + esc(su.ar) + '</span></p>' + (fin ? '' : '<p class="muted">Touche le verset ' + (jeu.got + 1) + '.</p>') + '<div class="vord">' + jeu.ord.map(function (k) {
+        var done = k < jeu.got, v = su.v[k];
+        return '<button class="vo' + (done ? " done" : "") + (jeu.err === k ? " bad" : "") + '" data-o="' + k + '"' + (done ? ' disabled' : '') + '><span class="nn">' + (done ? k + 1 : "?") + '</span><span class="ar" lang="ar" dir="rtl">' + esc(String(Array.isArray(v) ? v[1] : (typeof v === "string" ? v : (v.ar || v.t || ""))).replace(/[\s\u00a0]*[\u0660-\u0669\u06F0-\u06F9]+\s*$/, "")) + '</span></button>';
+      }).join("") + '</div>' + (fin ? '<p>Bravo, la sourate est complète !</p><button class="btn" id="gn">Une autre sourate</button>' : '');
+      return { title: "Jeux", html: html, back: "#/jeux", tab: "#/plus", bind: function (r) {
+        $$("[data-o]", r).forEach(function (b) { b.onclick = function () { var k = +b.dataset.o; if (k === jeu.got) { jeu.got++; jeu.err = -1; if (jeu.got >= su.v.length) jeuWin(); } else jeu.err = k; render(); }; });
+        var gn = $("#gn", r); if (gn) gn.onclick = function () { jeu = null; render(); };
+      } };
+    });
+  });
+  function quete() {
+    var L = loc(), b = ymd(Date.now(), L.tz), h = hNum(b), last = function (n, f) { var c = 0; for (var i = 0; i < n; i++) { var d = S.days[dayKey(addDays(b, -i))]; if (d && f(d)) c++; } return c; };
+    if (h.m === 9) return ["Quête du Ramadân", "Lire le Coran chaque jour du mois", last(h.d, function (d) { return d.f.lecture; }), 30];
+    if (h.m === 12 && h.d <= 10) return ["Quête de Dhoû al-hijja", "Un dhikr chaque jour des dix premiers jours", last(h.d, function (d) { return d.f.dhikr; }), 10];
+    var g = 0; S.jeux = S.jeux || {}; for (var i = 0; i < 7; i++) g += Math.min(1, S.jeux[dayKey(addDays(b, -i))] || 0);
+    return ["Quête de la semaine", "5 jours d'objectifs et 3 jours de jeux", Math.min(5, last(7, function (d) { return d.p > 0; })) + Math.min(3, g), 8];
+  }
   /* ---------------------------------------------------------------- QUOTIDIEN (accueil) */
   route(/^\/?$/, function () {
     return loadOpt().then(function (opt) {
@@ -915,7 +999,7 @@
           var tm = '<span>' + o[1] + '</span><b>' + fmtT(T[o[0]], L.tz) + '</b>';
           return track ? '<button class="pq' + (d.pr[o[0]] ? " on" : "") + '" data-pr="' + o[0] + '" aria-pressed="' + !!d.pr[o[0]] + '" aria-label="' + o[1] + ', accomplie">' + tm + '<i aria-hidden="true"></i></button>' : '<div class="pq">' + tm + '</div>';
         }).join("") + '</div></div>';
-      if (js) html += '<div class="card jspec"><span class="oi">' + ic("moon", 20) + '</span><div><strong>' + js[0] + '</strong><div>' + js[1] + '</div><div class="muted small">Source : ' + js[2] + '</div></div></div>';
+      if (js) html += '<div class="card jspec"><span class="oi">' + ic("moon", 20) + '</span><div><strong>' + js[0] + '</strong><div>' + js[1] + '</div><div class="muted small">Source : ' + js[2] + '</div>' + (js[3] ? '<div class="muted small">La date peut varier d\'un jour selon l\'observation du croissant dans ta mosquée.</div>' : '') + '</div></div>';
       if (fPause() && (!isChild() || st.prayerTrack)) html += '<a class="card plain-link gold" href="#/femme"><strong>Pause en cours</strong><div class="muted">Le suivi des prières est suspendu, sans perte de points.</div></a>';
       var A = activeSteps(), fp = firstPos(d), alldone = fp > A.length, SI = { verset: "doc", dhikr: "beads", hadith: "glossary", lecture: "quran" };
       var pc = Math.min(100, Math.round(d.p * 100 / CAP));
@@ -923,6 +1007,8 @@
         '<div class="ogrid">' + A.map(function (s, i) {
           return '<a class="ocell' + (d.f[s[0]] ? " done" : "") + '" href="#/jour?e=' + (i + 1) + '"><span class="oi">' + (d.f[s[0]] ? ic("star", 18) : ic(SI[s[0]] || "doc", 18)) + '</span><span>' + s[1] + '</span></a>';
         }).join("") + '</div><div class="row between" style="margin-top:.5rem"><a class="btn" href="#/jour?e=' + Math.min(fp, A.length + 1) + '">' + (alldone ? "Voir mon bilan" : (fp > 1 ? "Continuer" : "Commencer")) + '</a><a class="lnk" href="#/routine">Personnaliser</a></div></div>';
+      var Qq = quete(), ns = stars().length;
+      html += '<a class="card plain-link qcard" href="#/constellation"><div class="row between"><div><strong>' + Qq[0] + '</strong><div class="muted small">' + Qq[1] + '</div></div><span class="pill gold">' + Math.min(Qq[2], Qq[3]) + ' / ' + Qq[3] + '</span></div><div class="bar"><i style="width:' + Math.round(100 * Math.min(Qq[2], Qq[3]) / Qq[3]) + '%"></i></div>' + constSVG(Math.min(ns, 21), false) + '<div class="muted small dots"><span>' + ns + ' étoiles allumées</span><span>Voir ma constellation</span></div></a>';
       if (alldone) html += '<div class="card assez"><strong>C\'est assez pour aujourd\'hui</strong><p>' + (kidP ? "Bravo, ta lanterne brille ! Va jouer et aide tes parents." : "Tes objectifs sont atteints. Ferme NÛR et vis ta journée : appelle un proche, prie à la mosquée, rends un service.") + '</p></div>';
       else if (d.p === 0 && mo !== "aube") html += '<p class="muted small grace">Pas de série à perdre ici : reprends quand tu veux, à ton rythme.</p>';
       var nev = nextEvents(2);
@@ -1265,6 +1351,7 @@
         '<h3>Coran et apprentissage</h3><div class="ggrid">' + gi("#/mediter", "pen", "Méditer") + gi("#/revision", "refresh", "Révision") + gi("#/converti", "lantern", "Nouveau musulman") + gi("#/glossaire", "glossary", "Glossaire") + gi("#/audio", "audio", "Récitations hors ligne") + '</div>' +
         '<h3>Partager</h3><div class="ggrid">' + gi("#/cartes", "mail", "Cartes de vœux") + gi("#/aimer", "heart", "Gratitude et invocations") + '</div>' +
         '<h3>Spiritualité et famille</h3><div class="ggrid">' + (kid ? '' : gi("#/tidjaniya", "layers", "Tariqas")) + gi("#/evenements", "cal", "Événements") + gi("#/enfant", "star", "Espace enfant") + '</div>' +
+        '<h3>Jouer et progresser</h3><div class="ggrid">' + gi("#/constellation", "star", "Ma constellation") + gi("#/noms", "flower", "Les 99 noms") + gi("#/jeux", "path", "Jeux") + '</div>' +
         (kid ? '' : '<div class="card"><h3>Soutenir NÛR</h3><p>NÛR est gratuite et le restera. Un don libre aidera à la faire vivre ; aucun accès ne dépend d\'un don.</p>' + (don ? '<a class="btn alt" href="' + esc(don) + '" target="_blank" rel="noopener">Faire un don</a>' : '') + '</div>') +
         '<div id="install" class="card" hidden><p>Installe NÛR sur cet appareil pour l\'utiliser hors ligne.</p><button class="btn" id="doInstall">Installer l\'application</button></div>';
       return { title: "Plus", html: html, tab: "#/plus", bind: function (r) {
@@ -2885,7 +2972,7 @@
         else location.hash = v.back;
       };
       drawTabs(v.tab === undefined ? null : v.tab); drawPts(!!v.bare);
-      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || ""; document.body.dataset.moment = moment0(); var pp = prof(); document.body.dataset.prof = pp && pp.type ? pp.type : "adulte";
+      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || ""; document.body.dataset.moment = moment0(); skyFx(); var pp = prof(); document.body.dataset.prof = pp && pp.type ? pp.type : "adulte";
       if (v.bind) v.bind(main);
       $("#title").textContent = v.title === "NÛR" ? "NÛR" : tr(v.title || ""); if (v.title === "NÛR") $("#title").innerHTML = '<img class="brand" src="icon-192.png" alt=""> NÛR <span class="ar" aria-hidden="true">نور</span>';
       sayBtn(); i18n(main); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);

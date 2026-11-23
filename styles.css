@@ -608,3 +608,68 @@ body[data-prof="garcon"] { --soft: #E3F1FA; }
 body[data-prof="fille"] { --soft: #FBEDEA; }
 .heroQ .ht { font-size: 1.75rem; white-space: nowrap; }
 .heroQ .ht small { font-family: inherit; letter-spacing: 0; }
+
+/* ================================================================ v2.0 */
+.constel { width: 100%; height: auto; display: block; margin: .6rem 0 .3rem; border-radius: 16px; }
+.qcard .bar { margin: .5rem 0 0; }
+.ngrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.ncard { background: var(--panel); border: 1px solid #EED9A4; border-radius: 14px; padding: .5rem .4rem; text-align: center; box-shadow: inset 0 0 0 3px #FFF6E0; }
+.ncard summary { list-style: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .15rem; }
+.ncard .nn { font-size: .7rem; color: var(--muted); }
+.ncard .nar { font-family: "KFGQPC Warsh", "Amiri", serif; font-size: 1.25rem; color: #7F5A0C; line-height: 1.6; }
+.ncard .ph { font-size: .75rem; }
+.ncard p { font-size: .82rem; margin: .3rem 0 0; }
+.ncard.locked { background: var(--soft); border-style: dashed; box-shadow: none; opacity: .7; }
+.ncard.locked .nar { color: var(--muted); }
+.glyph { font-family: "KFGQPC Warsh", "Amiri", serif; font-size: 5rem; text-align: center; color: var(--accent); line-height: 1.6; margin: .5rem 0; }
+.gopt { font: inherit; justify-content: center; cursor: pointer; min-height: 56px; }
+.gopt .nar { font-family: "KFGQPC Warsh", "Amiri", serif; font-size: 1.3rem; }
+.ocell.bad, .vo.bad { border-color: #D9827B; background: #FBEDEA; }
+.vord { display: flex; flex-direction: column; gap: .5rem; }
+.vo { font: inherit; display: flex; gap: .6rem; align-items: center; text-align: right; padding: .6rem; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); cursor: pointer; }
+.vo .ar { flex: 1; font-family: "KFGQPC Warsh", "Amiri", serif; font-size: 1.25rem; line-height: 1.9; }
+.vo .nn { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.vo.done { background: var(--soft); opacity: .75; }
+.vo.done .nn { background: #F6E3A6; color: #7F5A0C; }
+@media (min-width: 900px) { .ngrid { grid-template-columns: repeat(6, minmax(0, 1fr)); } .constel { max-width: 520px; } }
+
+/* ================================================================ v2.0 : fond vivant selon le moment, sur toutes les pages */
+html { background: var(--bg); }
+body { background: transparent; }
+body::before { content: ""; position: fixed; inset: 0; z-index: -2; transition: background 1.2s ease;
+  background: linear-gradient(180deg, var(--sky1, #FBF8F1) 0%, var(--sky2, #FBF8F1) 100%); }
+body::after { content: ""; position: fixed; inset: -80px; z-index: -1; pointer-events: none; opacity: .5;
+  background-image: var(--skyfx, none), url(img/pattern-gold.svg); background-size: 100% 100%, 120px 120px;
+  animation: nurDrift 90s linear infinite; }
+@keyframes nurDrift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-120px, -120px, 0); } }
+body[data-moment="aube"] { --sky1: #F4E4EE; --sky2: #FBEBDD; --skyfx: radial-gradient(circle at 50% 110%, rgba(242,180,155,.55), transparent 55%); }
+body[data-moment="matin"] { --sky1: #FFF7E2; --sky2: #FBF8F1; --skyfx: radial-gradient(circle at 85% 0%, rgba(255,217,122,.55), transparent 45%); }
+body[data-moment="jour"] { --sky1: #EAF6F1; --sky2: #FBF8F1; --skyfx: radial-gradient(circle at 50% -10%, rgba(255,233,168,.5), transparent 50%); }
+body[data-moment="soir"] { --sky1: #FCE6D4; --sky2: #FFF3E3; --skyfx: radial-gradient(circle at 20% 105%, rgba(196,106,60,.35), transparent 55%); }
+body[data-moment="nuit"] { --sky1: #DDE4F3; --sky2: #EEF1F8; --skyfx: radial-gradient(circle at 80% 5%, rgba(59,76,134,.25), transparent 45%); }
+#main { background: transparent; }
+.top { background-color: color-mix(in srgb, var(--sky1, #FBF8F1) 88%, #fff); backdrop-filter: blur(6px); transition: background-color 1.2s; }
+.tabs { background: color-mix(in srgb, var(--sky2, #fff) 70%, #fff) !important; backdrop-filter: blur(6px); }
+/* étoiles scintillantes la nuit et à l'aube */
+.skyfx { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.skyfx i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #C9A24B; opacity: 0; animation: nurTwinkle 4s ease-in-out infinite; }
+body:not([data-moment="nuit"]):not([data-moment="aube"]) .skyfx i { display: none; }
+@keyframes nurTwinkle { 0%, 100% { opacity: 0; transform: scale(.6); } 50% { opacity: .8; transform: scale(1.2); } }
+/* halo du soleil le jour, lanterne qui respire le soir */
+.skyfx b { position: absolute; width: 260px; height: 260px; border-radius: 50%; right: -80px; top: -60px; background: radial-gradient(circle, rgba(255,217,122,.45), transparent 65%); animation: nurBreath 8s ease-in-out infinite; }
+body[data-moment="soir"] .skyfx b { right: auto; left: -90px; top: auto; bottom: 40px; background: radial-gradient(circle, rgba(196,106,60,.35), transparent 65%); }
+body[data-moment="nuit"] .skyfx b { background: radial-gradient(circle, rgba(246,227,166,.55), transparent 60%); width: 140px; height: 140px; right: 24px; top: 70px; }
+@keyframes nurBreath { 0%, 100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.12); opacity: 1; } }
+/* dynamique des cartes */
+.card, .ocell, .gico span, .srow, .ncard { transition: transform .18s ease, box-shadow .18s ease; }
+.card:active, .ocell:active, .ncard:active { transform: scale(.985); }
+@media (hover: hover) { .card.plain-link:hover, .ocell:hover, .ncard:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(15,91,75,.10); } }
+#main > * { animation: nurIn .35s cubic-bezier(.2,.7,.2,1) both; }
+#main > *:nth-child(2) { animation-delay: .04s; } #main > *:nth-child(3) { animation-delay: .08s; } #main > *:nth-child(4) { animation-delay: .12s; } #main > *:nth-child(5) { animation-delay: .16s; }
+.hscene { animation: nurFloat 6s ease-in-out infinite; }
+@keyframes nurFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.constel circle { animation: nurTwinkle 5s ease-in-out infinite; opacity: .9; }
+.constel circle:nth-child(3n) { animation-delay: 1.3s; } .constel circle:nth-child(5n) { animation-delay: 2.6s; }
+.astro { transition: background .8s ease; }
+@media (prefers-reduced-motion: reduce) { body::after, .skyfx i, .skyfx b, .hscene, .constel circle, #main > * { animation: none !important; } }
+@media (min-width: 900px) { .tabs { background: color-mix(in srgb, var(--sky1, #fff) 60%, #fff) !important; } }
