@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "1.8.0";
+  var VERSION = "1.9.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -867,6 +867,38 @@
   function ECOLE() { return '<div class="ecole">' + ic("school", 18) + '<span>Présenté selon l\'école malikite ; les écoles hanafite, chafiite et hanbalite peuvent différer. <a href="#/ecoles">Les 4 écoles</a></span></div>'; }
   function avat() { var i = initiale(); return i ? esc(i) : ic("user", 20); }
 
+  /* v1.9 : ambiance selon le moment, le jour et le profil */
+  function moment(T) {
+    var n = Date.now();
+    if (!(T.fajr === T.fajr)) return "jour";
+    if (n >= T.fajr && n < T.sunrise) return "aube";
+    if (n >= T.sunrise && n < T.dhuhr) return "matin";
+    if (n >= T.dhuhr && n < T.maghrib) return "jour";
+    if (n >= T.maghrib && n < T.isha) return "soir";
+    return "nuit";
+  }
+  var MOM = {
+    aube: ["L'aube se lève", "Commence par le Fajr, puis un verset court.", "#/reciter/112", "Lire une sourate courte", "scene-fajr"],
+    matin: ["Belle matinée", "Le bon moment pour apprendre une leçon.", "#/apprendre", "Ouvrir mon parcours", "scene-day"],
+    jour: ["Au cœur de la journée", "Une pause brève : un dhikr, puis tu reprends.", "#/dhikr", "Faire mon dhikr", "scene-day"],
+    soir: ["Le soleil se couche", "Le temps de la gratitude et du bilan du jour.", "#/aimer", "Gratitude et invocations", "scene-maghrib"],
+    nuit: ["Douce nuit", "Lis Âyat al-Koursî avant de dormir, puis repose-toi.", "#/reciter/2?a=255", "Lire Âyat al-Koursî", "scene-isha"]
+  };
+  var MOMK = {
+    aube: "La lanterne s'allume avec le jour !", matin: "Prêt pour une petite leçon ?", jour: "Une étoile t'attend aujourd'hui.", soir: "Raconte ce qui t'a rendu heureux aujourd'hui.", nuit: "Récite Al-Ikhlâṣ avant de dormir."
+  };
+  function jourSpecial(L) {
+    var b = ymd(Date.now(), L.tz), h = hNum(b), wd = new Intl.DateTimeFormat("en-US", { timeZone: L.tz, weekday: "short" }).format(new Date()), p = prof(), t = p && p.type;
+    if (h.m === 10 && h.d === 1) return ["Aïd al-Fiṭr moubârak", "Le jour de la fête de la rupture du jeûne.", "Bukhârî 956"];
+    if (h.m === 12 && h.d === 10) return ["Aïd al-Aḍḥâ moubârak", "Le jour de la fête du sacrifice.", "Bukhârî 956"];
+    if (h.m === 9) return ["Ramadân, jour " + h.d, "Le mois où le Coran a été révélé.", "Coran 2:185"];
+    if (h.m === 12 && h.d <= 9) return ["Les dix jours de Dhoû al-hijja", "Les œuvres pieuses y sont les plus aimées de Dieu.", "Bukhârî 969"];
+    if (wd === "Fri") return ["Djoumouʿa moubâraka", t === "femme" || t === "fille" ? "La prière du vendredi n'est pas obligatoire pour la femme ; elle peut y assister. Lis Al-Kahf." : "Pense à la prière du vendredi à la mosquée et à la sourate Al-Kahf.", "Coran 62:9"];
+    if (h.d >= 13 && h.d <= 15) return ["Les jours blancs", "Il est recommandé de jeûner les 13, 14 et 15 du mois hégirien.", "Tirmidhî 761"];
+    if (wd === "Mon" || wd === "Thu") return [wd === "Mon" ? "Lundi" : "Jeudi", "Un jour où le jeûne est recommandé, si tu le peux.", "Tirmidhî 747"];
+    return null;
+  }
+  function moment0() { var L = loc(); try { return moment(timesFor(L, ymd(Date.now(), L.tz))); } catch (e) { return "jour"; } }
   /* ---------------------------------------------------------------- QUOTIDIEN (accueil) */
   route(/^\/?$/, function () {
     return loadOpt().then(function (opt) {
@@ -874,7 +906,8 @@
       var html = '<div class="qhead"><a class="avatar" href="#/profil" aria-label="Mon profil">' + avat() + '</a><div><div class="salutM">Assalâmou ʿalaykoum' + (p && p.nom ? ', ' + esc(p.nom) : '') + '</div>' +
         '<a class="muted lieu" href="#/priere/reglages">' + ICO.pin + ' ' + esc(L.name) + '</a></div></div>';
       var track = !fPause() && (isChild() ? !!st.prayerTrack : !st.prayerOff), n5 = 0; ORDER.forEach(function (o) { if (d.pr[o[0]]) n5++; });
-      var sc = np && np.k === "fajr" ? "scene-fajr" : np && (np.k === "maghrib") ? "scene-maghrib" : np && np.k === "isha" ? "scene-isha" : "scene-day";
+      var mo = moment(T), M = MOM[mo], kidP = isChild(), sc = M[4], js = jourSpecial(L);
+      html += '<div class="moment"><b>' + M[0] + '</b><span>' + (kidP ? MOMK[mo] : M[1]) + '</span><a class="lnk" href="' + M[2] + '">' + M[3] + '</a></div>';
       html += '<div class="hero heroQ"><div class="hqx"><div><div class="hl">Prochaine prière</div><div class="hn">' + (np ? np.name : "—") + '</div>' +
         '<div class="ht">' + (np ? fmtT(np.ts, np.tz) : "") + ' <small>dans ' + (np ? countdown(np.ts) : "—") + '</small></div></div><img class="hscene" src="img/' + sc + '.svg" alt=""></div>' +
         '<div class="hl" style="margin-top:.6rem">Mes prières du jour' + (track ? ' · ' + n5 + ' / 5 <button class="hhelp" id="phelp" aria-label="Aide">?</button>' : '') + '</div>' +
@@ -882,12 +915,16 @@
           var tm = '<span>' + o[1] + '</span><b>' + fmtT(T[o[0]], L.tz) + '</b>';
           return track ? '<button class="pq' + (d.pr[o[0]] ? " on" : "") + '" data-pr="' + o[0] + '" aria-pressed="' + !!d.pr[o[0]] + '" aria-label="' + o[1] + ', accomplie">' + tm + '<i aria-hidden="true"></i></button>' : '<div class="pq">' + tm + '</div>';
         }).join("") + '</div></div>';
+      if (js) html += '<div class="card jspec"><span class="oi">' + ic("moon", 20) + '</span><div><strong>' + js[0] + '</strong><div>' + js[1] + '</div><div class="muted small">Source : ' + js[2] + '</div></div></div>';
       if (fPause() && (!isChild() || st.prayerTrack)) html += '<a class="card plain-link gold" href="#/femme"><strong>Pause en cours</strong><div class="muted">Le suivi des prières est suspendu, sans perte de points.</div></a>';
       var A = activeSteps(), fp = firstPos(d), alldone = fp > A.length, SI = { verset: "doc", dhikr: "beads", hadith: "glossary", lecture: "quran" };
-      html += '<div class="card objM"><div class="row between"><strong>Objectifs du jour</strong><span class="pill">' + d.p + ' / ' + CAP + ' pts</span></div>' +
-        '<div class="bar"><i style="width:' + Math.min(100, Math.round(d.p * 100 / CAP)) + '%"></i></div><div class="ogrid">' + A.map(function (s, i) {
+      var pc = Math.min(100, Math.round(d.p * 100 / CAP));
+      html += '<div class="card objM"><div class="row between"><div><strong>Objectifs du jour</strong><div class="muted small">Avec une intention sincère, pour Dieu.</div></div><span class="astro" style="--p:' + pc + '" aria-label="' + d.p + ' / ' + CAP + ' pts"><b>' + d.p + '</b><small>/ ' + CAP + '</small></span></div>' +
+        '<div class="ogrid">' + A.map(function (s, i) {
           return '<a class="ocell' + (d.f[s[0]] ? " done" : "") + '" href="#/jour?e=' + (i + 1) + '"><span class="oi">' + (d.f[s[0]] ? ic("star", 18) : ic(SI[s[0]] || "doc", 18)) + '</span><span>' + s[1] + '</span></a>';
         }).join("") + '</div><div class="row between" style="margin-top:.5rem"><a class="btn" href="#/jour?e=' + Math.min(fp, A.length + 1) + '">' + (alldone ? "Voir mon bilan" : (fp > 1 ? "Continuer" : "Commencer")) + '</a><a class="lnk" href="#/routine">Personnaliser</a></div></div>';
+      if (alldone) html += '<div class="card assez"><strong>C\'est assez pour aujourd\'hui</strong><p>' + (kidP ? "Bravo, ta lanterne brille ! Va jouer et aide tes parents." : "Tes objectifs sont atteints. Ferme NÛR et vis ta journée : appelle un proche, prie à la mosquée, rends un service.") + '</p></div>';
+      else if (d.p === 0 && mo !== "aube") html += '<p class="muted small grace">Pas de série à perdre ici : reprends quand tu veux, à ton rythme.</p>';
       var nev = nextEvents(2);
       html += '<a class="card plain-link hcard" href="#/evenements"><span class="oi">' + ic("cal", 22) + '</span><div><strong data-noi18n>' + esc(hijriStr()) + '</strong>' + (nev[0] ? '<div class="muted dots"><span>' + esc(nev[0][1]) + '</span><span>' + (nev[0][2] === 0 ? "aujourd'hui" : "dans " + nev[0][2] + " jours") + '</span></div>' : '') + '</div></a>';
       html += '<div class="tiles2"><a class="t2" href="#/apprendre"><img src="img/ill-parcours.svg" alt=""><b>Cours et quiz</b></a><a class="t2" href="#/khatm"><img src="img/ill-quran.svg" alt=""><b>Khatm</b></a></div>';
@@ -2848,7 +2885,7 @@
         else location.hash = v.back;
       };
       drawTabs(v.tab === undefined ? null : v.tab); drawPts(!!v.bare);
-      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || "";
+      $("#tabs").hidden = !!v.bare; document.body.classList.toggle("enfant", isChild()); document.body.dataset.r = v.tab || ""; document.body.dataset.moment = moment0(); var pp = prof(); document.body.dataset.prof = pp && pp.type ? pp.type : "adulte";
       if (v.bind) v.bind(main);
       $("#title").textContent = v.title === "NÛR" ? "NÛR" : tr(v.title || ""); if (v.title === "NÛR") $("#title").innerHTML = '<img class="brand" src="icon-192.png" alt=""> NÛR <span class="ar" aria-hidden="true">نور</span>';
       sayBtn(); i18n(main); i18n($("#tabs")); i18n(document.querySelector(".skip")); setTimeout(function () { i18n($("#top")); }, 60);
