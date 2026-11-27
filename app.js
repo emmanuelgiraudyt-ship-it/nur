@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.4.0";
+  var VERSION = "2.5.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -188,7 +188,8 @@
     var qz = S.parcours.quiz[pid + "." + et.n];
     return { lec: done, tot: et.lecons.length, quiz: !!(qz && qz.ok), best: qz ? qz.best : null, complete: done === et.lecons.length && !!(qz && qz.ok) };
   }
-  function etapeOpen(pal, n) {
+  function etapeOpen() { return true; }
+  function etapeConseil(pal, n) {
     if (n <= 1) return true;
     for (var i = 0; i < pal.etapes.length; i++) if (pal.etapes[i].n === n - 1) return etapeState(pal.id, pal.etapes[i]).complete;
     return false;
@@ -1395,8 +1396,8 @@
       var html = '<div class="lhead"><img src="img/ill-parcours.svg" alt=""><div><strong>Mon parcours : ' + esc(pal ? pal.nom : "") + '</strong><div class="muted">De l\'Étincelle à l\'Étoile, une étape après l\'autre.</div></div><a class="pill gold" href="#/parcours">' + (opt.parcours ? totalPts(opt) : 0) + ' pts</a></div>';
       if (cur) html += '<a class="ccard cbig" href="#/parcours/initie/' + cur.n + '"><span class="dur">≈ ' + dureeEtape(cur) + ' min</span><b>' + esc(cur.titre) + '</b><span>' + esc(cur.resume || "") + '</span><span class="muted2">Étape ' + cur.n + ' · ' + etapeState(pal.id, cur).lec + ' / 4 leçons ' + ICO.arrow + '</span></a>';
       html += '<ol class="etl">' + E.map(function (et) {
-        var stt2 = etapeState(pal.id, et), open = etapeOpen(pal, et.n);
-        return '<li><a class="' + (open ? "" : "locked") + (stt2.complete ? " done" : "") + '" href="#/parcours/initie/' + et.n + '"><span class="badge">' + (stt2.complete ? "✓" : et.n) + '</span><span class="nm"><b>' + esc(et.titre) + '</b><small>' + (stt2.complete ? "Terminé" : (open ? stt2.lec + " / 4 leçons · ≈ " + dureeEtape(et) + " min" : "S'ouvre après l'étape " + (et.n - 1))) + '</small></span></a></li>';
+        var stt2 = etapeState(pal.id, et);
+        return '<li><a class="' + (stt2.complete ? "done" : "") + '" href="#/parcours/initie/' + et.n + '"><span class="badge">' + (stt2.complete ? "✓" : et.n) + '</span><span class="nm"><b>' + esc(et.titre) + '</b><small>' + (stt2.complete ? "Terminé" : stt2.lec + " / " + stt2.tot + " leçons · ≈ " + dureeEtape(et) + " min") + '</small></span></a></li>';
       }).join("") + '</ol><a class="lnk" href="#/parcours">Voir tous les paliers</a>';
       function gi(href, n, t) { return '<a class="gico" href="' + href + '"><span>' + ic(n, 26) + '</span><b>' + t + '</b></a>'; }
       html += '<h3>Bibliothèque</h3><div class="ggrid">' + gi("#/alphabet", "glossary", "Alphabet et lecture") + gi("#/tajwid", "audio", "Tajwid") + gi("#/niveaux", "path", "Repères de mémorisation") + gi("#/revision", "refresh", "Révision du jour") +
@@ -1418,7 +1419,7 @@
       var html = '<a class="card plain-link prow" href="#/profil"><span class="avatar">' + avat() + '</span><div><strong>' + esc(p && p.nom ? p.nom : "Mon profil") + '</strong><div class="muted">Profil, famille, réglages</div></div>' + ICO.arrow + '</a>' +
         '<h3>Pratique</h3><div class="ggrid">' + gi("#/jeune", "moon", "Jeûne") + gi("#/zakat", "coin", "Zakât") + gi("#/dhikr", "beads", "Dhikr") + gi("#/qibla", "compass", "Qibla") + (!kid && femmeVisible() ? gi("#/femme", "flower", "Espace femme") : '') + gi("#/ecoles", "school", "Les 4 écoles") + '</div>' +
         '<h3>Coran et apprentissage</h3><div class="ggrid">' + gi("#/mediter", "pen", "Méditer") + gi("#/revision", "refresh", "Révision") + gi("#/converti", "lantern", "Nouveau musulman") + gi("#/glossaire", "glossary", "Glossaire") + gi("#/audio", "audio", "Récitations hors ligne") + '</div>' +
-        '<h3>Partager</h3><div class="ggrid">' + gi("#/cartes", "mail", "Cartes de vœux") + gi("#/aimer", "heart", "Gratitude et invocations") + '</div>' +
+        '<h3>Partager</h3><div class="ggrid">' + gi("#/cartes", "mail", "Cartes de vœux") + gi("#/aimer", "heart", "Gratitude et invocations") + gi("./decouvrir/", "lantern", "Présenter NÛR") + '</div>' +
         '<h3>Spiritualité et famille</h3><div class="ggrid">' + (kid ? '' : gi("#/tidjaniya", "layers", "Tariqas")) + gi("#/evenements", "cal", "Événements") + gi("#/enfant", "star", "Espace enfant") + '</div>' +
         '<h3>Jouer et progresser</h3><div class="ggrid">' + gi("#/constellation", "star", "Ma constellation") + gi("#/noms", "flower", "Les 99 noms") + gi("#/jeux", "path", "Jeux") + '</div>' +
         (kid ? '' : '<div class="card"><h3>Soutenir NÛR</h3><p>NÛR est gratuite et le restera. Un don libre aidera à la faire vivre ; aucun accès ne dépend d\'un don.</p>' + (don ? '<a class="btn alt" href="' + esc(don) + '" target="_blank" rel="noopener">Faire un don</a>' : '') + '</div>') +
@@ -2649,9 +2650,9 @@
         (kid ? '' : '<p class="muted">Parcours ouvert le ' + esc(S.parcours.opened.split("-").reverse().join("/")) + ' · temps passé dans NÛR : ' + durTxt(S.temps) + ' (pour information seulement).</p>') + '</div>';
       if (pal.etapes) {
         html += '<h3>Les étapes</h3><ul class="list">' + pal.etapes.map(function (et) {
-          var s = etapeState(pal.id, et), open = etapeOpen(pal, et.n);
-          var sub = s.complete ? "Étape terminée" : (open ? s.lec + " / " + s.tot + " leçons · quiz " + (s.quiz ? "réussi" : "à faire") : "S'ouvre après l'étape " + (et.n - 1));
-          return '<li class="' + (open ? "" : "locked") + '"><a href="#/parcours/' + pal.id + '/' + et.n + '"><span class="badge">' + (s.complete ? "✓" : et.n) + '</span><span class="nm">' + esc(et.titre) + '<small>' + esc(sub) + '</small></span></a></li>';
+          var s = etapeState(pal.id, et), open = true, cs = etapeConseil(pal, et.n);
+          var sub = s.complete ? "Étape terminée" : (s.lec + " / " + s.tot + " leçons · quiz " + (s.quiz ? "réussi" : "à faire"));
+          return '<li class="' + (open ? "" : "locked") + '"><a href="#/parcours/' + pal.id + '/' + et.n + '"><span class="badge">' + (s.complete ? "✓" : et.n) + '</span><span class="nm">' + esc(et.titre) + '<small>' + esc(sub) + '</small>' + (!s.complete && !cs ? '<small class="cons">Conseillée après l\'étape ' + (et.n - 1) + '</small>' : '') + '</span></a></li>';
         }).join("") + '</ul>';
         var c1 = st.done === st.tot, c2 = st.pts >= seuil;
         html += '<div class="card"><h3>Passer au palier suivant</h3><ul class="plain"><li>' + (c1 ? "✓" : "○") + ' Toutes les étapes terminées : ' + st.done + ' / ' + st.tot + '</li><li>' + (c2 ? "✓" : "○") + ' Seuil de points atteint : ' + st.pts + ' / ' + seuil + '</li><li>○ Validation orale auprès d\'un imam ou d\'un cheikh, déclarée ci-dessous</li></ul>';
@@ -2664,7 +2665,7 @@
       html += '<h3>Les paliers</h3>' + paliers(opt).map(function (p) {
         var dc = S.parcours.declared[p.id], cur = p.id === pal.id, titres = p.titres || (p.etapes || []).map(function (x) { return x.titre; });
         return '<details class="card"' + (cur ? " open" : "") + '><summary><strong>' + esc(p.nom) + '</strong>' + (p.repere ? ' <span class="muted">(' + esc(p.repere) + ')</span>' : '') + ' <span class="pill">' + (dc ? "déclaré le " + esc(dc.date.split("-").reverse().join("/")) : (cur ? "en cours" : (p.seuil ? p.seuil + " points" : "à venir"))) + '</span></summary>' +
-          (p.etat ? '<p class="muted">' + esc(p.etat) + '</p>' : '') + (titres.length ? '<ol>' + titres.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ol>' : '') + '</details>';
+          (p.etat ? '<p class="muted">' + esc(p.etat) + '</p>' : '') + (p.etapes && p.etapes.length ? '<ol class="etl">' + p.etapes.map(function (e) { var se = etapeState(p.id, e); return '<li><a class="' + (se.complete ? "done" : "") + '" href="#/parcours/' + p.id + '/' + e.n + '"><span class="badge">' + (se.complete ? "✓" : e.n) + '</span><span class="nm"><b>' + esc(e.titre) + '</b><small>' + se.lec + ' / ' + se.tot + ' leçons</small></span></a></li>'; }).join("") + '</ol>' : (titres.length ? '<ol>' + titres.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ol><p class="muted small">Contenu en préparation.</p>' : '')) + '</details>';
       }).join("");
       html += '<div class="callout">Les points sont privés : ni classement, ni pénalité. Les quiz se reprennent à volonté. ' + esc(opt.parcours.note || "") + '</div>';
       return { title: "Mon parcours", html: html, back: "#/apprendre", tab: "#/apprendre", bind: function (r) {
@@ -2751,7 +2752,7 @@
       var pal = x.pal, et = x.et, li = +m[3], lc = et.lecons[li - 1], back = "#/parcours/" + pal.id + "/" + et.n, B = bareme(opt);
       if (!lc) return NO_PARCOURS;
       var key = pal.id + "." + et.n + "." + li, done = !!S.parcours.lecons[key];
-      if (!etapeOpen(pal, et.n) || (li > 1 && !S.parcours.lecons[pal.id + "." + et.n + "." + (li - 1)])) return lockedView(back);
+      if (!lc) return lockedView(back);
       var nextHref = li < et.lecons.length ? back + "/" + (li + 1) : back;
       var html = '<p class="muted">Étape ' + et.n + ' · leçon ' + li + ' sur ' + et.lecons.length + '</p><div class="lesson"><h2>' + esc(lc.titre) + '</h2>' + lc.texte.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("");
       if (lc.lettres) html += '<div class="lgrid">' + LETTERS.slice(lc.lettres[0], lc.lettres[1]).map(function (l, i) {
@@ -2782,7 +2783,7 @@
       if (!etapeOpen(pal, et.n)) return lockedView("#/parcours");
       var html = '<p class="muted">' + esc(pal.nom) + ' · étape ' + et.n + ' sur ' + pal.etapes.length + '</p><h2>' + esc(et.titre) + '</h2><p>' + esc(et.resume || "") + '</p>' +
         '<h3>Les leçons</h3><ul class="list">' + et.lecons.map(function (l, i) {
-          var dn = !!S.parcours.lecons[pal.id + "." + et.n + "." + (i + 1)], open = i === 0 || !!S.parcours.lecons[pal.id + "." + et.n + "." + i];
+          var dn = !!S.parcours.lecons[pal.id + "." + et.n + "." + (i + 1)], open = true;
           return '<li class="' + (open ? "" : "locked") + '"><a href="' + base + '/' + (i + 1) + '"><span class="badge">' + (dn ? "✓" : (i + 1)) + '</span><span class="nm">' + esc(l.titre) + '<small>' + (dn ? "Terminée" : (open ? "+" + B.lecon + " points" : "S'ouvre après la leçon précédente")) + '</small></span></a></li>';
         }).join("") + '</ul>' +
         '<h3>Le quiz</h3><div class="card"><p>' + (s.quiz ? "Quiz réussi" + (s.best != null ? " (meilleur résultat : " + s.best + " %)." : ".") : (s.lec < s.tot ? "Le quiz s'ouvre quand les " + s.tot + " leçons sont terminées." : "Les leçons sont terminées : le quiz est ouvert." + (s.best != null ? " Meilleur résultat : " + s.best + " %." : ""))) + '</p>' +
