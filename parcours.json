@@ -1747,7 +1747,7 @@
       {
        "titre": "Le sens du jeûne",
        "texte": [
-        "Le jeûne du Ramadan est le quatrième pilier de l'islam. Dieu l'a prescrit « afin que vous atteigniez la piété ». (Coran 2:183)",
+        "Le jeûne du Ramadan est le quatrième pilier de l'islam. Dieu l'a prescrit « afin que vous atteigniez la piété ». (Coran 2:182 en Warsh, 2:183 en Hafs)",
         "On s'abstient de manger, de boire et des relations conjugales de l'aube (Fajr) au coucher du soleil (Maghrib)."
        ],
        "mots": [
@@ -1779,7 +1779,7 @@
       {
        "titre": "Les dispenses",
        "texte": [
-        "Le malade et le voyageur peuvent rompre le jeûne et rattraper les jours plus tard. (Coran 2:184)",
+        "Le malade et le voyageur peuvent rompre le jeûne et rattraper les jours plus tard. (Coran 2:183 en Warsh, 2:184 en Hafs)",
         "La femme en période de règles ou de lochies ne jeûne pas et rattrape ensuite ; la personne âgée qui ne peut pas jeûner nourrit un pauvre par jour, selon l'avis des savants."
        ],
        "mots": [
@@ -1790,7 +1790,7 @@
          "fr": "rattrapage"
         }
        ],
-       "retenir": "Dieu veut pour vous la facilité. (Coran 2:185)"
+       "retenir": "Dieu veut pour vous la facilité. (Coran 2:184 en Warsh, 2:185 en Hafs)"
       }
      ],
      "quiz": [
@@ -2490,7 +2490,7 @@
    "nom": "Lanterne",
    "repere": "Disciple",
    "seuil": 1800,
-   "etat": "Contenu en préparation, à valider avec l'imam garant.",
+   "etat": "Contenu relu selon les sources citées ; validation de l'imam garant en cours.",
    "titres": [
     "Le credo",
     "Les transactions",
@@ -2504,6 +2504,1124 @@
     "Les facilités du voyageur",
     "La transmission malikite dans la diaspora",
     "Épreuve de synthèse"
+   ],
+   "etapes": [
+    {
+     "n": 1,
+     "titre": "Le credo",
+     "resume": "Ce que le croyant affirme de Dieu, du message et du destin.",
+     "lecons": [
+      {
+       "titre": "Dieu ne ressemble à rien",
+       "texte": [
+        "Dieu est unique, sans associé, et rien ne Lui ressemble : « Rien n'est semblable à Lui, et Il est Celui qui entend et qui voit. » (Coran 42:9 en Warsh, 42:11 en Hafs)",
+        "Le croyant affirme les noms et les attributs que Dieu s'est donnés, sans Lui prêter de ressemblance avec les créatures. La Risâla d'Ibn Abî Zayd al-Qayrawânî s'ouvre sur ce credo."
+       ],
+       "mots": [
+        {
+         "ar": "التوحيد",
+         "tr": "at-tawḥīd",
+         "ph": "at-tawhîd",
+         "fr": "l'unicité de Dieu"
+        }
+       ],
+       "retenir": "Dieu est unique et rien ne Lui ressemble."
+      },
+      {
+       "titre": "Les anges, les livres et les messagers",
+       "texte": [
+        "Les anges sont créés de lumière et obéissent à Dieu. (Muslim 2996) Dieu a révélé des livres : la Torah, les Psaumes, l'Évangile et le Coran, qui les confirme.",
+        "Le Coran nomme vingt-cinq prophètes. Muhammad est le sceau des prophètes : il n'y en a pas après lui. (Coran 33:40)"
+       ],
+       "mots": [
+        {
+         "ar": "خاتم النبيين",
+         "tr": "khātam an-nabiyyīn",
+         "ph": "khâtam an-nabiyyîn",
+         "fr": "le sceau des prophètes"
+        }
+       ],
+       "retenir": "Le Coran confirme les messages qui l'ont précédé."
+      },
+      {
+       "titre": "Le destin et la responsabilité",
+       "texte": [
+        "Le croyant croit au destin (qadar), le bien comme le mal, car Dieu sait et décrète toute chose. (Muslim 8)",
+        "Le destin n'excuse pas la paresse : « Agissez, car chacun est facilité vers ce pour quoi il a été créé. » (Muslim 2647) Et « Dieu n'impose à aucune âme que selon sa capacité. » (Coran 2:285 en Warsh, 2:286 en Hafs)"
+       ],
+       "mots": [
+        {
+         "ar": "القدر",
+         "tr": "al-qadar",
+         "ph": "al-qadar",
+         "fr": "le destin"
+        }
+       ],
+       "retenir": "Croire au destin et agir avec sérieux vont ensemble."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "« Rien n'est semblable à Lui » signifie que :",
+       "c": [
+        "Dieu ressemble aux anges",
+        "Dieu ressemble à l'homme",
+        "Dieu ne ressemble à aucune créature"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Le sceau des prophètes est :",
+       "c": [
+        "Muhammad",
+        "Moïse",
+        "Jésus"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Les anges sont créés :",
+       "c": [
+        "De feu",
+        "De lumière",
+        "D'argile"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Croire au destin veut dire :",
+       "c": [
+        "Ne plus rien faire",
+        "Que l'homme n'est responsable de rien",
+        "Croire que Dieu sait et décrète tout, et agir quand même"
+       ],
+       "r": 2
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "titre": "Les transactions",
+     "resume": "Gagner sa vie dans la droiture.",
+     "lecons": [
+      {
+       "titre": "Le commerce et l'intérêt",
+       "texte": [
+        "« Dieu a rendu licite le commerce et illicite l'intérêt (ribâ). » (Coran 2:274 en Warsh, 2:275 en Hafs)",
+        "Le ribâ est un surplus exigé sur un prêt ou dans certains échanges. Le gain licite vient du travail, du commerce et du partage des risques."
+       ],
+       "mots": [
+        {
+         "ar": "الربا",
+         "tr": "ar-ribā",
+         "ph": "ar-ribâ",
+         "fr": "l'intérêt usuraire"
+        }
+       ],
+       "retenir": "Le commerce est permis, l'intérêt est interdit."
+      },
+      {
+       "titre": "Sincérité et clarté",
+       "texte": [
+        "Le Prophète a dit : « S'ils sont sincères et clairs, leur vente est bénie ; s'ils mentent et cachent, la bénédiction de leur vente est effacée. » (Bukhârî 2079 ; Muslim 1532)",
+        "Devant un tas de grain mouillé caché sous le grain sec, il a dit : « Celui qui trompe n'est pas des miens. » (Muslim 102)"
+       ],
+       "mots": [
+        {
+         "ar": "الصدق",
+         "tr": "aṣ-ṣidq",
+         "ph": "as-sidq",
+         "fr": "la sincérité"
+        }
+       ],
+       "retenir": "Une vente honnête est une vente bénie."
+      },
+      {
+       "titre": "Écrire les dettes",
+       "texte": [
+        "Le plus long verset du Coran demande de mettre par écrit les dettes à terme, devant témoins. (Coran 2:281 en Warsh, 2:282 en Hafs)",
+        "Écrire protège chacun et préserve l'amitié. Rembourser à temps est un devoir ; accorder un délai à celui qui est en difficulté est un mérite. (Coran 2:279 en Warsh, 2:280 en Hafs)"
+       ],
+       "mots": [
+        {
+         "ar": "الدَّين",
+         "tr": "ad-dayn",
+         "ph": "ad-dayn",
+         "fr": "la dette"
+        }
+       ],
+       "retenir": "On écrit les dettes et on les rembourse."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Le Coran rend illicite :",
+       "c": [
+        "Le travail",
+        "L'intérêt (ribâ)",
+        "Le commerce"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Une vente est bénie quand les deux parties sont :",
+       "c": [
+        "Pressées",
+        "Discrètes sur les défauts",
+        "Sincères et claires"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Le plus long verset du Coran porte sur :",
+       "c": [
+        "L'écriture des dettes",
+        "Le jeûne du mois de Ramadan",
+        "Le pèlerinage à La Mecque"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Face à un débiteur en difficulté, le Coran recommande :",
+       "c": [
+        "De rompre avec lui",
+        "De lui accorder un délai",
+        "D'ajouter un intérêt"
+       ],
+       "r": 1
+      }
+     ]
+    },
+    {
+     "n": 3,
+     "titre": "La famille",
+     "resume": "Le mariage, les parents et les liens du sang.",
+     "lecons": [
+      {
+       "titre": "Le mariage",
+       "texte": [
+        "« Parmi Ses signes, Il a créé pour vous des épouses afin que vous trouviez la quiétude auprès d'elles, et Il a mis entre vous affection et miséricorde. » (Coran 30:20 en Warsh, 30:21 en Hafs)",
+        "Selon la Risâla, il n'y a pas de mariage sans tuteur (walî), sans dot (ṣadâq) et sans deux témoins intègres. Le Prophète a dit qu'on ne marie pas une femme sans lui demander son accord. (Bukhârî 5136)"
+       ],
+       "mots": [
+        {
+         "ar": "المودة",
+         "tr": "al-mawadda",
+         "ph": "al-mawadda",
+         "fr": "l'affection"
+        }
+       ],
+       "retenir": "Le mariage repose sur l'affection, la miséricorde et des conditions claires."
+      },
+      {
+       "titre": "La bonté envers les parents",
+       "texte": [
+        "« Ton Seigneur a décrété que vous n'adoriez que Lui et que vous soyez bons envers vos père et mère. » (Coran 17:23)",
+        "Un homme demanda qui méritait le plus sa bonne compagnie ; le Prophète répondit trois fois : « Ta mère », puis : « Ton père. » (Bukhârî 5971 ; Muslim 2548)"
+       ],
+       "mots": [
+        {
+         "ar": "بر الوالدين",
+         "tr": "birr al-wālidayn",
+         "ph": "birr al-wâlidayn",
+         "fr": "la bonté envers les parents"
+        }
+       ],
+       "retenir": "Après Dieu, les parents ont droit à notre bonté."
+      },
+      {
+       "titre": "Les enfants et la parenté",
+       "texte": [
+        "« Chacun de vous est un berger, et chacun est responsable de son troupeau. » (Bukhârî 893 ; Muslim 1829) Les parents doivent à leurs enfants l'éducation, la tendresse et l'exemple.",
+        "« Que celui qui croit en Dieu et au Jour dernier entretienne les liens de parenté. » (Bukhârî 6138)"
+       ],
+       "mots": [
+        {
+         "ar": "صلة الرحم",
+         "tr": "ṣilat ar-raḥim",
+         "ph": "silat ar-rahim",
+         "fr": "les liens de parenté"
+        }
+       ],
+       "retenir": "Chacun est responsable de ceux qui lui sont confiés."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Selon la Risâla, le mariage exige :",
+       "c": [
+        "Un tuteur, une dot et deux témoins",
+        "Une grande fête",
+        "Un contrat écrit seulement"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Qui mérite le plus la bonne compagnie, selon le hadith ?",
+       "c": [
+        "L'ami",
+        "La mère",
+        "Le voisin"
+       ],
+       "r": 1
+      },
+      {
+       "q": "« Chacun de vous est un berger » signifie :",
+       "c": [
+        "Chacun doit garder des moutons",
+        "Seul le chef est responsable",
+        "Chacun est responsable de ceux qui lui sont confiés"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Entretenir les liens de parenté est :",
+       "c": [
+        "Une marque de foi",
+        "Une simple coutume",
+        "Réservé aux fêtes"
+       ],
+       "r": 0
+      }
+     ]
+    },
+    {
+     "n": 4,
+     "titre": "La transmission du Coran et Warsh",
+     "resume": "Du Prophète jusqu'à ton mushaf.",
+     "lecons": [
+      {
+       "titre": "Mémorisé et écrit",
+       "texte": [
+        "Le Coran fut révélé sur environ vingt-trois ans. Les Compagnons le mémorisaient et l'écrivaient sous la dictée du Prophète.",
+        "Abû Bakr le fit rassembler en un seul recueil, puis ʿUthmân en fit établir des copies envoyées dans les grandes villes. (Bukhârî 4986 ; 4987)"
+       ],
+       "mots": [
+        {
+         "ar": "المصحف",
+         "tr": "al-muṣḥaf",
+         "ph": "al-mous-haf",
+         "fr": "le mushaf (exemplaire écrit)"
+        }
+       ],
+       "retenir": "Le Coran nous est parvenu par la mémoire et par l'écrit."
+      },
+      {
+       "titre": "Les lectures",
+       "texte": [
+        "« Ce Coran a été révélé selon sept modes (aḥruf) ; lisez-le comme il vous est facile. » (Bukhârî 4992 ; Muslim 818)",
+        "Dix lectures (qirâʾât) sont reconnues. Chacune est transmise par deux rapporteurs : pour Nâfiʿ de Médine (mort en 169 de l'hégire), ce sont Warsh et Qâlûn."
+       ],
+       "mots": [
+        {
+         "ar": "القراءات",
+         "tr": "al-qirāʾāt",
+         "ph": "al-qirâʾât",
+         "fr": "les lectures du Coran"
+        }
+       ],
+       "retenir": "Les lectures reconnues sont toutes la parole de Dieu."
+      },
+      {
+       "titre": "Warsh ʿan Nâfiʿ",
+       "texte": [
+        "Warsh, ʿUthmân ibn Saʿîd al-Miṣrî (mort en 197 de l'hégire), apprit la lecture de Nâfiʿ à Médine. Sa transmission est la plus répandue au Maghreb et dans une grande partie de l'Afrique de l'Ouest ; ailleurs, c'est surtout Ḥafṣ ʿan ʿÂṣim.",
+        "Les différences sont minimes et toutes authentiques. Dans al-Fâtiḥa, Warsh lit « maliki yawmi d-dîn » là où Ḥafṣ lit « mâliki ». La numérotation des versets diffère aussi parfois : NÛR suit celle de Warsh."
+       ],
+       "mots": [
+        {
+         "ar": "رواية",
+         "tr": "riwāya",
+         "ph": "riwâya",
+         "fr": "transmission (d'une lecture)"
+        }
+       ],
+       "retenir": "NÛR suit la transmission de Warsh, rapporteur de Nâfiʿ."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Qui fit établir les copies du Coran envoyées dans les villes ?",
+       "c": [
+        "Abû Bakr",
+        "ʿAlî",
+        "ʿUthmân"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Combien de lectures (qirâʾât) sont reconnues ?",
+       "c": [
+        "Dix",
+        "Trois",
+        "Quarante"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Warsh est l'un des deux rapporteurs de :",
+       "c": [
+        "Ḥamza",
+        "Nâfiʿ",
+        "ʿÂṣim"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Dans al-Fâtiḥa, Warsh lit :",
+       "c": [
+        "Mâliki yawmi d-dîn",
+        "Malîki yawmi d-dîn",
+        "Maliki yawmi d-dîn"
+       ],
+       "r": 2
+      }
+     ]
+    },
+    {
+     "n": 5,
+     "titre": "Tajwid approfondi",
+     "resume": "D'où sortent les lettres et comment Warsh les colore.",
+     "lecons": [
+      {
+       "titre": "Les points d'articulation",
+       "texte": [
+        "Ibn al-Jazarî compte dix-sept points d'articulation (makhârij), répartis en cinq zones : la cavité de la bouche, la gorge, la langue, les lèvres et le nez.",
+        "Le ʿayn et le ḥâʾ sortent du milieu de la gorge ; le bâʾ et le mîm, des lèvres. Bien placer chaque lettre évite d'en changer le sens."
+       ],
+       "mots": [
+        {
+         "ar": "المخارج",
+         "tr": "al-makhārij",
+         "ph": "al-makhârij",
+         "fr": "les points d'articulation"
+        }
+       ],
+       "retenir": "Chaque lettre a son point de sortie."
+      },
+      {
+       "titre": "Lettres épaisses et rebond",
+       "texte": [
+        "Sept lettres sont toujours épaisses (tafkhîm) ; on les retient par la formule « khuṣṣa ḍaghṭin qiẓ » : خ ص ض غ ط ق ظ.",
+        "Cinq lettres rebondissent quand elles sont sans voyelle (qalqala) : « quṭbu jadin », ق ط ب ج د. Exemple : « al-falaq »."
+       ],
+       "mots": [
+        {
+         "ar": "القلقلة",
+         "tr": "al-qalqala",
+         "ph": "al-qalqala",
+         "fr": "le rebond"
+        }
+       ],
+       "retenir": "Sept lettres épaisses, cinq lettres qui rebondissent."
+      },
+      {
+       "titre": "Le naql, le râʾ et le lâm chez Warsh",
+       "texte": [
+        "Warsh transfère la voyelle d'une hamza sur la consonne muette qui la précède, puis supprime la hamza (naql) : « qad aflaḥa » se lit « qadaflaḥa ».",
+        "Il allège souvent le râʾ après un kasra ou un yâʾ, comme dans « khabîran », et alourdit le lâm après ṣâd, ṭâʾ ou ẓâʾ, comme dans « aṣ-ṣalâh »."
+       ],
+       "mots": [
+        {
+         "ar": "النقل",
+         "tr": "an-naql",
+         "ph": "an-naql",
+         "fr": "le transfert de la hamza"
+        }
+       ],
+       "retenir": "Le naql est une marque de Warsh."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Combien de points d'articulation compte Ibn al-Jazarî ?",
+       "c": [
+        "Vingt-huit",
+        "Dix-sept",
+        "Cinq"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Quelle lettre fait partie de la qalqala ?",
+       "c": [
+        "م (mîm)",
+        "س (sîn)",
+        "ق (qâf)"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Chez Warsh, « qad aflaḥa » se lit :",
+       "c": [
+        "Qadaflaḥa",
+        "Qad aflaḥa",
+        "Qadda flaḥa"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Dans « aṣ-ṣalâh », Warsh prononce le lâm :",
+       "c": [
+        "Muet",
+        "Épais",
+        "Léger"
+       ],
+       "r": 1
+      }
+     ]
+    },
+    {
+     "n": 6,
+     "titre": "Sourates choisies",
+     "resume": "Des sourates que le Prophète recommandait.",
+     "lecons": [
+      {
+       "titre": "Al-Kahf",
+       "texte": [
+        "Celui qui lit al-Kahf le vendredi, une lumière l'éclaire d'un vendredi à l'autre. (al-Ḥâkim ; al-Bayhaqî)",
+        "« Celui qui apprend par cœur les dix premiers versets d'al-Kahf est protégé de l'Antéchrist (ad-Dajjâl). » (Muslim 809) La sourate raconte les gens de la caverne, Moïse et al-Khiḍr, et Dhû l-Qarnayn."
+       ],
+       "mots": [
+        {
+         "ar": "الكهف",
+         "tr": "al-kahf",
+         "ph": "al-kahf",
+         "fr": "la caverne"
+        }
+       ],
+       "retenir": "Al-Kahf se lit chaque vendredi."
+      },
+      {
+       "titre": "Al-Mulk",
+       "texte": [
+        "« Une sourate du Coran de trente versets a intercédé pour un homme jusqu'à ce qu'il soit pardonné : Tabâraka l-ladhî bi-yadihi l-mulk. » (Abû Dâwûd 1400 ; Tirmidhî 2891)",
+        "Ces trente versets sont ceux du comptage de Kûfa, suivi par Ḥafṣ. Dans le comptage médinois de Warsh, affiché dans NÛR, al-Mulk en compte trente et un : le texte est le même."
+       ],
+       "mots": [
+        {
+         "ar": "الملك",
+         "tr": "al-mulk",
+         "ph": "al-moulk",
+         "fr": "la royauté"
+        }
+       ],
+       "retenir": "Al-Mulk intercède pour celui qui la récite."
+      },
+      {
+       "titre": "Al-Baqara et le verset du Trône",
+       "texte": [
+        "« Ne faites pas de vos maisons des tombeaux : Satan fuit la maison où l'on récite la sourate al-Baqara. » (Muslim 780)",
+        "Le verset du Trône (âyat al-kursî), récité au coucher, protège jusqu'au matin. (Bukhârî 2311) C'est le verset 2:253 en Warsh, 2:255 en Hafs."
+       ],
+       "mots": [
+        {
+         "ar": "آية الكرسي",
+         "tr": "āyat al-kursī",
+         "ph": "âyat al-koursî",
+         "fr": "le verset du Trône"
+        }
+       ],
+       "retenir": "Le verset du Trône se récite avant de dormir."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Quelle sourate lit-on le vendredi ?",
+       "c": [
+        "Al-Kahf",
+        "Al-Mulk",
+        "Yâ-Sîn"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Les dix premiers versets d'al-Kahf protègent :",
+       "c": [
+        "Du froid",
+        "De l'Antéchrist",
+        "De la faim"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Al-Mulk compte, dans le comptage de Warsh :",
+       "c": [
+        "Dix versets",
+        "Cent versets",
+        "Trente et un versets"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Satan fuit la maison où l'on récite :",
+       "c": [
+        "Al-Baqara",
+        "Aucune sourate en particulier",
+        "Seulement des poèmes"
+       ],
+       "r": 0
+      }
+     ]
+    },
+    {
+     "n": 7,
+     "titre": "L'ihsân",
+     "resume": "Adorer Dieu avec un cœur présent.",
+     "lecons": [
+      {
+       "titre": "Comme si tu Le voyais",
+       "texte": [
+        "Interrogé par l'ange Jibrîl, le Prophète définit l'ihsân : « Que tu adores Dieu comme si tu Le voyais ; si tu ne Le vois pas, Lui te voit. » (Muslim 8 ; Bukhârî 50)",
+        "L'islam, la foi (îmân) et l'ihsân sont les trois degrés de la religion décrits dans ce hadith."
+       ],
+       "mots": [
+        {
+         "ar": "الإحسان",
+         "tr": "al-iḥsān",
+         "ph": "al-ihsân",
+         "fr": "l'excellence"
+        }
+       ],
+       "retenir": "L'ihsân est d'adorer Dieu en se sachant vu par Lui."
+      },
+      {
+       "titre": "L'intention",
+       "texte": [
+        "« Les actes ne valent que par les intentions, et chacun n'obtient que ce qu'il a eu l'intention de faire. » (Bukhârî 1 ; Muslim 1907)",
+        "Un même geste, manger ou travailler, devient adoration quand il est fait pour Dieu. La sincérité (ikhlâṣ) consiste à ne rechercher que Son agrément."
+       ],
+       "mots": [
+        {
+         "ar": "النية",
+         "tr": "an-niyya",
+         "ph": "an-niyya",
+         "fr": "l'intention"
+        }
+       ],
+       "retenir": "L'intention donne sa valeur à l'acte."
+      },
+      {
+       "titre": "Le cœur",
+       "texte": [
+        "« Il y a dans le corps un morceau de chair : s'il est sain, tout le corps est sain ; s'il est corrompu, tout le corps est corrompu. C'est le cœur. » (Bukhârî 52 ; Muslim 1599)",
+        "« C'est par le rappel de Dieu que les cœurs s'apaisent. » (Coran 13:29 en Warsh, 13:28 en Hafs) Le dhikr, le repentir et la gratitude entretiennent le cœur."
+       ],
+       "mots": [
+        {
+         "ar": "القلب",
+         "tr": "al-qalb",
+         "ph": "al-qalb",
+         "fr": "le cœur"
+        }
+       ],
+       "retenir": "Le rappel de Dieu apaise le cœur."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "L'ihsân, c'est :",
+       "c": [
+        "Prier très vite",
+        "Jeûner chaque jour",
+        "Adorer Dieu comme si tu Le voyais"
+       ],
+       "r": 2
+      },
+      {
+       "q": "« Les actes ne valent que par… »",
+       "c": [
+        "Les intentions",
+        "Leur nombre",
+        "Leur durée"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Selon le hadith, le morceau de chair dont dépend tout le corps est :",
+       "c": [
+        "La langue",
+        "Le cœur",
+        "Le foie"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Les cœurs s'apaisent par :",
+       "c": [
+        "Les richesses",
+        "Le sommeil seul",
+        "Le rappel de Dieu"
+       ],
+       "r": 2
+      }
+     ]
+    },
+    {
+     "n": 8,
+     "titre": "La vie du Prophète",
+     "resume": "Les grandes étapes de la sîra.",
+     "lecons": [
+      {
+       "titre": "Les années de La Mecque",
+       "texte": [
+        "La révélation commença dans la grotte de Ḥirâʾ, quand le Prophète avait quarante ans : « Lis, au nom de ton Seigneur qui a créé. » (Coran 96:1 ; Bukhârî 3)",
+        "Durant treize ans à La Mecque, les croyants furent persécutés. L'année de la tristesse, le Prophète perdit son épouse Khadîja et son oncle Abû Ṭâlib."
+       ],
+       "mots": [
+        {
+         "ar": "الوحي",
+         "tr": "al-waḥy",
+         "ph": "al-wahy",
+         "fr": "la révélation"
+        }
+       ],
+       "retenir": "Treize années de patience à La Mecque."
+      },
+      {
+       "titre": "Médine",
+       "texte": [
+        "En 622, le Prophète émigra à Médine : c'est l'hégire, point de départ du calendrier musulman, fixé plus tard sous le califat de ʿUmar.",
+        "À Médine, il bâtit la mosquée et unit en fraternité les émigrés (muhâjirûn) et les Médinois qui les accueillirent (anṣâr). La bataille de Badr eut lieu en l'an 2 de l'hégire."
+       ],
+       "mots": [
+        {
+         "ar": "الأنصار",
+         "tr": "al-anṣār",
+         "ph": "al-ansâr",
+         "fr": "les auxiliaires de Médine"
+        }
+       ],
+       "retenir": "L'hégire fonde la communauté de Médine."
+      },
+      {
+       "titre": "L'accomplissement",
+       "texte": [
+        "En l'an 8, le Prophète entra à La Mecque et pardonna à ceux qui l'avaient combattu. En l'an 10, il accomplit le pèlerinage d'adieu.",
+        "Il mourut à Médine en l'an 11 de l'hégire (632), à l'âge de soixante-trois ans. (Bukhârî 3536)"
+       ],
+       "mots": [
+        {
+         "ar": "السيرة",
+         "tr": "as-sīra",
+         "ph": "as-sîra",
+         "fr": "la biographie du Prophète"
+        }
+       ],
+       "retenir": "Sa vie entière est un exemple de patience et de pardon."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Quel âge avait le Prophète au début de la révélation ?",
+       "c": [
+        "Soixante ans",
+        "Quarante ans",
+        "Vingt ans"
+       ],
+       "r": 1
+      },
+      {
+       "q": "L'hégire eut lieu en :",
+       "c": [
+        "570",
+        "632",
+        "622"
+       ],
+       "r": 2
+      },
+      {
+       "q": "La bataille de Badr eut lieu en :",
+       "c": [
+        "L'an 2 de l'hégire",
+        "L'an 10 de l'hégire",
+        "L'an 20 de l'hégire"
+       ],
+       "r": 0
+      },
+      {
+       "q": "À la prise de La Mecque, le Prophète :",
+       "c": [
+        "Quitta aussitôt la ville",
+        "Pardonna à ses anciens ennemis",
+        "Se vengea"
+       ],
+       "r": 1
+      }
+     ]
+    },
+    {
+     "n": 9,
+     "titre": "Les quarante hadiths",
+     "resume": "Le recueil d'an-Nawawî, socle de la sagesse prophétique.",
+     "lecons": [
+      {
+       "titre": "Le recueil d'an-Nawawî",
+       "texte": [
+        "L'imam an-Nawawî (mort en 676 de l'hégire) a réuni quarante-deux hadiths qui résument l'essentiel de la religion. On l'appelle « les Quarante ».",
+        "Le recueil s'ouvre sur le hadith de l'intention et comprend le hadith de Jibrîl sur l'islam, la foi et l'ihsân."
+       ],
+       "mots": [
+        {
+         "ar": "الأربعون النووية",
+         "tr": "al-arbaʿūn an-nawawiyya",
+         "ph": "al-arbaʿoûn an-nawawiyya",
+         "fr": "les Quarante d'an-Nawawî"
+        }
+       ],
+       "retenir": "Les Quarante sont un abrégé de la religion."
+      },
+      {
+       "titre": "Aimer pour son frère",
+       "texte": [
+        "« Aucun de vous n'a vraiment la foi tant qu'il n'aime pas pour son frère ce qu'il aime pour lui-même. » (Bukhârî 13 ; Muslim 45)",
+        "« Fait partie de la beauté de l'islam d'une personne qu'elle délaisse ce qui ne la concerne pas. » (Tirmidhî 2317)"
+       ],
+       "mots": [
+        {
+         "ar": "الأخوة",
+         "tr": "al-ukhuwwa",
+         "ph": "al-oukhouwwa",
+         "fr": "la fraternité"
+        }
+       ],
+       "retenir": "Vouloir pour l'autre le bien qu'on veut pour soi."
+      },
+      {
+       "titre": "La parole et la colère",
+       "texte": [
+        "« Que celui qui croit en Dieu et au Jour dernier dise du bien ou se taise. » (Bukhârî 6018 ; Muslim 47)",
+        "Un homme demanda un conseil ; le Prophète lui répéta : « Ne te mets pas en colère. » (Bukhârî 6116)"
+       ],
+       "mots": [
+        {
+         "ar": "الغضب",
+         "tr": "al-ghaḍab",
+         "ph": "al-ghadab",
+         "fr": "la colère"
+        }
+       ],
+       "retenir": "Dire du bien ou se taire, et maîtriser sa colère."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Combien de hadiths compte le recueil d'an-Nawawî ?",
+       "c": [
+        "Quarante-deux",
+        "Quatre",
+        "Mille"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Le premier hadith du recueil porte sur :",
+       "c": [
+        "Le commerce",
+        "L'intention",
+        "Le jeûne"
+       ],
+       "r": 1
+      },
+      {
+       "q": "La foi complète, c'est aimer pour son frère :",
+       "c": [
+        "Seulement ce qu'il mérite",
+        "Rien de particulier",
+        "Ce qu'on aime pour soi-même"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Au croyant, le hadith recommande de :",
+       "c": [
+        "Dire du bien ou se taire",
+        "Parler de tout",
+        "Toujours avoir le dernier mot"
+       ],
+       "r": 0
+      }
+     ]
+    },
+    {
+     "n": 10,
+     "titre": "Les facilités du voyageur",
+     "resume": "Les allègements que Dieu accorde à celui qui voyage.",
+     "lecons": [
+      {
+       "titre": "Raccourcir la prière",
+       "texte": [
+        "« Quand vous parcourez la terre, il n'y a pas de faute à raccourcir la prière. » (Coran 4:100 en Warsh, 4:101 en Hafs) Le voyageur prie Ẓuhr, ʿAṣr et ʿIshâʾ en deux rakʿa ; Maghrib et Ṣubḥ ne changent pas.",
+        "Dans l'école malikite, c'est une sunna confirmée pour un trajet d'environ quatre-vingts kilomètres (quatre burud), dès qu'on a quitté les habitations. Si l'on décide de rester quatre jours ou plus au même endroit, on prie normalement."
+       ],
+       "mots": [
+        {
+         "ar": "القصر",
+         "tr": "al-qaṣr",
+         "ph": "al-qasr",
+         "fr": "le raccourcissement de la prière"
+        }
+       ],
+       "retenir": "En voyage, les prières de quatre rakʿa passent à deux."
+      },
+      {
+       "titre": "Regrouper les prières",
+       "texte": [
+        "Le Prophète regroupait Ẓuhr et ʿAṣr, ainsi que Maghrib et ʿIshâʾ, lorsqu'il était en route. (Bukhârî 1107)",
+        "Le regroupement est une facilité, non une obligation : on l'utilise quand le trajet le rend utile."
+       ],
+       "mots": [
+        {
+         "ar": "الجمع",
+         "tr": "al-jamʿ",
+         "ph": "al-jamʿ",
+         "fr": "le regroupement des prières"
+        }
+       ],
+       "retenir": "Regrouper est une facilité pour le voyageur en route."
+      },
+      {
+       "titre": "Jeûne et chaussons de cuir",
+       "texte": [
+        "Le voyageur peut rompre le jeûne du Ramadan et rattraper ensuite les jours manqués. (Coran 2:183 en Warsh, 2:184 en Hafs)",
+        "Selon la Risâla, on peut essuyer les chaussons de cuir (khuff), en ville comme en voyage, si on les a enfilés après des ablutions complètes."
+       ],
+       "mots": [
+        {
+         "ar": "الرخصة",
+         "tr": "ar-rukhṣa",
+         "ph": "ar-roukhsa",
+         "fr": "la facilité accordée"
+        }
+       ],
+       "retenir": "Dieu veut pour vous la facilité."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "En voyage, ʿAṣr se prie en :",
+       "c": [
+        "Quatre rakʿa",
+        "Une rakʿa",
+        "Deux rakʿa"
+       ],
+       "r": 2
+      },
+      {
+       "q": "La prière du Maghrib en voyage :",
+       "c": [
+        "Ne change pas",
+        "Passe à deux rakʿa",
+        "Est supprimée"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Chez les malikites, la distance du voyage est d'environ :",
+       "c": [
+        "Mille kilomètres",
+        "Quatre-vingts kilomètres",
+        "Cinq kilomètres"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Le jeûne rompu en voyage :",
+       "c": [
+        "Est perdu à jamais",
+        "Se paie seulement en argent",
+        "Se rattrape plus tard"
+       ],
+       "r": 2
+      }
+     ]
+    },
+    {
+     "n": 11,
+     "titre": "La transmission malikite dans la diaspora",
+     "resume": "D'une génération à l'autre, jusqu'à toi.",
+     "lecons": [
+      {
+       "titre": "Une chaîne de savants",
+       "texte": [
+        "Ibn al-Qâsim (mort en 191 de l'hégire) transmit l'enseignement de l'imam Mâlik ; Saḥnûn (mort en 240) le consigna dans al-Mudawwana, à Kairouan.",
+        "Puis vinrent la Risâla d'Ibn Abî Zayd (mort en 386) et, au XIVe siècle, le Mukhtaṣar de Khalîl, toujours étudiés aujourd'hui."
+       ],
+       "mots": [
+        {
+         "ar": "المدونة",
+         "tr": "al-mudawwana",
+         "ph": "al-moudawwana",
+         "fr": "la Mudawwana (recueil de Saḥnûn)"
+        }
+       ],
+       "retenir": "L'école malikite s'est transmise de maître à élève."
+      },
+      {
+       "titre": "L'Afrique de l'Ouest",
+       "texte": [
+        "L'islam s'est diffusé en Afrique de l'Ouest par le commerce et l'enseignement. Tombouctou, avec la mosquée de Sankoré, fut un grand centre de savoir.",
+        "On y étudie encore de courts textes malikites : le Mukhtaṣar d'al-Akhḍarî (XVIe siècle) sur la purification et la prière, et al-Murshid al-muʿîn d'Ibn ʿÂshir (XVIIe siècle)."
+       ],
+       "mots": [
+        {
+         "ar": "المتون",
+         "tr": "al-mutūn",
+         "ph": "al-moutoûn",
+         "fr": "les textes de base"
+        }
+       ],
+       "retenir": "Tombouctou fut un phare du savoir malikite."
+      },
+      {
+       "titre": "Vivre son école ailleurs",
+       "texte": [
+        "Loin de son pays, suivre une école donne un cadre clair. Les quatre écoles sunnites sont reconnues : on respecte ceux qui en suivent une autre.",
+        "Le savoir se prend auprès d'enseignants qualifiés, à la mosquée ou en cercle d'étude. « Les savants sont les héritiers des prophètes. » (Abû Dâwûd 3641 ; Tirmidhî 2682)"
+       ],
+       "mots": [
+        {
+         "ar": "المذهب",
+         "tr": "al-madhhab",
+         "ph": "al-madh-hab",
+         "fr": "l'école juridique"
+        }
+       ],
+       "retenir": "Une école suivie avec sérieux, les autres respectées."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Qui consigna la Mudawwana ?",
+       "c": [
+        "An-Nawawî",
+        "Saḥnûn",
+        "Ibn Kathîr"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Quelle ville d'Afrique de l'Ouest fut un grand centre de savoir ?",
+       "c": [
+        "Lisbonne",
+        "Oslo",
+        "Tombouctou"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Le Mukhtaṣar d'al-Akhḍarî traite surtout :",
+       "c": [
+        "De la purification et de la prière",
+        "Du commerce maritime",
+        "De l'astronomie"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Face à quelqu'un d'une autre école sunnite :",
+       "c": [
+        "On le reprend toujours",
+        "On le respecte",
+        "On l'évite"
+       ],
+       "r": 1
+      }
+     ]
+    },
+    {
+     "n": 12,
+     "titre": "Épreuve de synthèse",
+     "resume": "Relis l'essentiel de la Lanterne avant de passer à l'Étoile.",
+     "lecons": [
+      {
+       "titre": "Croire et adorer",
+       "texte": [
+        "Dieu est unique et rien ne Lui ressemble ; le croyant croit au destin et agit avec sérieux.",
+        "L'ihsân est d'adorer Dieu comme si tu Le voyais ; l'intention donne sa valeur à chaque acte."
+       ],
+       "mots": [
+        {
+         "ar": "العقيدة",
+         "tr": "al-ʿaqīda",
+         "ph": "al-ʿaqîda",
+         "fr": "le credo"
+        }
+       ],
+       "retenir": "La foi se vit dans le cœur et dans les actes."
+      },
+      {
+       "titre": "Vivre avec les autres",
+       "texte": [
+        "Le commerce honnête est béni, l'intérêt est interdit, les dettes s'écrivent et se remboursent.",
+        "Le mariage repose sur l'affection et des conditions claires ; les parents et la parenté ont des droits ; le voyageur bénéficie de facilités."
+       ],
+       "mots": [
+        {
+         "ar": "المعاملات",
+         "tr": "al-muʿāmalāt",
+         "ph": "al-mouʿâmalât",
+         "fr": "les relations entre les gens"
+        }
+       ],
+       "retenir": "La religion règle aussi la vie avec les autres."
+      },
+      {
+       "titre": "Transmettre",
+       "texte": [
+        "Le Coran nous est parvenu par la mémoire et l'écrit ; NÛR suit la transmission de Warsh, rapporteur de Nâfiʿ.",
+        "La sîra, les Quarante d'an-Nawawî et la chaîne des savants malikites relient chaque croyant au Prophète."
+       ],
+       "mots": [
+        {
+         "ar": "السند",
+         "tr": "as-sanad",
+         "ph": "as-sanad",
+         "fr": "la chaîne de transmission"
+        }
+       ],
+       "retenir": "Chaque génération reçoit et transmet."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Les trois degrés de la religion sont :",
+       "c": [
+        "L'islam, la foi et l'ihsân",
+        "La prière, le jeûne et la zakât",
+        "Le Coran, la Sunna et la Risâla"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Dans le mushaf de Warsh, le verset du Trône porte le numéro :",
+       "c": [
+        "2:285",
+        "2:253",
+        "2:255"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Le voyageur malikite qui reste quatre jours ou plus au même endroit :",
+       "c": [
+        "Raccourcit toujours",
+        "Ne prie plus",
+        "Prie normalement"
+       ],
+       "r": 2
+      },
+      {
+       "q": "La lecture suivie par NÛR est celle de :",
+       "c": [
+        "Warsh ʿan Nâfiʿ",
+        "Ḥafṣ ʿan ʿÂṣim",
+        "Ad-Dûrî ʿan Abî ʿAmr"
+       ],
+       "r": 0
+      }
+     ]
+    }
    ]
   },
   {
