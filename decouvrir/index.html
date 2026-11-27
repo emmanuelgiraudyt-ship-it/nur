@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>NÛR — La lumière du Coran, à chaque heure du jour</title>
 <meta name="description" content="NÛR : Coran en Warsh ʿan Nâfiʿ, heures de prière, qibla, parcours d'apprentissage et dévotion. Gratuit, sans publicité, hors ligne, vos données restent sur votre téléphone.">
-<meta name="theme-color" content="#17806A">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="theme-color" content="#2E3C96">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta property="og:title" content="NÛR — La lumière du Coran, à chaque heure du jour">
 <meta property="og:description" content="Coran en Warsh, heures de prière, qibla, apprentissage. Gratuit, sans publicité, hors ligne.">
 <meta property="og:image" content="https://emmanuelgiraudyt-ship-it.github.io/nur/icon-512.png">
@@ -64,6 +64,16 @@
       <div class="live-c" id="lvc"></div>
       <p class="live-s">Calcul astronomique fait sur l'appareil, ʿAsr selon l'école malikite. NÛR permet ensuite d'aligner chaque horaire sur ta mosquée.</p>
     </aside>
+  </div>
+</section>
+
+<section class="live-now" id="live" hidden aria-live="polite">
+  <div class="ln-pulse" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="ln-head"><span class="ln-dot" aria-hidden="true"></span><b>En direct</b><small id="lnNote">connectés en ce moment</small></div>
+  <div class="ln-grid">
+    <div><b data-n="page">0</b><span>sur cette page avec toi</span></div>
+    <div><b data-n="app">0</b><span>dans l'application</span></div>
+    <div><b data-n="total">0</b><span>installations depuis le lancement</span></div>
   </div>
 </section>
 
@@ -151,6 +161,7 @@
   <p>Gratuit, sans publicité, sans compte.</p>
 </footer>
 <script src="../prayer.js"></script>
+<script src="../presence.js"></script>
 <script src="decouvrir.js"></script>
 </body>
 </html>

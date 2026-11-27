@@ -1,7 +1,7 @@
 /* NÛR — service worker : fonctionnement hors ligne (cache de l'application, du texte et de la police). */
-const VERSION = "nur-v2.5.0";
+const VERSION = "nur-v2.6.0";
 const SHELL = [
-  "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./translit.js", "./contenus.js", "./manifest.webmanifest",
+  "./", "./index.html", "./styles.css", "./app.js", "./prayer.js", "./translit.js", "./contenus.js", "./presence.js", "./fonts/marcellus.woff2", "./fonts/manrope.woff2", "./fonts/manrope-ext.woff2", "./manifest.webmanifest",
   "./quran.json", "./phonetique.json", "./parcours.json", "./quotidien.json", "./config.json", "./traduction-fr.json", "./KFGQPC-Warsh-Uthmanic.ttf", "./icon-192.png", "./logo.svg", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./img/ill-calendrier.svg", "./img/ill-cartes.svg", "./img/ill-dhikr.svg", "./img/ill-enfant.svg", "./img/ill-femme.svg", "./img/ill-jeune.svg", "./img/ill-kaaba.svg", "./img/ill-lanterne.svg", "./img/ill-mediter.svg", "./img/ill-nouveau.svg", "./img/ill-parcours.svg", "./img/ill-quran.svg", "./img/ill-tafsir.svg", "./img/ill-tidjaniya.svg", "./img/ill-wudu.svg", "./img/ill-zakat.svg", "./img/logo-light.svg", "./img/pattern-gold.svg", "./img/pattern-light.svg", "./img/scene-day.svg", "./img/scene-fajr.svg", "./img/scene-isha.svg", "./img/scene-maghrib.svg"
 ];
 /* Mise à jour légère : les fichiers lourds qui ne changent pas (texte du Coran, police, icônes) sont repris du cache précédent

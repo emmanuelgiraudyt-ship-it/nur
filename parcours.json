@@ -1445,7 +1445,7 @@
    "nom": "Flamme",
    "repere": "Intermédiaire",
    "seuil": 1200,
-   "etat": "Contenu en préparation, à valider avec l'imam garant.",
+   "etat": "Contenu relu selon les sources citées ; validation de l'imam garant en cours.",
    "titres": [
     "Les invocations quotidiennes",
     "La prière en détail",
@@ -1458,6 +1458,1031 @@
     "Le Juzʾ ʿAmma",
     "Les noms de Dieu",
     "L'école malikite"
+   ],
+   "etapes": [
+    {
+     "n": 1,
+     "titre": "Les invocations quotidiennes",
+     "resume": "Les paroles qui accompagnent la journée du croyant.",
+     "lecons": [
+      {
+       "titre": "Au réveil et au coucher",
+       "texte": [
+        "Au réveil, le Prophète disait : « Louange à Dieu qui nous a rendu la vie après nous avoir fait mourir, et c'est vers Lui la résurrection. »",
+        "Au coucher, il disait : « En Ton nom, ô Dieu, je meurs et je vis. » (Bukhârî 6312)"
+       ],
+       "mots": [
+        {
+         "ar": "الحمد لله",
+         "tr": "al-ḥamdu li-llāh",
+         "ph": "al-hamdou lillâh",
+         "fr": "Louange à Dieu"
+        }
+       ],
+       "retenir": "Le jour commence et finit par le souvenir de Dieu."
+      },
+      {
+       "titre": "En mangeant",
+       "texte": [
+        "Avant de manger, on dit « Bismillâh », au nom de Dieu. Si on l'oublie, on dit : « Bismillâh awwalahou wa âkhirahou ». (Abû Dâwûd 3767)",
+        "Après le repas, on remercie Dieu en disant « al-hamdou lillâh »."
+       ],
+       "mots": [
+        {
+         "ar": "بسم الله",
+         "tr": "bismi-llāh",
+         "ph": "bismillâh",
+         "fr": "Au nom de Dieu"
+        }
+       ],
+       "retenir": "On commence au nom de Dieu et on termine en Le louant."
+      },
+      {
+       "titre": "En sortant de chez soi",
+       "texte": [
+        "En sortant, on dit : « Au nom de Dieu, je m'en remets à Dieu, il n'y a de force ni de puissance qu'en Dieu. » (Abû Dâwûd 5095)",
+        "Ces courtes phrases rappellent que chaque pas se fait sous le regard de Dieu."
+       ],
+       "mots": [
+        {
+         "ar": "توكلت على الله",
+         "tr": "tawakkaltu ʿalā llāh",
+         "ph": "tawakkaltou ʿala llâh",
+         "fr": "Je m'en remets à Dieu"
+        }
+       ],
+       "retenir": "La confiance en Dieu accompagne chaque sortie."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Que dit-on avant de manger ?",
+       "c": [
+        "Allâhou akbar",
+        "Âmîn",
+        "Bismillâh"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Que dit-on après le repas ?",
+       "c": [
+        "Al-hamdou lillâh",
+        "Soubhânallâh",
+        "Astaghfiroullâh"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Si l'on oublie de dire Bismillâh au début du repas :",
+       "c": [
+        "On recommence le repas",
+        "On dit « Bismillâh awwalahou wa âkhirahou »",
+        "Le repas n'est plus permis"
+       ],
+       "r": 1
+      },
+      {
+       "q": "« Tawakkaltou ʿala llâh » signifie :",
+       "c": [
+        "Dieu est le plus grand",
+        "Je demande pardon",
+        "Je m'en remets à Dieu"
+       ],
+       "r": 2
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "titre": "La prière en détail",
+     "resume": "Les piliers, les sunna et ce qui annule la prière, selon l'école malikite.",
+     "lecons": [
+      {
+       "titre": "Les piliers de la prière",
+       "texte": [
+        "Les piliers (fard) sont les actes sans lesquels la prière n'est pas valide : l'intention, le takbîr d'ouverture, la Fâtiḥa, l'inclinaison, la prosternation, la position assise finale et le salâm.",
+        "On doit aussi rester calme et immobile un instant dans chaque position : c'est la tumaʾnîna."
+       ],
+       "mots": [
+        {
+         "ar": "فرض",
+         "tr": "farḍ",
+         "ph": "fard",
+         "fr": "obligation"
+        }
+       ],
+       "retenir": "Sans ses piliers, la prière doit être refaite."
+      },
+      {
+       "titre": "Les sunna de la prière",
+       "texte": [
+        "Les sunna sont recommandées : la sourate après la Fâtiḥa dans les deux premières rakʿa, le tachahhoud, les takbîr de passage d'une position à l'autre.",
+        "Selon l'école malikite, l'oubli d'une sunna importante se répare par deux prosternations de l'oubli (soujoud as-sahw)."
+       ],
+       "mots": [
+        {
+         "ar": "سجود السهو",
+         "tr": "sujūd as-sahw",
+         "ph": "soujoûd as-sahw",
+         "fr": "prosternations de l'oubli"
+        }
+       ],
+       "retenir": "Une sunna oubliée se répare ; un pilier manqué se refait."
+      },
+      {
+       "titre": "Ce qui annule la prière",
+       "texte": [
+        "Parler volontairement, manger ou boire, rire aux éclats, perdre ses ablutions ou tourner le dos à la qibla annulent la prière.",
+        "Un petit geste involontaire ne l'annule pas : la prière demande la présence du cœur, sans inquiétude excessive."
+       ],
+       "mots": [
+        {
+         "ar": "خشوع",
+         "tr": "khushūʿ",
+         "ph": "khouchoûʿ",
+         "fr": "recueillement"
+        }
+       ],
+       "retenir": "Le recueillement est l'âme de la prière."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Lequel est un pilier de la prière ?",
+       "c": [
+        "Lever les mains au retour de l'inclinaison",
+        "La Fâtiḥa",
+        "La sourate après la Fâtiḥa"
+       ],
+       "r": 1
+      },
+      {
+       "q": "La tumaʾnîna, c'est :",
+       "c": [
+        "Prier en groupe",
+        "Réciter à voix haute",
+        "Rester calme un instant dans chaque position"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Selon l'école malikite, l'oubli d'une sunna importante se répare par :",
+       "c": [
+        "Deux prosternations de l'oubli",
+        "Une aumône",
+        "Un jour de jeûne"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Qu'est-ce qui annule la prière ?",
+       "c": [
+        "Pleurer de crainte de Dieu",
+        "Parler volontairement",
+        "Un léger geste involontaire"
+       ],
+       "r": 1
+      }
+     ]
+    },
+    {
+     "n": 3,
+     "titre": "Vendredi et fêtes",
+     "resume": "Le jour de rassemblement et les deux fêtes de l'islam.",
+     "lecons": [
+      {
+       "titre": "La prière du vendredi",
+       "texte": [
+        "Le vendredi, la prière de Djoumouʿa remplace celle du Dhuhr. Elle comprend un sermon (khoutba) puis deux rakʿa en groupe.",
+        "Elle est obligatoire pour l'homme adulte résident ; la femme, l'enfant et le voyageur peuvent y assister. (Coran 62:9)"
+       ],
+       "mots": [
+        {
+         "ar": "خطبة",
+         "tr": "khuṭba",
+         "ph": "khoutba",
+         "fr": "sermon"
+        }
+       ],
+       "retenir": "Le vendredi, on écoute la khoutba en silence."
+      },
+      {
+       "titre": "Les deux fêtes",
+       "texte": [
+        "L'islam a deux fêtes : l'Aïd al-Fiṭr, à la fin du Ramadan, et l'Aïd al-Aḍḥâ, le 10 de Dhoû al-hijja.",
+        "Le matin de la fête, on prie deux rakʿa à la mosquée ou en plein air, avec des takbîr supplémentaires, puis on écoute le sermon."
+       ],
+       "mots": [
+        {
+         "ar": "عيد",
+         "tr": "ʿīd",
+         "ph": "ʿîd",
+         "fr": "fête"
+        }
+       ],
+       "retenir": "Deux fêtes, deux joies : après le jeûne et après le pèlerinage."
+      },
+      {
+       "titre": "Zakât al-fiṭr et sacrifice",
+       "texte": [
+        "Avant la prière de l'Aïd al-Fiṭr, chaque famille donne la zakât al-fiṭr : une mesure de nourriture par personne, pour que les pauvres aussi fêtent. (Bukhârî 1503)",
+        "Pour l'Aïd al-Aḍḥâ, celui qui le peut sacrifie un mouton, en souvenir d'Abraham. Selon l'école malikite, c'est une sunna confirmée."
+       ],
+       "mots": [
+        {
+         "ar": "أضحية",
+         "tr": "uḍḥiya",
+         "ph": "oudhiya",
+         "fr": "sacrifice de l'Aïd"
+        }
+       ],
+       "retenir": "La fête se partage avec ceux qui ont moins."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "La prière du vendredi remplace :",
+       "c": [
+        "Le Dhuhr",
+        "Le Fajr",
+        "Le Maghrib"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Combien de rakʿa compte la prière du vendredi ?",
+       "c": [
+        "Trois",
+        "Deux",
+        "Quatre"
+       ],
+       "r": 1
+      },
+      {
+       "q": "L'Aïd al-Aḍḥâ a lieu le :",
+       "c": [
+        "1er Chawwâl",
+        "27 Ramadân",
+        "10 Dhoû al-hijja"
+       ],
+       "r": 2
+      },
+      {
+       "q": "La zakât al-fiṭr se donne :",
+       "c": [
+        "Avant la prière de l'Aïd al-Fiṭr",
+        "Un mois après la fête",
+        "Pendant le pèlerinage"
+       ],
+       "r": 0
+      }
+     ]
+    },
+    {
+     "n": 4,
+     "titre": "Le jeûne du Ramadan",
+     "resume": "Le sens, les règles et les dispenses du jeûne.",
+     "lecons": [
+      {
+       "titre": "Le sens du jeûne",
+       "texte": [
+        "Le jeûne du Ramadan est le quatrième pilier de l'islam. Dieu l'a prescrit « afin que vous atteigniez la piété ». (Coran 2:183)",
+        "On s'abstient de manger, de boire et des relations conjugales de l'aube (Fajr) au coucher du soleil (Maghrib)."
+       ],
+       "mots": [
+        {
+         "ar": "تقوى",
+         "tr": "taqwā",
+         "ph": "taqwâ",
+         "fr": "piété"
+        }
+       ],
+       "retenir": "Le jeûne éduque le cœur à la piété."
+      },
+      {
+       "titre": "Le souhoûr et l'iftâr",
+       "texte": [
+        "Le souhoûr est le repas avant l'aube ; le Prophète a dit : « Prenez le souhoûr, car il y a une bénédiction. » (Bukhârî 1923)",
+        "L'iftâr se prend dès le coucher du soleil, de préférence avec des dattes ou de l'eau."
+       ],
+       "mots": [
+        {
+         "ar": "سحور",
+         "tr": "suḥūr",
+         "ph": "souhoûr",
+         "fr": "repas d'avant l'aube"
+        }
+       ],
+       "retenir": "Retarder le souhoûr et hâter l'iftâr."
+      },
+      {
+       "titre": "Les dispenses",
+       "texte": [
+        "Le malade et le voyageur peuvent rompre le jeûne et rattraper les jours plus tard. (Coran 2:184)",
+        "La femme en période de règles ou de lochies ne jeûne pas et rattrape ensuite ; la personne âgée qui ne peut pas jeûner nourrit un pauvre par jour, selon l'avis des savants."
+       ],
+       "mots": [
+        {
+         "ar": "قضاء",
+         "tr": "qaḍāʾ",
+         "ph": "qadâʾ",
+         "fr": "rattrapage"
+        }
+       ],
+       "retenir": "Dieu veut pour vous la facilité. (Coran 2:185)"
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Le jeûne du Ramadan est le :",
+       "c": [
+        "Premier pilier",
+        "Une simple tradition",
+        "Quatrième pilier de l'islam"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Le jeûne dure :",
+       "c": [
+        "De l'aube au coucher du soleil",
+        "Toute la journée et la nuit",
+        "Du lever du soleil à midi"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Le souhoûr est :",
+       "c": [
+        "Le repas de la fête",
+        "Le repas avant l'aube",
+        "Le repas du coucher du soleil"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Le voyageur qui rompt le jeûne :",
+       "c": [
+        "Commet un péché",
+        "N'a rien à faire",
+        "Rattrape les jours plus tard"
+       ],
+       "r": 2
+      }
+     ]
+    },
+    {
+     "n": 5,
+     "titre": "Zakât et sadaqa",
+     "resume": "L'aumône obligatoire et le don volontaire.",
+     "lecons": [
+      {
+       "titre": "La zakât",
+       "texte": [
+        "La zakât est le troisième pilier de l'islam : une part des biens donnée chaque année aux ayants droit.",
+        "Elle est due quand l'épargne atteint le seuil (nisâb) et reste une année lunaire ; son taux est de 2,5 % pour l'argent."
+       ],
+       "mots": [
+        {
+         "ar": "نصاب",
+         "tr": "niṣāb",
+         "ph": "nisâb",
+         "fr": "seuil"
+        }
+       ],
+       "retenir": "La zakât purifie les biens et soutient les pauvres."
+      },
+      {
+       "titre": "Les bénéficiaires",
+       "texte": [
+        "Le Coran nomme huit catégories de bénéficiaires, dont les pauvres, les nécessiteux, les endettés et le voyageur en difficulté. (Coran 9:60)",
+        "On ne donne pas sa zakât à ses parents ni à ses enfants, dont on a déjà la charge."
+       ],
+       "mots": [
+        {
+         "ar": "فقير",
+         "tr": "faqīr",
+         "ph": "faqîr",
+         "fr": "pauvre"
+        }
+       ],
+       "retenir": "La zakât va à ceux que Dieu a nommés."
+      },
+      {
+       "titre": "La sadaqa",
+       "texte": [
+        "La sadaqa est un don libre, à tout moment et de toute valeur. « La charité ne diminue pas la richesse. » (Muslim 2588)",
+        "Un sourire, une parole bonne ou ôter un obstacle du chemin sont aussi des aumônes."
+       ],
+       "mots": [
+        {
+         "ar": "صدقة",
+         "tr": "ṣadaqa",
+         "ph": "sadaqa",
+         "fr": "aumône volontaire"
+        }
+       ],
+       "retenir": "Chacun peut donner, même sans argent."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "La zakât est le :",
+       "c": [
+        "Un don facultatif",
+        "Troisième pilier de l'islam",
+        "Cinquième pilier"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Le taux de la zakât sur l'argent est de :",
+       "c": [
+        "10 %",
+        "20 %",
+        "2,5 %"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Combien de catégories de bénéficiaires le Coran nomme-t-il ?",
+       "c": [
+        "Huit",
+        "Trois",
+        "Douze"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Laquelle est aussi une aumône ?",
+       "c": [
+        "Une moquerie",
+        "Un sourire",
+        "Une dispute"
+       ],
+       "r": 1
+      }
+     ]
+    },
+    {
+     "n": 6,
+     "titre": "Hajj et ʿumra",
+     "resume": "Le pèlerinage à La Mecque, ses étapes et son sens.",
+     "lecons": [
+      {
+       "titre": "Le hajj, cinquième pilier",
+       "texte": [
+        "Le hajj est obligatoire une fois dans la vie pour qui en a les moyens physiques et financiers. (Coran 3:97)",
+        "Il a lieu du 8 au 13 Dhoû al-hijja ; le jour le plus important est celui de ʿArafa, le 9."
+       ],
+       "mots": [
+        {
+         "ar": "عرفة",
+         "tr": "ʿArafa",
+         "ph": "ʿArafa",
+         "fr": "ʿArafa"
+        }
+       ],
+       "retenir": "« Le hajj, c'est ʿArafa. » (Tirmidhî 889)"
+      },
+      {
+       "titre": "Les étapes",
+       "texte": [
+        "Le pèlerin entre en état de sacralisation (iḥrâm), fait les tours de la Kaaba (ṭawâf), va entre Ṣafâ et Marwa (saʿy), se tient à ʿArafa, passe la nuit à Mouzdalifa et lapide les stèles à Minâ.",
+        "Ces gestes suivent les traces d'Abraham, d'Agar et d'Ismaël."
+       ],
+       "mots": [
+        {
+         "ar": "إحرام",
+         "tr": "iḥrām",
+         "ph": "ihrâm",
+         "fr": "état de sacralisation"
+        }
+       ],
+       "retenir": "Le hajj rejoue l'histoire d'Abraham."
+      },
+      {
+       "titre": "La ʿumra",
+       "texte": [
+        "La ʿumra, ou petit pèlerinage, se fait à tout moment de l'année : iḥrâm, ṭawâf, saʿy, puis on se rase ou se raccourcit les cheveux.",
+        "Selon l'école malikite, elle est une sunna confirmée une fois dans la vie."
+       ],
+       "mots": [
+        {
+         "ar": "عمرة",
+         "tr": "ʿumra",
+         "ph": "ʿoumra",
+         "fr": "petit pèlerinage"
+        }
+       ],
+       "retenir": "La ʿumra est possible toute l'année."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Le jour le plus important du hajj est :",
+       "c": [
+        "Le jour de ʿArafa",
+        "Le jour du départ",
+        "Le vendredi"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Le ṭawâf consiste à :",
+       "c": [
+        "Lapider les stèles",
+        "Faire le tour de la Kaaba",
+        "Marcher entre Ṣafâ et Marwa"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Le hajj est obligatoire :",
+       "c": [
+        "Chaque année",
+        "Pour tous, même sans moyens",
+        "Une fois dans la vie, pour qui en a les moyens"
+       ],
+       "r": 2
+      },
+      {
+       "q": "La ʿumra peut se faire :",
+       "c": [
+        "À tout moment de l'année",
+        "Seulement en Ramadan",
+        "Seulement le 9 Dhoû al-hijja"
+       ],
+       "r": 0
+      }
+     ]
+    },
+    {
+     "n": 7,
+     "titre": "Les quatre premiers califes",
+     "resume": "Abû Bakr, ʿOumar, ʿOuthmân et ʿAlî, les califes bien guidés.",
+     "lecons": [
+      {
+       "titre": "Abû Bakr as-Siddîq",
+       "texte": [
+        "Compagnon le plus proche du Prophète, Abû Bakr fut le premier calife (11 à 13 H, 632 à 634). Il fit rassembler le Coran en un seul recueil.",
+        "On le surnomme as-Siddîq, « le véridique », pour avoir cru le Prophète sans hésiter."
+       ],
+       "mots": [
+        {
+         "ar": "الصديق",
+         "tr": "aṣ-ṣiddīq",
+         "ph": "as-siddîq",
+         "fr": "le véridique"
+        }
+       ],
+       "retenir": "Abû Bakr : la fidélité et la confiance."
+      },
+      {
+       "titre": "ʿOumar et ʿOuthmân",
+       "texte": [
+        "ʿOumar ibn al-Khaṭṭâb (13 à 23 H) organisa l'État et instaura le calendrier hégirien, qui commence avec l'émigration du Prophète.",
+        "ʿOuthmân ibn ʿAffân (23 à 35 H) fit copier le Coran en exemplaires de référence envoyés dans les grandes villes."
+       ],
+       "mots": [
+        {
+         "ar": "هجرة",
+         "tr": "hijra",
+         "ph": "hijra",
+         "fr": "émigration"
+        }
+       ],
+       "retenir": "Le calendrier hégirien et le muṣḥaf nous viennent d'eux."
+      },
+      {
+       "titre": "ʿAlî ibn Abî Ṭâlib",
+       "texte": [
+        "Cousin et gendre du Prophète, ʿAlî fut le quatrième calife (35 à 40 H). Il est connu pour sa science et son courage.",
+        "Les quatre sont appelés les califes « bien guidés » (râchidoûn)."
+       ],
+       "mots": [
+        {
+         "ar": "الراشدون",
+         "tr": "ar-rāshidūn",
+         "ph": "ar-râchidoûn",
+         "fr": "les bien guidés"
+        }
+       ],
+       "retenir": "Abû Bakr, ʿOumar, ʿOuthmân, ʿAlî : dans cet ordre."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Qui fut le premier calife ?",
+       "c": [
+        "ʿAlî",
+        "ʿOuthmân",
+        "Abû Bakr"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Qui instaura le calendrier hégirien ?",
+       "c": [
+        "ʿOumar",
+        "Abû Bakr",
+        "ʿAlî"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Qui fit copier le Coran en exemplaires de référence ?",
+       "c": [
+        "ʿAlî",
+        "ʿOuthmân",
+        "ʿOumar"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Les quatre premiers califes sont appelés :",
+       "c": [
+        "Les conquérants",
+        "Les savants",
+        "Les bien guidés"
+       ],
+       "r": 2
+      }
+     ]
+    },
+    {
+     "n": 8,
+     "titre": "Tajwid courant et lecture de Warsh",
+     "resume": "Les règles de base et quelques particularités de Warsh.",
+     "lecons": [
+      {
+       "titre": "Le noûn sâkin",
+       "texte": [
+        "Le noûn sans voyelle et le tanwîn suivent quatre règles selon la lettre qui suit : prononciation claire (iẓhâr), fusion (idghâm), changement en mîm (iqlâb) et nasalisation cachée (ikhfâʾ).",
+        "Exemple d'iqlâb : « min baʿdi » se lit « mim baʿdi »."
+       ],
+       "mots": [
+        {
+         "ar": "إخفاء",
+         "tr": "ikhfāʾ",
+         "ph": "ikhfâʾ",
+         "fr": "nasalisation cachée"
+        }
+       ],
+       "retenir": "Quatre règles pour le noûn sâkin et le tanwîn."
+      },
+      {
+       "titre": "Les prolongations",
+       "texte": [
+        "Le madd est l'allongement d'une voyelle. Le madd naturel dure deux temps ; d'autres madd durent plus longtemps selon ce qui suit.",
+        "En Warsh, les prolongations liées à la hamza sont longues, environ six temps."
+       ],
+       "mots": [
+        {
+         "ar": "مد",
+         "tr": "madd",
+         "ph": "madd",
+         "fr": "prolongation"
+        }
+       ],
+       "retenir": "En Warsh, les madd avec hamza sont longs."
+      },
+      {
+       "titre": "Particularités de Warsh",
+       "texte": [
+        "Warsh allège souvent la hamza : « muʾminûn » peut se lire « mûminûn ». Il incline certaines voyelles vers le « è » (taqlîl).",
+        "Ces règles viennent de la transmission orale ; on les apprend avec un maître qualifié."
+       ],
+       "mots": [
+        {
+         "ar": "ورش",
+         "tr": "warsh",
+         "ph": "warch",
+         "fr": "Warsh"
+        }
+       ],
+       "retenir": "Le tajwid s'apprend de bouche à oreille."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Combien de règles pour le noûn sâkin ?",
+       "c": [
+        "Sept",
+        "Quatre",
+        "Deux"
+       ],
+       "r": 1
+      },
+      {
+       "q": "« Min baʿdi » qui se lit « mim baʿdi » est un exemple de :",
+       "c": [
+        "Iẓhâr",
+        "Madd",
+        "Iqlâb"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Le madd naturel dure :",
+       "c": [
+        "Deux temps",
+        "Six temps",
+        "Un temps"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Le tajwid s'apprend surtout :",
+       "c": [
+        "En lisant vite",
+        "Avec un maître qualifié",
+        "Seul, sans écouter"
+       ],
+       "r": 1
+      }
+     ]
+    },
+    {
+     "n": 9,
+     "titre": "Le Juzʾ ʿAmma",
+     "resume": "La dernière partie du Coran, celle des sourates courtes.",
+     "lecons": [
+      {
+       "titre": "Qu'est-ce que le Juzʾ ʿAmma ?",
+       "texte": [
+        "Le Coran est divisé en trente parties (juzʾ). La dernière, de la sourate 78 à la sourate 114, commence par « ʿAmma » : on l'appelle Juzʾ ʿAmma.",
+        "Ses sourates sont courtes et révélées pour la plupart à La Mecque : on les mémorise en premier."
+       ],
+       "mots": [
+        {
+         "ar": "جزء",
+         "tr": "juzʾ",
+         "ph": "jouzʾ",
+         "fr": "partie du Coran"
+        }
+       ],
+       "retenir": "Juzʾ ʿAmma : de la sourate 78 à la 114."
+      },
+      {
+       "titre": "Les thèmes",
+       "texte": [
+        "Ces sourates parlent de la création, du Jour dernier, de la gratitude et de la miséricorde de Dieu.",
+        "Par exemple, Ad-Douḥâ (93) console le Prophète : « Ton Seigneur ne t'a ni abandonné ni détesté. »"
+       ],
+       "mots": [
+        {
+         "ar": "رحمة",
+         "tr": "raḥma",
+         "ph": "rahma",
+         "fr": "miséricorde"
+        }
+       ],
+       "retenir": "Ces sourates parlent au cœur."
+      },
+      {
+       "titre": "Mémoriser pas à pas",
+       "texte": [
+        "On commence par les plus courtes, de la fin vers le début : An-Nâs, Al-Falaq, Al-Ikhlâṣ, puis on remonte.",
+        "Un verset à la fois, répété, puis récité dans la prière : c'est ainsi qu'il reste."
+       ],
+       "mots": [
+        {
+         "ar": "حفظ",
+         "tr": "ḥifẓ",
+         "ph": "hifz",
+         "fr": "mémorisation"
+        }
+       ],
+       "retenir": "Ce qui est récité dans la prière ne s'oublie pas."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Le Coran compte combien de parties (juzʾ) ?",
+       "c": [
+        "Trente",
+        "Douze",
+        "Cent quatorze"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Le Juzʾ ʿAmma commence à la sourate :",
+       "c": [
+        "100",
+        "78",
+        "1"
+       ],
+       "r": 1
+      },
+      {
+       "q": "La sourate Ad-Douḥâ console :",
+       "c": [
+        "Les anges",
+        "Les rois",
+        "Le Prophète"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Pour mémoriser, on commence par :",
+       "c": [
+        "Les sourates les plus courtes",
+        "Al-Baqara",
+        "La sourate la plus longue"
+       ],
+       "r": 0
+      }
+     ]
+    },
+    {
+     "n": 10,
+     "titre": "Les noms de Dieu",
+     "resume": "Connaître Dieu par Ses plus beaux noms.",
+     "lecons": [
+      {
+       "titre": "Les plus beaux noms",
+       "texte": [
+        "« À Dieu appartiennent les plus beaux noms : invoquez-Le par eux. » (Coran 7:180)",
+        "Le Prophète a dit : « Dieu a quatre-vingt-dix-neuf noms ; celui qui les dénombre entrera au Paradis. » (Bukhârî 2736)"
+       ],
+       "mots": [
+        {
+         "ar": "الأسماء الحسنى",
+         "tr": "al-asmāʾ al-ḥusnā",
+         "ph": "al-asmâʾ al-housnâ",
+         "fr": "les plus beaux noms"
+        }
+       ],
+       "retenir": "Dénombrer les noms, c'est les connaître et les vivre."
+      },
+      {
+       "titre": "Ar-Raḥmân et ar-Raḥîm",
+       "texte": [
+        "Ces deux noms viennent de la même racine, la miséricorde. Ils ouvrent chaque sourate sauf une, At-Tawba.",
+        "Ar-Raḥmân dit une miséricorde immense pour toute la création ; ar-Raḥîm, une miséricorde constante envers les croyants."
+       ],
+       "mots": [
+        {
+         "ar": "الرحمن",
+         "tr": "ar-raḥmān",
+         "ph": "ar-rahmân",
+         "fr": "le Tout Miséricordieux"
+        }
+       ],
+       "retenir": "La miséricorde de Dieu précède Sa colère. (Bukhârî 7422)"
+      },
+      {
+       "titre": "Vivre les noms",
+       "texte": [
+        "Connaître le nom al-Ghafoûr, le Pardonneur, invite à demander pardon et à pardonner aux autres.",
+        "Connaître ar-Razzâq, Celui qui pourvoit, apaise l'inquiétude pour le lendemain."
+       ],
+       "mots": [
+        {
+         "ar": "الغفور",
+         "tr": "al-ghafūr",
+         "ph": "al-ghafoûr",
+         "fr": "le Pardonneur"
+        }
+       ],
+       "retenir": "Chaque nom change le regard et le comportement."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "Combien de noms de Dieu cite le hadith de Bukhârî ?",
+       "c": [
+        "Sept",
+        "Mille",
+        "Quatre-vingt-dix-neuf"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Quelle sourate ne commence pas par la basmala ?",
+       "c": [
+        "At-Tawba",
+        "Al-Fâtiḥa",
+        "Al-Ikhlâṣ"
+       ],
+       "r": 0
+      },
+      {
+       "q": "Ar-Razzâq signifie :",
+       "c": [
+        "Le Premier",
+        "Celui qui pourvoit",
+        "Le Juge"
+       ],
+       "r": 1
+      },
+      {
+       "q": "Ar-Raḥmân et ar-Raḥîm viennent de la racine :",
+       "c": [
+        "La force",
+        "La science",
+        "La miséricorde"
+       ],
+       "r": 2
+      }
+     ]
+    },
+    {
+     "n": 11,
+     "titre": "L'école malikite",
+     "resume": "L'imam Mâlik, ses sources et sa diffusion.",
+     "lecons": [
+      {
+       "titre": "L'imam Mâlik",
+       "texte": [
+        "Mâlik ibn Anas (mort en 179 H, 795) vécut toute sa vie à Médine, la ville du Prophète. On l'appelle « l'imam de Dâr al-Hijra ».",
+        "Il composa al-Muwaṭṭaʾ, l'un des premiers recueils de hadiths et de droit."
+       ],
+       "mots": [
+        {
+         "ar": "الموطأ",
+         "tr": "al-muwaṭṭaʾ",
+         "ph": "al-mouwattaʾ",
+         "fr": "al-Muwaṭṭaʾ"
+        }
+       ],
+       "retenir": "Mâlik, l'imam de Médine."
+      },
+      {
+       "titre": "Les sources de l'école",
+       "texte": [
+        "Comme toutes les écoles, elle se fonde sur le Coran et la Sunna. Elle accorde une place particulière à la pratique des gens de Médine (ʿamal ahl al-Madîna).",
+        "Elle considère aussi l'intérêt général (al-maṣlaḥa) et le consensus des savants."
+       ],
+       "mots": [
+        {
+         "ar": "عمل أهل المدينة",
+         "tr": "ʿamal ahl al-madīna",
+         "ph": "ʿamal ahl al-madîna",
+         "fr": "pratique des gens de Médine"
+        }
+       ],
+       "retenir": "La pratique de Médine est une source propre à l'école malikite."
+      },
+      {
+       "titre": "Une école vivante",
+       "texte": [
+        "L'école malikite est majoritaire au Maghreb et en Afrique de l'Ouest. Des savants comme Ibn Abî Zayd al-Qayrawânî (la Risâla) et Khalîl (le Mukhtaṣar) l'ont transmise.",
+        "Une particularité visible : beaucoup de malikites prient les bras le long du corps (sadl)."
+       ],
+       "mots": [
+        {
+         "ar": "الرسالة",
+         "tr": "ar-risāla",
+         "ph": "ar-risâla",
+         "fr": "la Risâla"
+        }
+       ],
+       "retenir": "La Risâla est le premier livre de l'étudiant malikite."
+      }
+     ],
+     "quiz": [
+      {
+       "q": "L'imam Mâlik vécut à :",
+       "c": [
+        "Le Caire",
+        "Médine",
+        "Bagdad"
+       ],
+       "r": 1
+      },
+      {
+       "q": "L'ouvrage de l'imam Mâlik s'appelle :",
+       "c": [
+        "Ṣaḥîḥ al-Bukhârî",
+        "La Risâla",
+        "Al-Muwaṭṭaʾ"
+       ],
+       "r": 2
+      },
+      {
+       "q": "Une source propre à l'école malikite est :",
+       "c": [
+        "La pratique des gens de Médine",
+        "La coutume de chaque pays",
+        "L'avis personnel seul"
+       ],
+       "r": 0
+      },
+      {
+       "q": "L'école malikite est majoritaire :",
+       "c": [
+        "En Indonésie",
+        "Au Maghreb et en Afrique de l'Ouest",
+        "En Turquie"
+       ],
+       "r": 1
+      }
+     ]
+    }
    ]
   },
   {

@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.5.0";
+  var VERSION = "2.6.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -1389,16 +1389,19 @@
     var w = 0; et.lecons.forEach(function (l) { w += (l.texte || []).join(" ").split(/\s+/).length + 40; }); w += et.quiz.length * 30;
     return Math.max(5, Math.round(w / 120 / 5) * 5);
   }
-  route(/^\/apprendre$/, function () {
+  var apPal = null;
+  route(/^\/apprendre$/, function (m, params) {
     return loadOpt().then(function (opt) {
-      var pal = opt.parcours ? palById(opt, "initie") : null, E = pal ? pal.etapes : [];
+      if (params && params.p) apPal = params.p;
+      var PL = opt.parcours ? paliers(opt) : [], pal = opt.parcours ? (palById(opt, apPal || "") || curPalier(opt) || palById(opt, "initie")) : null, E = pal && pal.etapes ? pal.etapes : [];
       var cur = null; E.forEach(function (et) { if (!cur && etapeOpen(pal, et.n) && !etapeState(pal.id, et).complete) cur = et; });
-      var html = '<div class="lhead"><img src="img/ill-parcours.svg" alt=""><div><strong>Mon parcours : ' + esc(pal ? pal.nom : "") + '</strong><div class="muted">De l\'Étincelle à l\'Étoile, une étape après l\'autre.</div></div><a class="pill gold" href="#/parcours">' + (opt.parcours ? totalPts(opt) : 0) + ' pts</a></div>';
-      if (cur) html += '<a class="ccard cbig" href="#/parcours/initie/' + cur.n + '"><span class="dur">≈ ' + dureeEtape(cur) + ' min</span><b>' + esc(cur.titre) + '</b><span>' + esc(cur.resume || "") + '</span><span class="muted2">Étape ' + cur.n + ' · ' + etapeState(pal.id, cur).lec + ' / 4 leçons ' + ICO.arrow + '</span></a>';
+      var html = '<div class="palsel" role="group" aria-label="Paliers">' + PL.map(function (p) { var on = pal && p.id === pal.id; return '<a class="chip' + (on ? " on" : "") + '" href="#/apprendre?p=' + p.id + '" aria-pressed="' + on + '">' + esc(p.nom.replace(/ \(.*\)$/, "")) + '</a>'; }).join("") + '</div>' +
+        '<div class="lhead"><img src="img/ill-parcours.svg" alt=""><div><strong>Mon parcours : ' + esc(pal ? pal.nom : "") + '</strong><div class="muted">De l\'Étincelle à l\'Étoile, une étape après l\'autre.</div></div><a class="pill gold" href="#/parcours">' + (opt.parcours ? totalPts(opt) : 0) + ' pts</a></div>';
+      if (cur) html += '<a class="ccard cbig" href="#/parcours/' + pal.id + '/' + cur.n + '"><span class="dur">≈ ' + dureeEtape(cur) + ' min</span><b>' + esc(cur.titre) + '</b><span>' + esc(cur.resume || "") + '</span><span class="muted2">Étape ' + cur.n + ' · ' + etapeState(pal.id, cur).lec + ' / ' + cur.lecons.length + ' leçons ' + ICO.arrow + '</span></a>';
       html += '<ol class="etl">' + E.map(function (et) {
         var stt2 = etapeState(pal.id, et);
-        return '<li><a class="' + (stt2.complete ? "done" : "") + '" href="#/parcours/initie/' + et.n + '"><span class="badge">' + (stt2.complete ? "✓" : et.n) + '</span><span class="nm"><b>' + esc(et.titre) + '</b><small>' + (stt2.complete ? "Terminé" : stt2.lec + " / " + stt2.tot + " leçons · ≈ " + dureeEtape(et) + " min") + '</small></span></a></li>';
-      }).join("") + '</ol><a class="lnk" href="#/parcours">Voir tous les paliers</a>';
+        return '<li><a class="' + (stt2.complete ? "done" : "") + '" href="#/parcours/' + pal.id + '/' + et.n + '"><span class="badge">' + (stt2.complete ? "✓" : et.n) + '</span><span class="nm"><b>' + esc(et.titre) + '</b><small>' + (stt2.complete ? "Terminé" : stt2.lec + " / " + stt2.tot + " leçons · ≈ " + dureeEtape(et) + " min") + '</small></span></a></li>';
+      }).join("") + '</ol>' + (!E.length ? '<div class="callout">' + esc(pal && pal.etat || "Contenu en préparation.") + '</div>' + (pal && pal.titres ? '<ol class="plainol">' + pal.titres.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ol>' : '') : '') + '<a class="lnk" href="#/parcours">Voir tous les paliers</a>';
       function gi(href, n, t) { return '<a class="gico" href="' + href + '"><span>' + ic(n, 26) + '</span><b>' + t + '</b></a>'; }
       html += '<h3>Bibliothèque</h3><div class="ggrid">' + gi("#/alphabet", "glossary", "Alphabet et lecture") + gi("#/tajwid", "audio", "Tajwid") + gi("#/niveaux", "path", "Repères de mémorisation") + gi("#/revision", "refresh", "Révision du jour") +
         gi("#/guide", "drop", "Ablutions et prière") + gi("#/jeune", "moon", "Jeûne") + gi("#/zakat", "coin", "Zakât") + gi("#/glossaire", "book", "Glossaire") + gi("#/converti", "lantern", "Nouveau musulman") + '</div>';
@@ -1464,6 +1467,7 @@
       '<li><b>Position (OpenStreetMap Nominatim)</b> : si tu utilises « Ma position », tes coordonnées (latitude et longitude) sont envoyées à nominatim.openstreetmap.org pour trouver le nom de ta ville. Les heures de prière et la qibla, elles, sont calculées sur l\'appareil.</li>' +
       '<li><b>Recherche de ville (Open-Meteo)</b> : le nom que tu tapes est envoyé à geocoding-api.open-meteo.com pour proposer des villes.</li>' +
       '<li><b>Récitations (EveryAyah)</b> : écouter ou télécharger une sourate demande le fichier audio à everyayah.com.</li>' +
+      (OPT && OPT.conf && OPT.conf.presence ? '<li><b>Compteur de présence (Supabase)</b> : pour afficher le nombre de personnes connectées, l\'application envoie à un serveur Supabase un identifiant aléatoire de connexion et l\'endroit où tu te trouves (application ou page de présentation), ainsi qu\'un identifiant aléatoire d\'installation compté une seule fois. Aucun prénom, aucune position, aucune donnée de pratique.</li>' : '') +
       '<li><b>Liens que tu ouvres</b> : Mawaqit et WhatsApp ne sont contactés que si tu touches le lien correspondant.</li></ul>' +
       '<p>Ces services reçoivent, comme tout site, ton adresse IP et la requête. NÛR ne leur transmet ni prénom ni identifiant. Leurs propres politiques s\'appliquent : <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OpenStreetMap</a>, <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Open-Meteo</a>.</p></div>' +
       '<div class="card"><h3>Tes droits</h3><p>« Exporter mes données » (dans Réglages) te donne une copie de tout ce que NÛR a enregistré ; « Supprimer mes données » efface tout sur cet appareil. Aucune publicité, aucun traceur, aucune mesure d\'audience.</p></div>';
@@ -1769,7 +1773,7 @@
   function drawCard(cv, c, msg, sg) {
     var x = cv.getContext("2d");
     function wrap(t, maxW) { var w = t.split(" "), L = [], cur = ""; w.forEach(function (s) { var tt = cur ? cur + " " + s : s; if (x.measureText(tt).width > maxW && cur) { L.push(cur); cur = s; } else cur = tt; }); if (cur) L.push(cur); return L; }
-    x.fillStyle = "#0F4C3A"; x.fillRect(0, 0, 1080, 1080);
+    x.fillStyle = "#18205C"; x.fillRect(0, 0, 1080, 1080);
     x.strokeStyle = "#C9A24B"; x.lineWidth = 6; x.strokeRect(50, 50, 980, 980); x.lineWidth = 2; x.strokeRect(74, 74, 932, 932);
     x.save(); x.translate(540, 210); x.rotate(Math.PI / 4); x.strokeStyle = "#C9A24B"; x.lineWidth = 4; x.strokeRect(-40, -40, 80, 80); x.restore();
     x.save(); x.translate(540, 210); x.strokeStyle = "#C9A24B"; x.lineWidth = 4; x.strokeRect(-40, -40, 80, 80); x.restore();
@@ -2766,7 +2770,7 @@
         }).join("") + '</div>' + arSeulHTML() + '<p class="muted"><span>Texte : riwaya de Warsh ʿan Nâfiʿ.</span> <span>' + NOTE_PHON + '</span> <span>Le sens en français est une formulation approchée, rédigée pour NÛR.</span></p>';
       }
       html += motsHTML(lc.mots) + (lc.source ? '<p class="muted">Source : ' + esc(lc.source) + '</p>' : '') + '<div class="callout"><strong>À retenir.</strong> ' + esc(lc.retenir || "") + '</div>' +
-        (lc.lien ? '<p><a class="btn alt" href="' + esc(lc.lien.href) + '">' + esc(lc.lien.txt) + '</a></p>' : '') + '</div>' + NOTE_VALIDATION +
+        (lc.lien ? '<p><a class="btn alt" href="' + esc(lc.lien.href) + '">' + esc(lc.lien.txt) + '</a></p>' : '') + '</div>' + (pal.id === "initie" ? NOTE_VALIDATION : '<p class="muted">Contenu sourcé, en cours de validation par l\'imam garant.</p>') +
         '<p class="muted">Audio de la leçon : à venir, après accord des ayants droit.</p>' +
         '<p class="row">' + (done ? '<a class="btn" href="' + nextHref + '">' + (li < et.lecons.length ? "Leçon suivante" : "Retour à l'étape") + '</a><span class="pill">Leçon terminée</span>' : '<button class="btn" id="fin">J\'ai compris : leçon terminée</button>') + '<a class="btn alt" href="' + back + '">Retour à l\'étape</a></p>';
       return { title: "Leçon", html: html, back: back, tab: "#/apprendre", bind: function (r) {
@@ -2911,5 +2915,7 @@
   /* v2.3 : un incident inattendu ne laisse jamais un écran vide */
   window.addEventListener("error", function (e) { try { var m = $("#main"); if (m && !m.children.length) { m.innerHTML = '<div class="card"><strong>Un incident est survenu</strong><p>Recharge l\'application. Tes données sont conservées sur ton appareil.</p><button class="btn" id="rld">Recharger</button></div>'; i18n(m); $("#rld", m).onclick = function () { location.reload(); }; } } catch (x) {} });
   try { var vk = new Date().toISOString().slice(0, 10); if (STORE.lastVisit !== vk) { STORE.lastVisit = vk; STORE.visits = (STORE.visits || 0) + 1; save(); } } catch (e) {}
+  /* v2.6 : compteur de présence anonyme, seulement s'il est activé dans config.json */
+  setTimeout(function () { loadOpt().then(function (opt) { var c = opt.conf && opt.conf.presence; if (!c || !c.url || !c.key || !window.NurPresence || !STORE.onboarded) return; NurPresence.start(c, "app", function () {}); NurPresence.installs(c, true); }).catch(function () {}); }, 3000);
   window.__NUR__ = { render: render, state: function () { return S; }, store: function () { return STORE; } };
 })();

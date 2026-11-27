@@ -23,3 +23,28 @@
   sel.addEventListener("change", draw);
   draw(); setInterval(draw, 30000);
 })();
+
+/* Encart « En direct » : présence anonyme, visible seulement quand le compteur est activé (ou en aperçu ?apercu=1). */
+(function () {
+  "use strict";
+  var box = document.getElementById("live"); if (!box) return;
+  var shown = {};
+  function tween(el, to) {
+    var from = shown[el.dataset.n] || 0; shown[el.dataset.n] = to; if (from === to) { el.textContent = to.toLocaleString("fr-FR"); return; }
+    var t0 = performance.now(), d = 900;
+    (function step(t) { var k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (to - from) * e).toLocaleString("fr-FR"); if (k < 1) requestAnimationFrame(step); else { el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); } })(t0);
+  }
+  function set(k, v) { var el = box.querySelector('[data-n="' + k + '"]'); if (el && v != null) tween(el, v); }
+  if (/[?&]apercu=1/.test(location.search)) {
+    box.hidden = false; box.classList.add("demo"); document.getElementById("lnNote").textContent = "aperçu du design, chiffres fictifs";
+    set("page", 3); set("app", 41); set("total", 1280);
+    setInterval(function () { set("page", 2 + Math.round(Math.random() * 3)); set("app", 38 + Math.round(Math.random() * 8)); }, 4000);
+    return;
+  }
+  fetch("../config.json").then(function (r) { return r.json(); }).then(function (c) {
+    var cfg = c && c.presence; if (!cfg || !cfg.url || !cfg.key || !window.NurPresence) return;
+    box.hidden = false;
+    NurPresence.start(cfg, "page", function (n) { set("page", n.page); set("app", n.app); });
+    var tot = function () { NurPresence.installs(cfg, false).then(function (n) { set("total", n); }); }; tot(); setInterval(tot, 60000);
+  }).catch(function () {});
+})();
