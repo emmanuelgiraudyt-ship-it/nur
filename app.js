@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.8.0";
+  var VERSION = "2.9.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -760,6 +760,8 @@
   }
   /* ================================================================ fin v1.6 */
   /* ================================================================ v2.8 : écran d'accueil (seuil) à chaque lancement */
+  function seuilStandalone() { try { return matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches || navigator.standalone === true; } catch (e) { return false; } }
+  function seuilIOS() { var u = navigator.userAgent || ""; return /iphone|ipad|ipod/i.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1); }
   function seuilBoot() {
     try {
       var force = /[?&]seuil=1/.test(location.search);
@@ -773,7 +775,12 @@
         '<div class="s-mid"><div class="s-emb">' + NurEmblem.svg({}) + '</div><h1 class="s-name" data-noi18n>NÛR</h1><p class="s-tag">La lumière du Coran, à chaque heure du jour.</p>' +
         '<p class="s-mom" data-noi18n>' + esc(tr(M[0]) + " · " + tr(isChild() ? MOMK[mo] : M[1])) + '</p></div>' +
         '<div class="s-bot"><span class="s-hz" aria-hidden="true"></span><div class="s-pr"><div><small>Prochaine prière</small><b class="s-pn" data-noi18n></b></div><div class="s-cd" data-noi18n><span class="s-cdv">--:--:--</span><small class="s-pt"></small></div></div>' +
-        '<button class="s-go" type="button"><span>Ouvrir NÛR</span>' + ICO.arrow + '</button><p class="s-foot">Gratuit · Sans publicité · Hors ligne</p></div>';
+        '<button class="s-go" type="button"><span>Ouvrir NÛR</span>' + ICO.arrow + '</button>' +
+        (seuilStandalone() ? '' : '<button class="s-inst" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Installer NÛR sur ce téléphone</span></button>' +
+          '<div class="s-how" hidden><strong>' + (seuilIOS() ? 'Sur iPhone et iPad' : 'Depuis ton navigateur') + '</strong><ol>' + (seuilIOS() ?
+            '<li>Touche le bouton Partager, le carré surmonté d\'une flèche.</li><li>Choisis « Sur l\'écran d\'accueil ».</li><li>Touche « Ajouter » : NÛR rejoint tes applications.</li>' :
+            '<li>Ouvre le menu du navigateur (les trois points).</li><li>Choisis « Installer l\'application » ou « Ajouter à l\'écran d\'accueil ».</li><li>Confirme : NÛR rejoint tes applications.</li>') + '</ol></div>') +
+        '<p class="s-foot">Gratuit · Sans publicité · Hors ligne</p></div>';
       svgE = el.querySelector(".nemb"); pn = el.querySelector(".s-pn"); pt = el.querySelector(".s-pt"); cdv = el.querySelector(".s-cdv");
       document.body.appendChild(el); document.body.classList.add("seuil-on"); i18n(el);
       loadDict().then(function () { if (done) return; i18n(el); el.setAttribute("aria-label", tr("Accueil de NÛR")); var mm = el.querySelector(".s-mom"); if (mm) mm.textContent = tr(M[0]) + " · " + tr(isChild() ? MOMK[mo] : M[1]); last = ""; tick(); }).catch(function () {});
@@ -790,6 +797,13 @@
         if (STORE.onboarded && location.hash !== "#/" && location.hash !== "") location.hash = "#/";
         el.classList.add("out"); document.body.classList.remove("seuil-on"); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 850);
       }
+      var ib = el.querySelector(".s-inst"), how = el.querySelector(".s-how");
+      if (ib) ib.onclick = function (ev) {
+        ev.stopPropagation();
+        if (deferredPrompt) { var dp = deferredPrompt; deferredPrompt = null; dp.prompt(); (dp.userChoice || Promise.resolve({})).then(function (c) { if (c && c.outcome === "accepted") { ib.hidden = true; how.hidden = true; toast("NÛR s'installe sur ton téléphone."); } }).catch(function () {}); }
+        else { how.hidden = !how.hidden; el.classList.toggle("how-on", !how.hidden); if (!how.hidden) setTimeout(function () { try { how.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) {} }, 80); }
+      };
+      window.addEventListener("appinstalled", function () { if (ib) ib.hidden = true; if (how) how.hidden = true; });
       var btn = el.querySelector(".s-go"); btn.onclick = go; setTimeout(function () { try { btn.focus({ preventScroll: true }); } catch (e) {} }, 400);
       el.addEventListener("keydown", function (e) { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); go(); } });
       var y0 = null; el.addEventListener("touchstart", function (e) { y0 = e.touches[0].clientY; }, { passive: true });
@@ -1435,7 +1449,7 @@
       if (params && params.p) apPal = params.p;
       var PL = opt.parcours ? paliers(opt) : [], pal = opt.parcours ? (palById(opt, apPal || "") || curPalier(opt) || palById(opt, "initie")) : null, E = pal && pal.etapes ? pal.etapes : [];
       var cur = null; E.forEach(function (et) { if (!cur && etapeOpen(pal, et.n) && !etapeState(pal.id, et).complete) cur = et; });
-      var html = '<div class="palsel" role="group" aria-label="Paliers">' + PL.map(function (p) { var on = pal && p.id === pal.id; return '<a class="chip' + (on ? " on" : "") + '" href="#/apprendre?p=' + p.id + '" aria-pressed="' + on + '">' + esc(p.nom.replace(/ \(.*\)$/, "")) + '</a>'; }).join("") + '</div>' +
+      var html = '<div class="palsel" role="group" aria-label="Paliers">' + PL.map(function (p) { var on = pal && p.id === pal.id; return '<a class="chip' + (on ? " on" : "") + '" href="#/apprendre?p=' + p.id + '"' + (on ? ' aria-current="page"' : '') + '>' + esc(p.nom.replace(/ \(.*\)$/, "")) + '</a>'; }).join("") + '</div>' +
         '<div class="lhead"><img src="img/ill-parcours.svg" alt=""><div><strong>Mon parcours : ' + esc(pal ? pal.nom : "") + '</strong><div class="muted">De l\'Étincelle à l\'Étoile, une étape après l\'autre.</div></div><a class="pill gold" href="#/parcours">' + (opt.parcours ? totalPts(opt) : 0) + ' pts</a></div>';
       if (cur) html += '<a class="ccard cbig" href="#/parcours/' + pal.id + '/' + cur.n + '"><span class="dur">≈ ' + dureeEtape(cur) + ' min</span><b>' + esc(cur.titre) + '</b><span>' + esc(cur.resume || "") + '</span><span class="muted2">Étape ' + cur.n + ' · ' + etapeState(pal.id, cur).lec + ' / ' + cur.lecons.length + ' leçons ' + ICO.arrow + '</span></a>';
       html += '<ol class="etl">' + E.map(function (et) {
@@ -1765,8 +1779,9 @@
       if (!navigator.geolocation) { if (!silent) toast("Géolocalisation indisponible sur cet appareil."); return res(null); }
       navigator.geolocation.getCurrentPosition(function (p) {
         var l = { name: "Ma position", lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), tz: Intl.DateTimeFormat().resolvedOptions().timeZone, gps: true, acc: Math.round(p.coords.accuracy) };
+        var cur = S.settings.loc; if (silent && cur && !cur.def && distKm(cur, l) <= 3) { l.name = cur.name; return res(l); } // pas de requête inutile à Nominatim
         revGeo(l.lat, l.lng).then(function (n) { if (n) l.name = n; res(l); });
-      }, function () { if (!silent) toast("Position refusée ou indisponible."); res(null); }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 300000 });
+      }, function () { if (!silent) toast("Position refusée ou indisponible."); res(null); }, silent ? { enableHighAccuracy: false, timeout: 20000, maximumAge: 1800000 } : { enableHighAccuracy: true, timeout: 20000, maximumAge: 300000 });
     });
   }
   function autoLocate() {

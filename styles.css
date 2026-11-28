@@ -5,7 +5,7 @@
 }
 :root {
   --bg: #F6F7FB; --panel: #FFFFFF; --ink: #1A1F3D; --muted: #5D6382; --line: #E7E0CC;
-  --accent: #2E3C96; --gold: #9A6F12; --onaccent: #FFFFFF; --soft: #EBEEFB; --danger: #A83232;
+  --accent: #2E3C96; --gold: #8A630F; --onaccent: #FFFFFF; --soft: #EBEEFB; --danger: #A83232;
   --fs: 1;
   color-scheme: light dark;
 }
@@ -517,7 +517,7 @@ h3 { color: #7F5A0C; }
 .srow .nm small { color: var(--muted); }
 .srow .ar { font-family: "KFGQPC Warsh", "Amiri", serif; font-size: 1.25rem; color: var(--accent); }
 .srow .badge, .etl .badge { width: 34px; height: 34px; border-radius: 50%; background: var(--soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: .85rem; }
-.srow.done .ck { color: #9A6F12; }
+.srow.done .ck { color: #8A630F; }
 /* Apprendre */
 .lhead { display: flex; align-items: center; gap: .8rem; margin-bottom: .8rem; }
 .lhead img { width: 72px; height: 54px; border-radius: 12px; object-fit: cover; flex: none; }
@@ -530,7 +530,7 @@ h3 { color: #7F5A0C; }
 .etl a.done .badge { background: #F6E3A6; color: #7F5A0C; }
 /* Prière */
 .bst { display: block; font-size: .72rem; color: var(--muted); font-weight: 400; }
-.bell.on { color: #9A6F12; }
+.bell.on { color: #8A630F; }
 .bell:not(.on) { color: var(--muted); opacity: .8; }
 details.fold > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; }
 details.fold > summary::after { content: "+"; font-size: 1.3rem; color: var(--accent); }
@@ -680,7 +680,7 @@ body[data-moment="nuit"] .skyfx b { background: radial-gradient(circle, rgba(246
 body[data-moment="nuit"] .skyfx .sk-cloud { opacity: .15; } body[data-moment="soir"] .skyfx .sk-cloud, body[data-moment="aube"] .skyfx .sk-cloud { background: rgba(255,236,224,.75); }
 @keyframes skCloud { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 520px)); } }
 .skyfx .sk-city { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 96px; opacity: .13; fill: #2E3C96; transition: fill 1.2s; }
-body[data-moment="aube"] .skyfx .sk-city { fill: #8E6A8F; } body[data-moment="matin"] .skyfx .sk-city { fill: #9A6F12; } body[data-moment="soir"] .skyfx .sk-city { fill: #7A3B2E; } body[data-moment="nuit"] .skyfx .sk-city { fill: #3B4C86; opacity: .2; }
+body[data-moment="aube"] .skyfx .sk-city { fill: #8E6A8F; } body[data-moment="matin"] .skyfx .sk-city { fill: #8A630F; } body[data-moment="soir"] .skyfx .sk-city { fill: #7A3B2E; } body[data-moment="nuit"] .skyfx .sk-city { fill: #3B4C86; opacity: .2; }
 .skyfx i { width: 3px; height: 3px; }
 body[data-moment="nuit"] .skyfx i { background: #5B6BA8; box-shadow: 0 0 6px #8E9CD8; }
 #momline { position: fixed; z-index: 19; left: 0; right: 0; max-width: 480px; margin: 0 auto; top: calc(env(safe-area-inset-top, 0px) + 56px); padding: .22rem .7rem; text-align: center; font-size: .76rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -832,7 +832,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--gold1); outline
 @font-face { font-family: "NurDisplay"; src: url("fonts/marcellus.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "NurText"; src: url("fonts/manrope.woff2") format("woff2"); font-weight: 200 800; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: "NurText"; src: url("fonts/manrope-ext.woff2") format("woff2"); font-weight: 200 800; font-display: swap; unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-:root { --bg: #F6F7FB; --ink: #1A1F3D; --muted: #5D6382; --line: #E1E3EF; --accent: #2E3C96; --soft: #EBEEFB; --gold: #9A6F12; --hair: rgba(166,124,40,.32); --glass: rgba(255,255,255,.66); }
+:root { --bg: #F6F7FB; --ink: #1A1F3D; --muted: #5D6382; --line: #E1E3EF; --accent: #2E3C96; --soft: #EBEEFB; --gold: #8A630F; --hair: rgba(166,124,40,.32); --glass: rgba(255,255,255,.66); }
 body, button, input, select, textarea { font-family: "NurText", "Segoe UI", system-ui, -apple-system, sans-serif; }
 body { font-size: calc(16px * var(--fs)); letter-spacing: .005em; font-feature-settings: "tnum" 1, "ss01" 1; }
 h1, h2, .salutM, .moment b, .heroQ .hn, .hero .hn, .lhead strong, .srow .nm b, .card > strong:first-child, .qcard strong, .assez strong, .jspec strong, .ncard .ph, .top h1 { font-family: "NurDisplay", "NurText", serif; font-weight: 400; letter-spacing: .02em; }

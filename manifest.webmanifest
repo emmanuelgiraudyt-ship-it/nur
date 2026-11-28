@@ -68,5 +68,35 @@
         }
       ]
     }
+  ],
+  "screenshots": [
+    {
+      "src": "decouvrir/ecran-quotidien.webp",
+      "sizes": "585x1266",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Le Quotidien : prochaine prière et jour particulier"
+    },
+    {
+      "src": "decouvrir/ecran-coran.webp",
+      "sizes": "585x1266",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Le Coran en Warsh, avec phonétique et traduction"
+    },
+    {
+      "src": "decouvrir/ecran-priere.webp",
+      "sizes": "585x1266",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Les cinq prières de ta ville"
+    },
+    {
+      "src": "decouvrir/ecran-constellation.webp",
+      "sizes": "585x1266",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Ta constellation de régularité"
+    }
   ]
 }

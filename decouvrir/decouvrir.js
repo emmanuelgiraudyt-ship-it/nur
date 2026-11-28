@@ -50,3 +50,23 @@
     var tot = function () { NurPresence.installs(cfg, false).then(function (n) { set("total", n); }); }; tot(); setInterval(tot, 60000);
   }).catch(function () {});
 })();
+
+/* v2.9 : bouton d'installation de l'application (invite native ou mode d'emploi). */
+(function () {
+  "use strict";
+  var b = document.getElementById("inst"), how = document.getElementById("instHow"), dp = null;
+  if (!b || !how) return;
+  var sa = false; try { sa = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch (e) {}
+  if (sa) return;
+  var u = navigator.userAgent || "", ios = /iphone|ipad|ipod/i.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1);
+  b.hidden = false;
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); dp = e; });
+  window.addEventListener("appinstalled", function () { b.hidden = true; how.hidden = false; how.innerHTML = "<strong>NÛR est installée.</strong> Tu la trouveras parmi tes applications."; });
+  b.addEventListener("click", function () {
+    if (dp) { var p = dp; dp = null; p.prompt(); return; }
+    how.innerHTML = ios ?
+      "<strong>Sur iPhone et iPad</strong><ol><li>Touche le bouton Partager de Safari, le carré surmonté d'une flèche.</li><li>Choisis « Sur l'écran d'accueil ».</li><li>Touche « Ajouter » : NÛR rejoint tes applications.</li></ol>" :
+      "<strong>Depuis ton navigateur</strong><ol><li>Ouvre le menu du navigateur (les trois points).</li><li>Choisis « Installer l'application » ou « Ajouter à l'écran d'accueil ».</li><li>Confirme : NÛR rejoint tes applications.</li></ol>";
+    how.hidden = !how.hidden;
+  });
+})();
