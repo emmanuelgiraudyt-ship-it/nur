@@ -6,7 +6,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
-  var VERSION = "2.7.0";
+  var VERSION = "2.8.0";
   var KEY = "nur:v1", KEY2 = "nur:v2";
 
   /* ------------------------------------------------------------ état persistant */
@@ -750,13 +750,53 @@
     return '<h3>Accessibilité et rappels</h3>' +
       (kid ? '<div class="card"><strong>Temps d\'écran par jour</strong><p class="muted">Réglage réservé à l\'adulte (code parental).</p><div class="seg3">' + [0, 15, 30, 45, 60].map(function (v) { return '<button data-km="' + v + '" aria-pressed="' + (mx === v) + '">' + (v ? v + " min" : "Sans limite") + '</button>'; }).join("") + '</div><p class="muted small">Utilisé aujourd\'hui : ' + Math.round(kidUsed() / 60) + ' min</p></div>' :
         '<label class="tcard"><span><b>Lire l\'écran à voix haute</b><small>Ajoute un bouton en haut de l\'écran ; utile pour qui ne lit pas encore facilement.</small></span><input type="checkbox" class="sw" id="voix"' + (S.settings.voix ? " checked" : "") + '></label>') +
+      '<label class="tcard"><span><b>Écran d\'accueil à l\'ouverture</b><small>Un écran de lumière accueille chaque ouverture ; « Ouvrir NÛR » mène au Quotidien.</small></span><input type="checkbox" class="sw" id="seuilsw"' + (S.settings.seuil !== false ? " checked" : "") + '></label>' +
       '<a class="lcardM" href="#/audio"><span>Récitations hors ligne</span>' + ICO.arrow + '</a>';
   }
   function bindLotsSettings(r) {
     $$("[data-km]", r).forEach(function (b) { b.onclick = function () { askPin("Code parental").then(function (ok) { if (!ok) return; S.settings.kidMax = +b.dataset.km; save(); toast("Temps d'écran enregistré."); render(); }); }; });
     var v = $("#voix", r); if (v) v.onchange = function () { S.settings.voix = v.checked; save(); sayBtn(); };
+    var sw = $("#seuilsw", r); if (sw) sw.onchange = function () { S.settings.seuil = sw.checked; save(); toast(sw.checked ? "Écran d'accueil activé." : "Écran d'accueil désactivé."); };
   }
   /* ================================================================ fin v1.6 */
+  /* ================================================================ v2.8 : écran d'accueil (seuil) à chaque lancement */
+  function seuilBoot() {
+    try {
+      var force = /[?&]seuil=1/.test(location.search);
+      if (!force && (navigator.webdriver || location.hash.replace(/^#/, "") !== "" || (S && S.settings && S.settings.seuil === false))) return;
+      if (!window.NurEmblem) return;
+      var L = loc(), T = timesFor(L, ymd(Date.now(), L.tz)), mo = moment0(), M = MOM[mo] || MOM.jour, motes = "", i, last = "", done = false, svgE, pn, pt, cdv;
+      for (i = 0; i < 26; i++) { var z = (2 + rnd(i + 700) * 2.6).toFixed(1); motes += '<i style="left:' + (rnd(i + 300) * 100).toFixed(1) + '%;--dx:' + ((rnd(i + 400) - .5) * 70).toFixed(0) + 'px;width:' + z + 'px;height:' + z + 'px;animation-duration:' + (10 + rnd(i + 500) * 10).toFixed(1) + 's;animation-delay:' + (-rnd(i + 600) * 16).toFixed(1) + 's"></i>'; }
+      var el = document.createElement("div"); el.id = "seuil"; el.dataset.m = mo; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", tr("Accueil de NÛR"));
+      el.innerHTML = '<div class="s-motes" aria-hidden="true">' + motes + '</div>' +
+        '<div class="s-top"><span><span class="ar" lang="ar">نور</span> · NÛR</span><span class="s-hij" data-noi18n>' + esc(hijriStr()) + '</span></div>' +
+        '<div class="s-mid"><div class="s-emb">' + NurEmblem.svg({}) + '</div><h1 class="s-name" data-noi18n>NÛR</h1><p class="s-tag">La lumière du Coran, à chaque heure du jour.</p>' +
+        '<p class="s-mom" data-noi18n>' + esc(tr(M[0]) + " · " + tr(isChild() ? MOMK[mo] : M[1])) + '</p></div>' +
+        '<div class="s-bot"><span class="s-hz" aria-hidden="true"></span><div class="s-pr"><div><small>Prochaine prière</small><b class="s-pn" data-noi18n></b></div><div class="s-cd" data-noi18n><span class="s-cdv">--:--:--</span><small class="s-pt"></small></div></div>' +
+        '<button class="s-go" type="button"><span>Ouvrir NÛR</span>' + ICO.arrow + '</button><p class="s-foot">Gratuit · Sans publicité · Hors ligne</p></div>';
+      svgE = el.querySelector(".nemb"); pn = el.querySelector(".s-pn"); pt = el.querySelector(".s-pt"); cdv = el.querySelector(".s-cdv");
+      document.body.appendChild(el); document.body.classList.add("seuil-on"); i18n(el);
+      loadDict().then(function () { if (done) return; i18n(el); el.setAttribute("aria-label", tr("Accueil de NÛR")); var mm = el.querySelector(".s-mom"); if (mm) mm.textContent = tr(M[0]) + " · " + tr(isChild() ? MOMK[mo] : M[1]); last = ""; tick(); }).catch(function () {});
+      function p2(n) { return String(n).padStart(2, "0"); }
+      function tick() {
+        var np = nextPrayer(); if (!np) return;
+        if (np.k + np.ts !== last) { last = np.k + np.ts; pn.textContent = tr(np.name); pt.textContent = fmtT(np.ts, np.tz); T = timesFor(L, ymd(Date.now(), L.tz)); }
+        NurEmblem.place(svgE, T, L.tz, np.k);
+        var sec = Math.max(0, Math.floor((np.ts - Date.now()) / 1000)); cdv.textContent = p2(Math.floor(sec / 3600)) + ":" + p2(Math.floor(sec / 60) % 60) + ":" + p2(sec % 60);
+      }
+      tick(); var iv = setInterval(tick, 1000);
+      function go() {
+        if (done) return; done = true; clearInterval(iv);
+        if (STORE.onboarded && location.hash !== "#/" && location.hash !== "") location.hash = "#/";
+        el.classList.add("out"); document.body.classList.remove("seuil-on"); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 850);
+      }
+      var btn = el.querySelector(".s-go"); btn.onclick = go; setTimeout(function () { try { btn.focus({ preventScroll: true }); } catch (e) {} }, 400);
+      el.addEventListener("keydown", function (e) { if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); go(); } });
+      var y0 = null; el.addEventListener("touchstart", function (e) { y0 = e.touches[0].clientY; }, { passive: true });
+      el.addEventListener("touchend", function (e) { if (y0 != null && e.changedTouches[0].clientY - y0 < -70) go(); y0 = null; }, { passive: true });
+    } catch (e) { var x = document.getElementById("seuil"); if (x) x.parentNode.removeChild(x); document.body.classList.remove("seuil-on"); }
+  }
+
 
   /* ================================================================
      Structure reprise de MAARIFA (version Android 1.55.02, captures du commanditaire du 16 novembre 2026).
@@ -2896,7 +2936,7 @@
   function netState() { var n = $("#net"); n.textContent = navigator.onLine ? "" : "Hors ligne"; }
   window.addEventListener("online", netState); window.addEventListener("offline", netState);
 
-  applyLang(); applyTheme(); netState(); startMO(); render(); setTimeout(prefetchLang, 4000); scheduleNotifs(); setTimeout(autoLocate, 1500);
+  applyLang(); applyTheme(); netState(); startMO(); seuilBoot(); render(); setTimeout(prefetchLang, 4000); scheduleNotifs(); setTimeout(autoLocate, 1500);
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") { autoLocate(); scheduleNotifs(); } });
   setInterval(function () {
     if (STORE.active && document.visibilityState !== "hidden") { S.temps = (S.temps || 0) + 60; if (isChild()) { kidUsed(); S.kidDay.s += 60; } save(); if (kidLocked() && location.hash.indexOf("#/profils") !== 0) render(); }

@@ -1,7 +1,8 @@
 /* NÛR — page de présentation : prochaine prière calculée en direct pour la ville choisie. */
 (function () {
   "use strict";
-  var P = window.NurPrayer, sel = document.getElementById("ville");
+  var P = window.NurPrayer, sel = document.getElementById("ville"), emb = document.getElementById("emb");
+  if (emb && window.NurEmblem) emb.innerHTML = window.NurEmblem.svg({ text: false });
   if (!P || !sel) return;
   var ORDER = [["fajr", "Fajr"], ["dhuhr", "Dhuhr"], ["asr", "ʿAsr"], ["maghrib", "Maghrib"], ["isha", "ʿIshâʾ"]];
   function ymd(ts, tz) {
@@ -13,8 +14,9 @@
   function draw() {
     var v = sel.value.split(","), lat = +v[0], lng = +v[1], tz = v[2], now = Date.now(), o = ymd(now, tz);
     var T = P.compute(o.y, o.m, o.d, lat, lng, { method: "MWL", offsets: {} }), next = null;
-    for (var i = 0; i < ORDER.length; i++) if (T[ORDER[i][0]] > now) { next = [ORDER[i][1], T[ORDER[i][0]]]; break; }
-    if (!next) { var d2 = new Date(Date.UTC(o.y, o.m - 1, o.d + 1, 12)), T2 = P.compute(d2.getUTCFullYear(), d2.getUTCMonth() + 1, d2.getUTCDate(), lat, lng, { method: "MWL", offsets: {} }); next = ["Fajr", T2.fajr]; }
+    for (var i = 0; i < ORDER.length; i++) if (T[ORDER[i][0]] > now) { next = [ORDER[i][1], T[ORDER[i][0]], ORDER[i][0]]; break; }
+    if (!next) { var d2 = new Date(Date.UTC(o.y, o.m - 1, o.d + 1, 12)), T2 = P.compute(d2.getUTCFullYear(), d2.getUTCMonth() + 1, d2.getUTCDate(), lat, lng, { method: "MWL", offsets: {} }); next = ["Fajr", T2.fajr, "fajr"]; }
+    if (emb && window.NurEmblem) window.NurEmblem.place(emb, T, tz, next[2]);
     var m = Math.max(0, Math.round((next[1] - now) / 60000));
     document.getElementById("lvn").textContent = next[0];
     document.getElementById("lvt").textContent = fmt(next[1], tz) + " · dans " + Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0");
